@@ -1,0 +1,12 @@
+= r.label "Test suite name:"
+= r.text_field :title, :class => "form-control"
+%table.table.table-bordered.table-striped
+  %thead
+    %tr
+      %th.id.center #
+      %th.id Files
+    %tbody
+      - @files.each do |f|
+        %tr
+          %td.center= check_box_tag 'files[]', f, false, :class => "checkbox"
+          %td= f

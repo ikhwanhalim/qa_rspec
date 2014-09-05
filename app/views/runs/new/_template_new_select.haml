@@ -1,0 +1,4 @@
+%tr
+  %th
+    = select_tag "", options_for_select(@templates.map{ |t| [t.template_name] }), :class => "form-control"
+    = link_to image_tag('Minus.png', :class => "minus"), "#", :class => "icon-minus"

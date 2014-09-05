@@ -1,0 +1,137 @@
+/* Flatly
+ * Bootswatch
+ *= require_self
+ *= require flatly/loader
+ *= require flatly/bootswatch
+*/
+
+
+/* Login page */
+.login {
+	margin-top: 200px;
+	width: 400px !important;
+	border-style: solid;
+	border-width: 2px;
+	border-radius: 10px;
+	border-color: #18bc9c;
+	padding: 20px
+}
+
+.btn-login {
+	width: 366px;
+}
+
+/* Icons */
+.minus, .plus {
+	width: 30px; 
+}
+
+.lock {
+	background: url(Lock.png);
+}
+
+.bin {
+	background: url(Bin.png);
+}
+
+.icon {
+	background-repeat: no-repeat;
+  background-size: 40px;
+	position: absolute;
+	height:40px;
+  width:40px;
+  margin: 5px 0 0 10px; 
+}
+
+/* Home page */
+.top150 {
+	margin-top: 150px;
+}
+
+.top30 {
+	margin-top: 30px;
+}
+
+.border-bottom {
+	border-bottom: 1px solid #eee;
+}
+
+span {
+	color: #ffffff;
+}
+
+.list-group-item.active {
+	background-color: #18bc9c!important;
+	border-color: #18bc9c!important;
+}
+
+.panel img, .panel button{
+	display: block;
+	margin: 0 auto 0 auto;
+}
+
+.col-lg-9 {
+	padding-right: 30px!important;
+}
+
+/* Home page brand picture*/
+img.brand {
+	margin-left: -20px;
+	margin-top: -20px;
+	margin-right: 100px;
+	width: 110px;
+}
+
+/* Stepy Wizard */
+.stepy-navigator>a, .stepy-navigator>input {
+  margin: 1%;
+}
+
+.stepy-navigator {
+	display: block;
+	width: 100%;
+}
+
+/* Tables */
+td.center {
+  width: 1%;
+}
+
+th, td {
+	vertical-align: middle!important;
+}
+
+/*Select Options*/
+select.form-control {
+	display: inline;
+	width: 95%;
+}
+
+/*Number spinner and fields*/
+input[type="number"],input[type="text"] {
+	display: inline-block;
+	margin: 10px;
+	
+}
+
+#run_threads
+{
+	width: 70px;
+}
+
+#run_title
+{
+	width: 400px;
+}
+
+#run_server
+{
+	width: 150px;
+}
+
+
+/*Report frame*/
+iframe.modal-content{
+	height: 1000px;
+  width:100%
+}

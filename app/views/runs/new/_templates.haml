@@ -1,0 +1,24 @@
+%table.table.table-bordered.table-striped
+  %thead
+    %tr
+      %th 
+        %span1 Template name
+        = link_to image_tag('Plus.png', :class => "plus"), "#", :class => "icon-plus"
+        = link_to 'Update templates', runs_update_templates_path, :class => "btn btn-primary space"
+    %tbody.template
+
+:javascript
+  $( ".icon-plus" ).click(function() {
+
+    $("#{escape_javascript(render :partial => "runs/new/template_new_select")}").appendTo("tbody.template");
+    
+    $('.template select').each(function(){
+      $(this).attr("name", "templates[]");
+    })
+
+    $( ".icon-minus" ).click(function() {
+      $(this).parents('th').remove();
+    }); 
+  });
+
+        
