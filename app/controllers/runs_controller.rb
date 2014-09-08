@@ -40,11 +40,12 @@ class RunsController < ApplicationController
   end
 
   def run_all
-    runs = params[:runs]
-    runs.each do |r|
-      run = Run.find(r)
-      reports = run.reports
-      reports.map { |report| report.update_attribute(:status, "Ready") }
+    $hash = Hash[*params[:runs].map {|k| [Run.find(k), nil]}.flatten]
+    $hash.each do |k,v|
+      $hash[k] = k.reports
+      $hash[k].each { |report| report.update_attribute(:status, "Ready") }
+    end
+    $hash.each do |run,reports|
       Spawnling.new do
         while reports.any? and reports.first.status != 'Stopped'
           active_runs = Report.where("status='Running' and run_id='#{run.id}'")
@@ -55,6 +56,18 @@ class RunsController < ApplicationController
           sleep 10
         end
       end
+    end
+    redirect_to root_path
+  end
+
+  def kill
+    $hash.each do |run, reports|
+      reports = Report.where("run_id = #{run.id} AND status != 'Finished'")
+      reports.each {|r| r.update_attribute(:status, "Stopped")}
+      reports.clear
+    end
+    Spawnling.new do
+      system "kill -9 `ps -ef | grep rspec | grep -v grep | awk '{print $2}'`"
     end
     redirect_to root_path
   end

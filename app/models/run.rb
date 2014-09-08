@@ -14,11 +14,11 @@ class Run < ActiveRecord::Base
               "TEMPLATE_FILE_NAME='#{template.template_name}' "\
               "TEMPLATE_URL='#{template.template_url}' "\
               "rspec #{files.join ' '} --format h --out reports/#{Report.today}/#{report.report_file}"
-    p str_run
+    # p str_run
 	  Spawnling.new do
-      report.update_attribute(:status, "Running")
+      Report.find(report.id).update_attribute(:status, "Running")
       system str_run
-      report.update_attribute(:status, "Finished")
+      Report.find(report.id).update_attribute(:status, "Finished")
     end
   end
 

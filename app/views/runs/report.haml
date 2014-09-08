@@ -10,7 +10,7 @@
         %tbody
           -@reports.each do |r|
             %tr{"data-target" => "##{r.id}", "data-toggle" => "modal"}
-              -if !File.exist?("#{@directory}/#{r.report_file}") or Dir[@directory + '/*'].empty?
+              -if !r.report_file? or Dir[@directory + '/*'].empty? or !File.exist?("#{@directory}/#{r.report_file}")
                 %th
                   = "Suite hasn't been started yet"
               -else
@@ -28,7 +28,7 @@
                 - else
                   %span.label.label-success= r.status
             -if !Dir[@directory + '/*'].empty?
-              -if File.exist?("#{@directory}/#{r.report_file}")
+              -if File.exist?("#{@directory}/#{r.report_file}") and r.report_file?
                 .modal.fade{:id=>r.id, "aria-hidden" => "true", :role => "dialog", :tabindex => "-1"}
                   .modal-dialog.modal-lg
                     - file = File.open("#{@directory}/#{r.report_file}", "r")

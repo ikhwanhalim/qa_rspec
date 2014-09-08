@@ -5,6 +5,7 @@ Repair::Application.routes.draw do
   get "runs/update_templates"
   post "runs/run_all"
   get "runs/report"
+  get "runs/kill"
 
   resources :runs
 end
