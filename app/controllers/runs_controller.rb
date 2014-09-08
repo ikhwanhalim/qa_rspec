@@ -47,13 +47,13 @@ class RunsController < ApplicationController
     end
     $hash.each do |run,reports|
       Spawnling.new do
-        while reports.any? and reports.first.status != 'Stopped'
+        while reports.any? and Report.find(reports.first.id).status != 'Stopped'
           active_runs = Report.where("status='Running' and run_id='#{run.id}'")
           if active_runs.count < run.threads and reports.any?
             Run.thread(run.server, reports.first)
             reports.shift
           end
-          sleep 10
+          sleep 1
         end
       end
     end
