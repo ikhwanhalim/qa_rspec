@@ -83,6 +83,13 @@ class RunsController < ApplicationController
     @reports = Run.find(params[:id]).reports
   end
 
+  def refresh_report
+    @directory = 'reports/' + Report.today
+    Dir.mkdir @directory if !File.directory?(@directory)
+    @reports = Run.find(params[:id]).reports
+    render :partial => "runs/status"
+  end
+
   def destroy
     Run.find(params[:id]).destroy
     redirect_to root_path

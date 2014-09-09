@@ -1,36 +1,10 @@
 .container.container
-  .row
-    %table.table.table-bordered.table-striped
-      %thead
-        %tr
-          %th Report file
-          %th Template
-          %th Virtualization
-          %th Status
-        %tbody
-          -@reports.each do |r|
-            %tr{"data-target" => "##{r.id}", "data-toggle" => "modal"}
-              -if !r.report_file? or Dir[@directory + '/*'].empty? or !File.exist?("#{@directory}/#{r.report_file}")
-                %th
-                  = "Suite hasn't been started yet"
-              -else
-                %th 
-                  = r.report_file
-              %th 
-                = r.template_name
-              %th 
-                = r.virt
-              %th
-                - if r.status == "Stopped"
-                  %span.label.label-default= r.status
-                - elsif r.status == "Running"
-                  %span.label.label-warning= r.status
-                - else
-                  %span.label.label-success= r.status
-            -if !Dir[@directory + '/*'].empty?
-              -if File.exist?("#{@directory}/#{r.report_file}") and r.report_file?
-                .modal.fade{:id=>r.id, "aria-hidden" => "true", :role => "dialog", :tabindex => "-1"}
-                  .modal-dialog.modal-lg
-                    - file = File.open("#{@directory}/#{r.report_file}", "r")
-                    %iframe.modal-content{:srcdoc => file.read, :frameborder => 0}
-      
+  .row.dynamic
+    = render partial: "status"
+
+:javascript
+  setInterval(function() {
+    if ($('.in').length == 0){
+      $('.dynamic').load('/runs/refresh_report', {"id":1});
+    };
+  }, 3000);
