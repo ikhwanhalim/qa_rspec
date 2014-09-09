@@ -40,21 +40,39 @@ class RunsController < ApplicationController
   end
 
   def run_all
-    runs = params[:runs]
-    runs.each do |r|
-      run = Run.find(r)
-      reports = run.reports
-      reports.map { |report| report.update_attribute(:status, "Ready") }
+    $hash = Hash[*params[:runs].map {|k| [k, nil]}.flatten]
+    $hash.each do |k,v|
+      $hash[k] = Report.where(run_id: k)
+      $hash[k].each { |report| report.update_attribute(:status, "Ready") }
+      $hash[k].map!(&:id)
+    end
+    $hash.each do |run,reports|
       Spawnling.new do
-        while reports.any? and reports.first.status != 'Stopped'
-          active_runs = Report.where("status='Running' and run_id='#{run.id}'")
-          if active_runs.count < run.threads and reports.any?
-            Run.thread(run.server, reports.first)
-            reports.shift
+        run = Run.find(run)
+        while reports.any?
+          report = Report.find(reports.first)
+          if report.status != 'Stopped'
+            active_threads = Report.where("status='Running' and run_id='#{run.id}'")
+            if active_threads.count < run.threads
+              Run.thread(run.server, report)
+              reports.shift
+            end
           end
-          sleep 10
+          sleep 5
         end
       end
+    end
+    redirect_to root_path
+  end
+
+  def kill
+    $hash.each do |run_id, reports_ids|
+      reports = Report.where("run_id = #{run_id} AND status != 'Finished'")
+      reports.each {|r| r.update_attribute(:status, "Stopped")}
+      $hash[run_id].clear
+    end
+    Spawnling.new do
+      system "kill -9 `ps -ef | grep rspec | grep -v grep | awk '{print $2}'`"
     end
     redirect_to root_path
   end
@@ -63,6 +81,13 @@ class RunsController < ApplicationController
     @directory = 'reports/' + Report.today
     Dir.mkdir @directory if !File.directory?(@directory)
     @reports = Run.find(params[:id]).reports
+  end
+
+  def refresh_report
+    @directory = 'reports/' + Report.today
+    Dir.mkdir @directory if !File.directory?(@directory)
+    @reports = Run.find(params[:id]).reports
+    render :partial => "runs/status"
   end
 
   def destroy

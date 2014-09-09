@@ -34,7 +34,7 @@
                   = link_to 'Delete', r, method: :delete, :class => "btn btn-danger space"
                 %th
                   = link_to "Report", runs_report_path(id: r.id), :class => "btn btn-success space"
-    = link_to 'Kill all running', "runs_kill_path", :class => "btn btn-danger space"
+    = link_to 'Kill all running', runs_kill_path, :class => "btn btn-danger space"
     = link_to 'Clear reports', "report_reset_path", :class => "btn btn-danger space"
     = submit_tag 'Run', :class => "btn btn-success space"
 
