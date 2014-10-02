@@ -57,8 +57,8 @@ class OnappDataBase
       raise("Cant select USER - #{result}")
       return false
     end
-
   end
+
   def select_hv(virt, distro, server_type)
     result = mysql("select id from hypervisors where hypervisor_type='#{virt}' and online=1 and enabled=1 and distro='#{distro}' and server_type='#{server_type}'and label not like '%fake%'")
     if result
@@ -100,6 +100,7 @@ class OnappDataBase
   def template_exist(template_file_name)
     result = select_from_db("select id from hypervisors where hypervisor_type='#{virt}' and online=1 and enabled=1 and distro='#{distro}' and server_type='#{server_type}'")
   end
+
   def get_hv_for_migration(hv_id)
     result = mysql("select id from hypervisors where hypervisor_group_id=(select hypervisor_group_id from hypervisors where id=#{hv_id}) and online=1 and enabled=1 and id!=#{hv_id}")
     if result

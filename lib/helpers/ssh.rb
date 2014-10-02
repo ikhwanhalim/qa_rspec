@@ -1,7 +1,6 @@
 require 'rubygems'
 require 'net/ssh'
 
-
 class Ssh
   class << self
 

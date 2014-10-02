@@ -3,13 +3,14 @@ require "pry"
 
 describe "some basic test" do
     before :all do
-        test = OnappTest.new
+      test = OnappTest.new
     end
-    after :all do
 
+    after :all do
     end
+
     it "hello" do
-        binding.pry()
+      binding.pry()
     end
 end
 

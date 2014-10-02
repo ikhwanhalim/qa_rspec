@@ -27,6 +27,7 @@ class OnappControlPanel
       connection.close
     end
   end
+  
   def ssh_connection
     Ssh.start_with_keys(ip)
   end

@@ -10,6 +10,7 @@ class RunsController < ApplicationController
     @virt = ["xen3", "xen4", "kvm5", "kvm6"]
     @files = Dir.glob File.join("tests", "**", "*.rb")
     @templates = Template.find(:all, :order => :template_name)
+    p headers
   end
  
   def create
