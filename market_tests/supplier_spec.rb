@@ -1,5 +1,4 @@
 require 'onapp_supplier'
-require 'pry'
 
 describe "Supplier basic tests" do
   before :all do

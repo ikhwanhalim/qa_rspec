@@ -1,31 +1,15 @@
-require 'json'
 require 'yaml'
-require 'mechanize'
+require 'helpers/onapp_http'
 
 class OnappSuppier
-  attr_accessor :conn, :ntz_id, :dsz_id, :hvz_id, :ts_id, :federation_id
+  include OnappHTTP
+  attr_accessor :ntz_id, :dsz_id, :hvz_id, :ts_id, :federation_id
 
   def initialize
     data = YAML::load(open(File.expand_path(File.dirname(__FILE__) + '/../config/market.yml')))
-    @conn = Mechanize.new
     @ip = data['supplier']['ip']
     @ts_id = data['supplier']['ts_id']
-    @conn.add_auth "#{@ip}/users/sign_in",
-                   data['supplier']['login'],
-                   data['supplier']['pass']
-  end
-
-  def get(url)
-    JSON.parse @conn.get(url).body
-  end
-
-  def post(url, data="")
-    curl = @conn.post(url, data.to_json, {'Content-Type' => 'application/json'})
-    JSON.parse(curl.body)
-  end
-
-  def delete(url)
-    @conn.delete(url)
+    conn "#{@ip}/users/sign_in", data['supplier']['login'], data['supplier']['pass']
   end
 
   def get_resources
@@ -66,5 +50,6 @@ class OnappSuppier
   def remove_from_federation
     post("#{@ip}/federation/hypervisor_zones/#{@hvz_id}/deactivate.json")
     delete("#{@ip}/federation/hypervisor_zones/#{@hvz_id}/remove")
+    @federation_id = nil
   end
 end
