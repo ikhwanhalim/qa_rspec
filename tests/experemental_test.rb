@@ -1,8 +1,9 @@
 require "pry"
-require 'general'
+require 'onapp_test'
 
 describe "some basic test" do
     before :all do
+      @test=OnappTest.new
     end
 
     after :all do
