@@ -2,9 +2,9 @@ require 'mechanize'
 require 'json'
 
 module OnappHTTP
-  attr_accessor :conn
+  attr_accessor :conn, :ip
 
-  def conn(url, user, pwd)
+  def auth(url, user, pwd)
     @conn = Mechanize.new
     @conn.add_auth(url, user, pwd)
   end

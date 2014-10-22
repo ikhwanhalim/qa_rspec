@@ -1,15 +1,15 @@
 require 'yaml'
 require 'helpers/onapp_http'
 
-class OnappSuppier
+class OnappSupplier
   include OnappHTTP
   attr_accessor :ntz_id, :dsz_id, :hvz_id, :ts_id, :federation_id
 
   def initialize
-    data = YAML::load(open(File.expand_path(File.dirname(__FILE__) + '/../config/market.yml')))
+    data = YAML::load_file('config/conf.yml')
     @ip = data['supplier']['ip']
     @ts_id = data['supplier']['ts_id']
-    conn "#{@ip}/users/sign_in", data['supplier']['login'], data['supplier']['pass']
+    auth "#{@ip}/users/sign_in", data['supplier']['user'], data['supplier']['pass']
   end
 
   def get_resources

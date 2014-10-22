@@ -9,7 +9,7 @@ module Curl
       user = $current_user
     end
 
-    @base="curl -s -i -X #{x} -u '#{user}' -H 'Accept: application/#{$cp.api_type}' -H 'Content-type: application/#{$cp.api_type}' --url http://#{$cp.ip}/#{url}.#{$cp.api_type}#{tourl}" # -d '#{opt}'"
+    @base="curl -s -i -X #{x} -u '#{user}' -H 'Accept: application/#{$cp.api_type}' -H 'Content-type: application/#{$cp.api_type}' --url #{$cp.ip}/#{url}.#{$cp.api_type}#{tourl}" # -d '#{opt}'"
     #p @base
     if opt.empty?
       res = Cmd.execute(@base)

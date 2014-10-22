@@ -2,7 +2,7 @@ require 'onapp_supplier'
 
 describe "Supplier basic tests" do
   before :all do
-    @supplier = OnappSuppier.new
+    @supplier = OnappSupplier.new
   end
 
   after :all do

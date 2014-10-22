@@ -1,6 +1,0 @@
----
-supplier:
-  ip: http://194.44.20.161
-  login: admin
-  pass: changeme
-  ts_id: 12
