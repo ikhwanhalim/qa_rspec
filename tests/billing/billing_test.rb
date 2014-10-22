@@ -1,6 +1,6 @@
 # Test for checking Billing Plan functionality.
 #
-# describe "Checking Billing Plan functionality" do
+describe "Checking Billing Plan functionality" do
   it "Create Billin Plan with empty 'Label'" do
     pass
   end
@@ -17,7 +17,7 @@
     pass
   end
 
-   it "Edit Billin Plan with empty 'Label'" do
+  it "Edit Billin Plan with empty 'Label'" do
     pass
   end
 
@@ -36,3 +36,4 @@
   it "Delete Billing Plan" do
     pass
   end
+end
