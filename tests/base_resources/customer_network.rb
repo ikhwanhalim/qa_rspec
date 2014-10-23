@@ -11,6 +11,9 @@ describe "Check Customer Network Limits" do
   it "Edit 'Free' value, set 0" do
     pass
   end
+  it "Delete resource" do
+    pass
+  end
   # Check 'Max' limits
   it "Create with negative 'Max' value" do 
     pass
@@ -21,6 +24,9 @@ describe "Check Customer Network Limits" do
   it "Edit 'Max' value, set 0 (Unlimited)" do
     pass
   end
+  it "Delete resource" do
+    pass
+  end
   # Check 'Prices'
   it "Create with negative 'Price' value" do 
     pass
@@ -29,6 +35,9 @@ describe "Check Customer Network Limits" do
     pass
   end
   it "Edit 'Price' value, set 0" do
+    pass
+  end
+  it "Delete resource" do
     pass
   end
 end

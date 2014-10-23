@@ -10,4 +10,7 @@ describe "Check resources for Virtual Server" do
   it "Edit 'Max' value, set 0 (Unlimited)" do
     pass
   end
+  it "Delete resource" do
+    pass
+  end
 end
