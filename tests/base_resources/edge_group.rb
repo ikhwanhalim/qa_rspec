@@ -1,10 +1,10 @@
 # Check resources for Edge Group
 
 describe "Check resources for Edge Group" do
-  it "Create with unexisted edge group id" do 
+  it "Create Edge Group limit with unexisted edge group id" do 
     pass
   end
-  it "Create with existed edge group id" do 
+  it "Create Edge Group limit with existed edge group id" do 
     pass
   end
   # Check 'Prices'
@@ -17,7 +17,7 @@ describe "Check resources for Edge Group" do
   it "Edit 'Price' value, set 0" do
     pass
   end
-  it "Delete resource" do
+  it "Delete Edge Group resource" do
     pass
   end
 end

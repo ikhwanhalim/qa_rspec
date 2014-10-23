@@ -1,13 +1,13 @@
 # Check resources for Recipe Group
 
 describe "Check resources for Recipe Group" do
-  it "Create with unexisted recipe group id" do 
+  it "Create Recipe Group limit with unexisted recipe group id" do 
     pass
   end
-  it "Create with existed recipe group id" do 
+  it "Create Recipe Group limit with existed recipe group id" do 
     pass
   end
-  it "Delete resource" do
+  it "Delete Recipe Group limit resource" do
     pass
   end
 end
