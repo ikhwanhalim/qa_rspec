@@ -9,7 +9,9 @@ class OnappBilling
   def initialize
     config = YAML::load_file('./config/conf.yml')
     @ip = config['cp']['ip']
-    auth("#{@ip}/users/sign_in", "admin", "changeme")
+    user = config['cp']['admin_user']
+    pass = config['cp']['admin_pass']
+    auth("#{@ip}/users/sign_in", user, pass)
   end
 
   def create_billing_plan(data)
