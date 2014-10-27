@@ -1,29 +1,39 @@
-require "helpers/curl"
-require "helpers/parser"
+require 'yaml'
+require 'helpers/onapp_http'
+require 'json'
 
 class OnappBilling
-  include Curl
-  include Parser
-
-  attr_reader :id, :label, :currency_code, :allows_mak, :allows_kms, :allows_own, :monthly_price
+  include OnappHTTP
+  attr_accessor :bp_id
 
   def initialize
-  end
-  
-  def add_default
-    data = from_api(get("/billing_plans/#{$users.admin.billing_plan_id}"))
-    fill_data(data)
-    return self
+    config = YAML::load_file('./config/conf.yml')
+    @ip = config['cp']['ip']
+    auth("#{@ip}/users/sign_in", "admin", "changeme")
   end
 
-  private
-    def fill_data(data)
-      @id = data[:id]
-      @label = data[:label]
-      @currency_code = data[:currency_code]
-      @allows_mak = data[:allows_mak]
-      @allows_kms = data[:allows_kms]
-      @allows_own = data[:allows_own]
-      @monthly_price = data[:monthly_price]
+  def create_billing_plan(data)
+    data = {"billing_plan" => data}
+    puts data
+    response = post("#{@ip}/billing_plans.json", data)
+
+    if !response.has_key?('errors')
+      @bp_id = response['billing_plan']['id']
     end
+    return response
+  end
+
+  def edit_billing_plan(bp_id, data)
+    data = {"billing_plan" => data}
+    puts data
+    response = put("#{@ip}/billing_plans/#{bp_id}.json", data)
+  end
+
+  def get_billing_plan(bp_id)
+    response = get("#{@ip}/billing_plans/#{bp_id}.json")
+  end
+
+  def delete_billing_plan(bp_id)
+    response = delete("#{@ip}/billing_plans/#{bp_id}.json")
+  end
 end
