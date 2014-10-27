@@ -1,43 +1,147 @@
 # Check Autoscaling Limits
+require './lib/onapp_base_resource'
+require './lib/onapp_billing'
 
 describe "Check Autoscaling Limits" do
+
+  before(:all) do
+    @bp = OnappBilling.new
+    @br = OnappBaseResource.new
+    # Create BP before testing
+    @bp.create_billing_plan({:label => 'TestBPForBaseResources'})
+    @bp_id = @bp.bp_id
+  end
+
+  after(:all) do
+    @bp.delete_billing_plan(@bp_id)
+  end
+
   # Check 'Free' limits
-  it "Create with negative 'Free' value" do 
-    pass
+  it "Create with negative 'Free' value" do
+    puts @bp_id
+    data = {:resource_class => "Resource::VmMonit",
+            :limits => {
+                :limit_free => "-2"
+            }
+    }
+    response = @br.create_base_resource(@bp_id, data)
+    expect(response['errors']['limit_free'].first).to eq("must be greater than or equal to 0")
   end
-  it "Create with pozitive 'Free' value > 0" do 
-    pass
+
+  it "Create with pozitive 'Free' value > 0" do
+    puts @bp_id
+    data = {:resource_class => "Resource::VmMonit",
+            :limits => {
+                :limit_free => "2"
+            }
+    }
+    response = @br.create_base_resource(@bp_id, data)
+    #puts response
+    expect(response['base_resource']['limits']['limit_free']).to eq(data[:limits][:limit_free])
   end
+
   it "Edit 'Free' value, set 0" do
-    pass
+    puts @bp_id
+    data = {#:resource_class => "Resource::VmMonit",
+            :limits => {
+                :limit_free => 0
+            }
+    }
+    @br.edit_base_resource(@bp_id, @br.br_id, data)
+    response = @br.get_base_resource(@bp_id, @br.br_id)
+    expect(response['base_resource']['limits']['limit_free']).to eq(data[:limits][:limit_free])
   end
+
   it "Delete resource" do
-    pass
+    @br.delete_base_resource(@bp_id, @br.br_id)
+    response = @br.get_base_resource(@bp_id, @br.br_id)
+    puts response
+    expect(response['errors'].first).to eq('BaseResource not found')
   end
+
   # Check 'Max' limits
-  it "Create with negative 'Max' value" do 
-    pass
+  it "Create with negative 'Max' value" do
+    puts @bp_id
+    data = {:resource_class => "Resource::VmMonit",
+            :limits => {
+                :limit => "-2"
+            }
+    }
+    response = @br.create_base_resource(@bp_id, data)
+    expect(response['errors']['limit'].first).to eq("must be greater than or equal to 0")
   end
-  it "Create with pozitive 'Max' value > 0" do 
-    pass
+
+  it "Create with pozitive 'Max' value > 0" do
+    puts @bp_id
+    data = {:resource_class => "Resource::VmMonit",
+            :limits => {
+                :limit => "2"
+            }
+    }
+    response = @br.create_base_resource(@bp_id, data)
+    #puts response
+    expect(response['base_resource']['limits']['limit']).to eq(data[:limits][:limit])
   end
+
   it "Edit 'Max' value, set 0 (Unlimited)" do
-    pass
+    puts @bp_id
+    data = {#:resource_class => "Resource::VmMonit",
+            :limits => {
+                :limit => 0
+            }
+    }
+    @br.edit_base_resource(@bp_id, @br.br_id, data)
+    response = @br.get_base_resource(@bp_id, @br.br_id)
+    expect(response['base_resource']['limits']['limit']).to eq(data[:limits][:limit])
   end
+
   it "Delete resource" do
-    pass
+    @br.delete_base_resource(@bp_id, @br.br_id)
+    response = @br.get_base_resource(@bp_id, @br.br_id)
+    puts response
+    expect(response['errors'].first).to eq('BaseResource not found')
   end
+
   # Check 'Prices'
-  it "Create with negative 'Price' value" do 
-    pass
+  it "Create with negative 'Price' value" do
+    puts @bp_id
+    data = {:resource_class => "Resource::VmMonit",
+            :prices => {
+                :price => "-2"
+            }
+    }
+    response = @br.create_base_resource(@bp_id, data)
+    expect(response['errors']['price'].first).to eq("must be greater than or equal to 0")
   end
-  it "Create with pozitive 'Price' value > 0" do 
-    pass
+
+  it "Create with pozitive 'Price' value > 0" do
+    puts @bp_id
+    data = {:resource_class => "Resource::VmMonit",
+            :prices => {
+                :price => "2"
+            }
+    }
+    response = @br.create_base_resource(@bp_id, data)
+    #puts response
+    price = data[:prices][:price]
+    expect(response['base_resource']['prices']['price']).to eq("$#{data[:prices][:price]}.00 /hr")
   end
+
   it "Edit 'Price' value, set 0" do
-    pass
+    puts @bp_id
+    data = {#:resource_class => "Resource::VmMonit",
+            :prices => {
+                :price => 0
+            }
+    }
+    @br.edit_base_resource(@bp_id, @br.br_id, data)
+    response = @br.get_base_resource(@bp_id, @br.br_id)
+    expect(response['base_resource']['prices']['price']).to eq(data[:prices][:price])
   end
   it "Delete resource" do
-    pass
+    @br.delete_base_resource(@bp_id, @br.br_id)
+    response = @br.get_base_resource(@bp_id, @br.br_id)
+    puts response
+    expect(response['errors'].first).to eq('BaseResource not found')
   end
 end
