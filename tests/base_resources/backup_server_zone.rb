@@ -30,7 +30,6 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Free' limits
   it "Create 'Backups' limit with negative 'Free' value" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -43,7 +42,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Backups' limit with pozitive 'Free' value > 0" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -56,7 +54,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Edit 'Backups' limit 'Free' value, set 0" do
-    puts @bp_id
     data = {:limits => {
                 :limit_backup_free => 20
             }
@@ -74,7 +71,6 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Max' limits
   it "Create 'Backups' limit with negative 'Max' value" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -87,7 +83,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Backups' limit with pozitive 'Max' value > 0" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -100,7 +95,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Edit 'Backups' limit 'Max' value, set 0 (Unlimited)" do
-    puts @bp_id
     data = {:limits => {
         :limit_backup => 20
     }
@@ -118,7 +112,6 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Prices'
   it "Create 'Backups' limit with negative 'Price' value" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -131,7 +124,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Backups' limit with pozitive 'Price' value > 0" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -144,7 +136,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Edit 'Backups' limi 'Price' value, set 0" do
-    puts @bp_id
     data = {:prices => {
         :price_backup => 20
     }
@@ -165,7 +156,6 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Free' limits
   it "Create 'Backup Disk Size' limit with negative 'Free' value" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -178,7 +168,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Backup Disk Size' limit with pozitive 'Free' value > 0" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -191,7 +180,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Edit 'Backup Disk Size' limit 'Free' value, set 0" do
-    puts @bp_id
     data = {:limits => {
         :limit_backup_disk_size_free => 20
     }
@@ -209,7 +197,6 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Max' limits
   it "Create 'Backup Disk Size' limit with negative 'Max' value" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -222,7 +209,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Backup Disk Size' limit with pozitive 'Max' value > 0" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -235,7 +221,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Edit 'Backup Disk Size' limit 'Max' value, set 0 (Unlimited)" do
-    puts @bp_id
     data = {:limits => {
         :limit_backup_disk_size => 20
     }
@@ -253,7 +238,6 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Prices'
   it "Create 'Backup Disk Size' limit with negative 'Price' value" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -266,7 +250,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Backup Disk Size' limit with pozitive 'Price' value > 0" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -279,7 +262,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Edit 'Backup Disk Size' limit 'Price' value, set 0" do
-    puts @bp_id
     data = {:prices => {
         :price_backup_disk_size => 20
     }
@@ -299,7 +281,6 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Free' limits
   it "Create 'Templates' limit with negative 'Free' value" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -312,7 +293,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Templates' limit with pozitive 'Free' value > 0" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -325,7 +305,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Edit 'Templates' limit 'Free' value, set 0" do
-    puts @bp_id
     data = {:limits => {
         :limit_template_free => 20
     }
@@ -343,7 +322,6 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Max' limits
   it "Create 'Templates' limit with negative 'Max' value" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -356,7 +334,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Templates' limit with pozitive 'Max' value > 0" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -369,7 +346,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Edit 'Templates' limit 'Max' value, set 0 (Unlimited)" do
-    puts @bp_id
     data = {:limits => {
         :limit_template => 20
     }
@@ -387,7 +363,6 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Prices'
   it "Create 'Templates' limit with negative 'Price' value" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -400,7 +375,6 @@ describe "Check Backup Server Zone limits" do
     
   end
   it "Create 'Templates' limit with pozitive 'Price' value > 0" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -413,7 +387,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Edit 'Templates' limit 'Price' value, set 0" do
-    puts @bp_id
     data = {:prices => {
         :price_template => 20
     }
@@ -433,7 +406,6 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Free' limits
   it "Create 'Template Disk Size' limit with negative 'Free' value" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -446,7 +418,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Template Disk Size' limit with pozitive 'Free' value > 0" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -459,7 +430,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Edit 'Template Disk Size' limit 'Free' value, set 0" do
-    puts @bp_id
     data = {:limits => {
         :limit_template_disk_size_free => 20
     }
@@ -477,7 +447,6 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Max' limits
   it "Create 'Template Disk Size' limit with negative 'Max' value" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -490,7 +459,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Template Disk Size' limit with pozitive 'Max' value > 0" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -503,7 +471,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Edit 'Template Disk Size' limit 'Max' value, set 0 (Unlimited)" do
-    puts @bp_id
     data = {:limits => {
         :limit_template_disk_size => 20
     }
@@ -521,7 +488,6 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Prices'
   it "Create 'Template Disk Size' limit with negative 'Price' value" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -534,7 +500,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Template Disk Size' limit with pozitive 'Price' value > 0" do
-    puts @bp_id
     data = {:resource_class => "Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
@@ -547,7 +512,6 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Edit 'Template Disk Size' limit 'Price' value, set 0" do
-    puts @bp_id
     data = {:prices => {
         :price_template_disk_size => 20
         }

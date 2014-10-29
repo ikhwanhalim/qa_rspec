@@ -48,7 +48,6 @@ class OnappBaseResource
 
   def create_base_resource(bp_id, data)
     data = {:base_resource => data}
-    puts data
     response = post("#{@ip}/billing_plans/#{bp_id}/base_resources.json", data)
 
     if !response.has_key?('errors')
@@ -59,16 +58,15 @@ class OnappBaseResource
 
   def edit_base_resource(bp_id, br_id, data)
     data = {:base_resource => data}
-    puts data
-    response = put("#{@ip}/billing_plans/#{bp_id}/base_resources/#{br_id}.json", data)
+    put("#{@ip}/billing_plans/#{bp_id}/base_resources/#{br_id}.json", data)
   end
 
   def get_base_resource(bp_id, br_id)
-    response = get("#{@ip}/billing_plans/#{bp_id}/base_resources/#{br_id}.json")
+    get("#{@ip}/billing_plans/#{bp_id}/base_resources/#{br_id}.json")
   end
 
   def delete_base_resource(bp_id, br_id)
-    response = delete("#{@ip}/billing_plans/#{bp_id}/base_resources/#{br_id}.json")
+    delete("#{@ip}/billing_plans/#{bp_id}/base_resources/#{br_id}.json")
   end
 
   def get_zone_id(type=nil)
