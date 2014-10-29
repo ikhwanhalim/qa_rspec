@@ -65,7 +65,7 @@ class OnappBaseResource
     get("#{@ip}/billing_plans/#{bp_id}/base_resources/#{br_id}.json")
   end
 
-  def delete_base_resource(bp_id, br_id, data)
+  def delete_base_resource(bp_id, br_id, data = '')
     delete("#{@ip}/billing_plans/#{bp_id}/base_resources/#{br_id}.json", data)
   end
 
