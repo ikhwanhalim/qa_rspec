@@ -24,8 +24,8 @@ module OnappHTTP
       JSON.parse e.page.body
   end
 
-  def delete(url)
-    @conn.delete(url, @headers)
+  def delete(url, data="")
+    @conn.delete(url, data, @headers)
     rescue Mechanize::ResponseCodeError => e
       JSON.parse e.page.body
   end

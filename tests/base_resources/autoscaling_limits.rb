@@ -1,6 +1,5 @@
 # Check Autoscaling Limits
 require './lib/onapp_base_resource'
-require './lib/onapp_billing'
 
 describe "Check Autoscaling Limits" do
 

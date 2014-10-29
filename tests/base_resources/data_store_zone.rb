@@ -1,10 +1,9 @@
 # Check DataStore Zones limits
 require './lib/onapp_base_resource'
-require './lib/onapp_billing'
 
 describe "Check DataStore Zones limits" do
   before(:all) do
-    # Get real BackupServerZone id
+    # Get real DatastoreZone id
     @bp = OnappBilling.new
     @br = OnappBaseResource.new
     # Create BP before testing

@@ -1,6 +1,5 @@
 # Check Customer Network Limits
 require './lib/onapp_base_resource'
-require './lib/onapp_billing'
 
 describe "Check Customer Network Limits" do
 

@@ -1,6 +1,5 @@
 # Check Backups
 require './lib/onapp_base_resource'
-require './lib/onapp_billing'
 
 describe "Check Backups Limits" do
 
