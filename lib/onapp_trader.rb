@@ -29,7 +29,8 @@ class OnappTrader
                  'image_template_group_label' => federation_id,
                 }
     }
-    post("#{@url}/federation/hypervisor_zones/#{federation_id}/subscribe.json", data)
+    response = post("#{@url}/federation/hypervisor_zones/#{federation_id}/subscribe.json", data)
+    return response if response
     @subscribed_zone = all_subscribed.select {|z| z['federation_id'] == federation_id}.first
   end
 
