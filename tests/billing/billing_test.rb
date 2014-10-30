@@ -41,7 +41,6 @@ describe "Checking Billing Plan functionality" do
   it "Edit Billin Plan with empty 'Label'" do
     data = {'label' => ''}
     response = @bp.edit_billing_plan(@bp.bp_id, data)
-    puts response
     expect(response['errors']['label'].first).to eq("can't be blank") 
   end
 #

@@ -16,7 +16,6 @@ class OnappBilling
 
   def create_billing_plan(data)
     data = {"billing_plan" => data}
-    puts data
     response = post("#{@ip}/billing_plans.json", data)
 
     if !response.has_key?('errors')
@@ -27,15 +26,14 @@ class OnappBilling
 
   def edit_billing_plan(bp_id, data)
     data = {"billing_plan" => data}
-    puts data
-    response = put("#{@ip}/billing_plans/#{bp_id}.json", data)
+    put("#{@ip}/billing_plans/#{bp_id}.json", data)
   end
 
   def get_billing_plan(bp_id)
-    response = get("#{@ip}/billing_plans/#{bp_id}.json")
+    get("#{@ip}/billing_plans/#{bp_id}.json")
   end
 
   def delete_billing_plan(bp_id)
-    response = delete("#{@ip}/billing_plans/#{bp_id}.json")
+    delete("#{@ip}/billing_plans/#{bp_id}.json")
   end
 end

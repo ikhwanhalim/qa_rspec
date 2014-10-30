@@ -14,7 +14,7 @@ describe "Check resources for Edge Group" do
   end
 
   after(:all) do
-    #@bp.delete_billing_plan(@bp_id)
+    @bp.delete_billing_plan(@bp_id)
   end
 ########################################################################################################################
   it "Create Edge Group limit with unexisted edge group id" do 
