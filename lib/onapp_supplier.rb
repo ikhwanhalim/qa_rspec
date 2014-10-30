@@ -3,53 +3,71 @@ require 'helpers/onapp_http'
 
 class OnappSupplier
   include OnappHTTP
-  attr_accessor :ntz_id, :dsz_id, :hvz_id, :ts_id, :federation_id
+  attr_accessor :ts, :published_zone
 
   def initialize
     data = YAML::load_file('config/conf.yml')
-    @ip = data['supplier']['ip']
-    @ts_id = data['supplier']['ts_id']
-    auth "#{@ip}/users/sign_in", data['supplier']['user'], data['supplier']['pass']
+    data['supplier'].each do |k, v|
+      instance_variable_set("@#{k}",v)
+      eigenclass = class<<self; self; end
+      eigenclass.class_eval do
+        attr_accessor k
+      end
+    end
+    auth "#{@url}/users/sign_in", @user, @pass
   end
 
-  def get_resources
-    location_groups = get("#{@ip}/settings/location_groups.json")
+  def not_federated_resources
+    location_groups = get("#{@url}/settings/location_groups.json")
     ids = location_groups.map {|z| z['location_group']['id']}
     ids.each do |id|
-      ntz = get("#{@ip}/settings/location_groups/#{id}/network_groups.json").first
-      dsz = get("#{@ip}/settings/location_groups/#{id}/data_store_groups.json").first
-      hvz = get("#{@ip}/settings/location_groups/#{id}/hypervisor_groups.json").first
-      if ntz && dsz && hvz
-        if !ntz["network_group"]["federation_id"] &&
-            !hvz["hypervisor_group"]["federation_id"] &&
-            !dsz["data_store_group"]["federation_id"]
-          @ntz_id = ntz["network_group"]["id"]
-          @dsz_id = dsz["data_store_group"]["id"]
-          @hvz_id = hvz["hypervisor_group"]["id"]
-        end
+      ntz = get("#{@url}/settings/location_groups/#{id}/network_groups.json").first["network_group"] rescue next
+      dsz = get("#{@url}/settings/location_groups/#{id}/data_store_groups.json").first["data_store_group"] rescue next
+      hvz = get("#{@url}/settings/location_groups/#{id}/hypervisor_groups.json").first["hypervisor_group"] rescue next
+      if !ntz["federation_id"] && !hvz["federation_id"] && !dsz["federation_id"]
+        return {'hypervisor_group' => hvz, 'data_store_group' => dsz,  'network_group' => ntz}
+      else
+        raise 'HypervisorNotFound'
       end
     end
   end
 
   def add_to_federation
-    get_resources
-    data = {"hypervisor_zone" => {'label'=>'federation-autotest',
-                                  'data_store_zone_id'=>@dsz_id,
-                                  'data_store_zone_label'=> 'federation-autotest',
-                                  'network_zone_id'=>@ntz_id,
-                                  'network_zone_label'=>'federation-autotest',
-                                  'template_group_id'=>@ts_id}}
-    unless @hvz_id
-      raise 'HypervisorNotFound'
-    else
-      response = post("#{@ip}/federation/hypervisor_zones/#{@hvz_id}/add.json", data)
-      @federation_id = response['hypervisor_zone']['federation_id']
-    end
+    res = not_federated_resources
+    stamp = 'federation-autotest' + DateTime.now.strftime('-%d-%m-%y(%H:%M:%S)')
+    data = { 'hypervisor_zone' => {'label' => stamp,
+                               'data_store_zone_id' => res['data_store_group']['id'],
+                               'data_store_zone_label' => stamp,
+                               'network_zone_id' => res['network_group']['id'],
+                               'network_zone_label' => stamp,
+                               'template_group_id' => @ts_id}}
+    post("#{@url}/federation/hypervisor_zones/#{res['hypervisor_group']['id']}/add.json", data)
+    @published_zone = get("#{@url}/settings/hypervisor_zones/#{res['hypervisor_group']['id']}.json").values.first
   end
 
-  def remove_from_federation
-    post("#{@ip}/federation/hypervisor_zones/#{@hvz_id}/deactivate.json")
-    delete("#{@ip}/federation/hypervisor_zones/#{@hvz_id}/remove")
-    @federation_id = nil
+  def disable_zone(id=@published_zone['id'])
+    @published_zone = post("#{@url}/federation/hypervisor_zones/#{id}/deactivate.json").values.first
+  end
+
+  def enable_zone(id=@published_zone['id'])
+    @published_zone = post("#{@url}/federation/hypervisor_zones/#{id}/activate.json").values.first
+  end
+
+  def remove_from_federation(id=@published_zone['id'])
+    delete("#{@url}/federation/hypervisor_zones/#{id}/remove.json")
+    @published_zone = nil
+  end
+
+  def all_federated
+    zones = get "#{@url}/settings/hypervisor_zones.json"
+    zones.map! { |z| z["hypervisor_group"]}
+    zones.delete_if { |z| z['federation_id'] == nil }
+  end
+
+  def remove_all_from_federation
+    all_federated.each do |z|
+      disable_zone(z['id'])
+      remove_from_federation(z['id'])
+    end
   end
 end
