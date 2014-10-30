@@ -118,4 +118,3 @@ describe "Check Template Limits" do
     expect(response['errors'].first).to eq('BaseResource not found')
   end
 end
-  
