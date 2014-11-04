@@ -1,16 +1,51 @@
 # Check resources for Virtual Server
+require './lib/onapp_base_resource'
 
 describe "Check resources for Virtual Server" do
+########################################################################################################################
+  before(:all) do
+    # Get real BackupServerZone id
+    @bp = OnappBilling.new
+    @br = OnappBaseResource.new
+    # Create BP before testing
+    @bp.create_billing_plan({:label => 'TestBPForBaseResources'})
+    @bp_id = @bp.bp_id
+  end
+
+  after(:all) do
+    @bp.delete_billing_plan(@bp_id)
+  end
+########################################################################################################################
   it "Create with negative 'Max' value" do 
-    pass
+    data = {:resource_class => "Resource::VmLimit",
+            :limits => {
+                :limit => "-2"
+            }
+    }
+    response = @br.create_base_resource(@bp_id, data)
+    expect(response['errors']['limit'].first).to eq("must be greater than or equal to 0")
   end
   it "Create with pozitive 'Max' value > 0" do 
-    pass
+    data = {:resource_class => "Resource::VmLimit",
+            :limits => {
+                :limit => "2"
+            }
+    }
+    response = @br.create_base_resource(@bp_id, data)
+    expect(response['base_resource']['limits']['limit']).to eq(data[:limits][:limit])
   end
   it "Edit 'Max' value, set 0 (Unlimited)" do
-    pass
+    data = {:limits => {
+        :limit => "0"
+    }
+    }
+    @br.edit_base_resource(@bp_id, @br.br_id, data)
+    response = @br.get_base_resource(@bp_id, @br.br_id)
+    expect(response['base_resource']['limits']['limit'].to_s).to eq(data[:limits][:limit])
   end
   it "Delete resource" do
-    pass
+    @br.delete_base_resource(@bp_id, @br.br_id)
+    response = @br.get_base_resource(@bp_id, @br.br_id)
+    expect(response['errors'].first).to eq('BaseResource not found')
   end
 end
