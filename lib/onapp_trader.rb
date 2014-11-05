@@ -6,7 +6,7 @@ class OnappTrader
   attr_accessor :subscribed_zone
 
   def initialize
-    data = YAML::load_file('config/conf.yml')
+    data = YAML::load_file('config/conf.yml.example')
     data['trader'].each do |k, v|
       instance_variable_set("@#{k}",v)
       eigenclass = class<<self; self; end

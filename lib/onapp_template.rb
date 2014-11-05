@@ -1,21 +1,25 @@
 require 'helpers/onapp_http'
+require 'helpers/template_manager'
+require 'helpers/hypervisor'
 require 'yaml'
 
 class OnappTemplate
   include OnappHTTP
+  include TemplateManager
+  include Hypervisor
      
-  def initialize(id)
-    data = YAML::load_file('config/conf.yml')
-    url = data['ip']
-    auth "#{url}/users/sign_in", data['login'], data['password']
-    data = get("#{url}/templates/#{id}.json")
-    data['image_template'].each do |k, v|
+  def initialize(file_name, virt)
+    data = YAML::load_file('config/conf.yml.example')
+    @url = data['url']
+    @ip = data['ip']
+    auth "#{@url}/users/sign_in", data['user'], data['pass']
+    get_template(file_name, virt).each do |k, v|
       instance_variable_set("@#{k}",v)
       eigenclass = class<<self; self; end
       eigenclass.class_eval do
         attr_reader k
       end
-    end                
+    end
   end
     
 end

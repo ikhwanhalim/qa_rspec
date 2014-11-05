@@ -13,7 +13,7 @@ describe "VIRTUAL MACHINE REGRESSION AUTOTEST" do
   
   describe 'Build VM' do
     it "Should be possible to buid VM" do
-      $template = OnappTemplate.new(1598)
+      $template = OnappTemplate.new "centos-6.0-x64-1.2.tar.gz", 'xen4'
       binding.pry
     end
   end
