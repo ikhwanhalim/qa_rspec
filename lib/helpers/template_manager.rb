@@ -1,4 +1,3 @@
-require 'helpers/hypervisor'
 require 'helpers/ssh'
 
 module TemplateManager

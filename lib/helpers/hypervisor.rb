@@ -1,4 +1,5 @@
 require 'yaml'
+
 module Hypervisor
   def for_vm_creation(virt)
     max_free = 0
