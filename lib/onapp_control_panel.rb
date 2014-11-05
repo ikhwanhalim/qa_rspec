@@ -6,7 +6,7 @@ class OnappControlPanel
 
   def initialize
     puts 'Getting CP configaration'
-    conf = YAML::load(open(File.expand_path(File.dirname(__FILE__) + '/../config/conf.yml.example')))
+    conf = YAML::load(open(File.expand_path(File.dirname(__FILE__) + '/../config/conf.yml')))
     @ip = ENV['SERVER'] || conf['ip']
     p ip
     @admin = "#{conf['login']}"

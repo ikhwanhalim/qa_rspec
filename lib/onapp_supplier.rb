@@ -6,7 +6,7 @@ class OnappSupplier
   attr_accessor :ts, :published_zone
 
   def initialize
-    data = YAML::load_file('config/conf.yml.example')
+    data = YAML::load_file('config/conf.yml')
     data['supplier'].each do |k, v|
       instance_variable_set("@#{k}",v)
       eigenclass = class<<self; self; end

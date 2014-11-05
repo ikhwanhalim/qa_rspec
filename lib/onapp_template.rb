@@ -7,9 +7,10 @@ class OnappTemplate
   include OnappHTTP
   include TemplateManager
   include Hypervisor
+  attr_reader :url
      
   def initialize(file_name)
-    data = YAML::load_file('config/conf.yml.example')
+    data = YAML::load_file('config/conf.yml')
     @url = data['url']
     @ip = data['ip']
     auth "#{@url}/users/sign_in", data['user'], data['pass']

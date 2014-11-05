@@ -7,7 +7,7 @@ class OnappBilling
   attr_accessor :bp_id
 
   def initialize
-    config = YAML::load_file('./config/conf.yml.example')
+    config = YAML::load_file('./config/conf.yml')
     @ip = config['cp']['ip']
     user = config['cp']['admin_user']
     pass = config['cp']['admin_pass']
