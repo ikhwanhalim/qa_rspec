@@ -3,9 +3,8 @@ require 'helpers/ssh'
 
 module TemplateManager
 
-  def get_template(file_name, virt)
+  def get_template(file_name)
     @file_name = file_name
-    @virt = virt
     template = installed_template.nil? ? download_template : installed_template
     if template.nil?
       raise 'Template does not exist'

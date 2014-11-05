@@ -8,12 +8,12 @@ class OnappTemplate
   include TemplateManager
   include Hypervisor
      
-  def initialize(file_name, virt)
+  def initialize(file_name)
     data = YAML::load_file('config/conf.yml.example')
     @url = data['url']
     @ip = data['ip']
     auth "#{@url}/users/sign_in", data['user'], data['pass']
-    get_template(file_name, virt).each do |k, v|
+    get_template(file_name).each do |k, v|
       instance_variable_set("@#{k}",v)
       eigenclass = class<<self; self; end
       eigenclass.class_eval do
