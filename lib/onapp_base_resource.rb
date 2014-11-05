@@ -77,6 +77,16 @@ class OnappBaseResource
       id = response.first[@zones_data[type][:tag]]['id']
     end
     return id
+  end
 
+  def dsz_solidfire?
+    dsz = nil
+    data_stores = get("#{@ip}/settings/data_stores.json")
+    data_stores.each do |data_store|
+      if data_store['data_store']['data_store_type'] == 'solidfire'
+        dsz = data_store['data_store']['data_store_group_id']
+      end
+    end
+    return dsz
   end
 end
