@@ -39,7 +39,7 @@ class Ssh
       end
     end
 
-    def execute_with_keys(host, user, command)
+    def execute_with_keys(host, user='root', command)
       keys = `ls ~/.ssh/*.pub`
       keys.sub!(/\.pub.*\n$/,"")
       begin
