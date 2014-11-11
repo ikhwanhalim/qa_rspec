@@ -1,9 +1,11 @@
 require 'yaml'
 require 'helpers/onapp_http'
+require 'helpers/template_manager'
 
 class OnappSupplier
   include OnappHTTP
-  attr_accessor :ts, :published_zone
+  include TemplateManager
+  attr_accessor :published_zone
 
   def initialize
     data = YAML::load_file('config/conf.yml')
@@ -33,6 +35,7 @@ class OnappSupplier
   end
 
   def add_to_federation
+    get_template(@template_file_name)
     res = not_federated_resources
     stamp = 'federation-autotest' + DateTime.now.strftime('-%d-%m-%y(%H:%M:%S)')
     data = { 'hypervisor_zone' => {'label' => stamp,
@@ -40,8 +43,9 @@ class OnappSupplier
                                'data_store_zone_label' => stamp,
                                'network_zone_id' => res['network_group']['id'],
                                'network_zone_label' => stamp,
-                               'template_group_id' => @ts_id}}
-    post("#{@url}/federation/hypervisor_zones/#{res['hypervisor_group']['id']}/add.json", data)
+                               'template_group_id' => @template_store['id']}}
+    response = post("#{@url}/federation/hypervisor_zones/#{res['hypervisor_group']['id']}/add.json", data)
+    raise response.values.join("\n") if response.has_key? 'errors'
     @published_zone = get("#{@url}/settings/hypervisor_zones/#{res['hypervisor_group']['id']}.json").values.first
   end
 

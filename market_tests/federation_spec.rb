@@ -1,6 +1,5 @@
 require 'onapp_supplier'
 require 'onapp_trader'
-require 'pry'
 
 describe "Supplier basic tests" do
   before :all do
@@ -22,25 +21,23 @@ describe "Supplier basic tests" do
   end
 
   it "Add to federation" do
-    @supplier.published_zone["federation_enabled"].should be_true
-    @supplier.published_zone["federation_id"].should be_true
+    expect(@supplier.published_zone["federation_enabled"]).to be true
+    expect(@supplier.published_zone["federation_id"]).to be_present
   end
 
   it "Trader should be able subscribe to zone" do
     @trader.subscribe(@supplier.published_zone["federation_id"])
-    @trader.subscribed_zone.should be_true
-    @trader.subscribed_zone['federation_id'].should eq @supplier.published_zone['federation_id']
+    expect(@trader.subscribed_zone).to be_present
+    expect(@trader.subscribed_zone['federation_id']).to eq @supplier.published_zone['federation_id']
   end
 
   it "Trader should not be able subscribe to disable zone" do
     @supplier.disable_zone @supplier.published_zone['id']
-    @trader.subscribe(@supplier.published_zone["federation_id"])
-    puts 'error'
+    expect(@trader.subscribe(@supplier.published_zone["federation_id"]).keys.first).to eq 'errors'
   end
 
   it "Trader should not be able subscribe to zone twice" do
     @trader.subscribe(@supplier.published_zone["federation_id"])
-    @trader.subscribe(@supplier.published_zone["federation_id"]).keys.first.should eq 'errors'
-    # binding.pry
+    expect(@trader.subscribe(@supplier.published_zone["federation_id"]).keys.first).to eq 'errors'
   end
 end
