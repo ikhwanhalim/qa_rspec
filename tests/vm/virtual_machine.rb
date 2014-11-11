@@ -1,4 +1,5 @@
-require 'onapp_template.rb'
+require 'virtual_machine/onapp_vm'
+require 'virtual_machine/onapp_vm_disk'
 require 'pry'
 
 describe "VIRTUAL MACHINE REGRESSION AUTOTEST" do
@@ -13,7 +14,8 @@ describe "VIRTUAL MACHINE REGRESSION AUTOTEST" do
   
   describe 'Build VM' do
     it "Should be possible to buid VM" do
-      $template = OnappTemplate.new "centos-6.0-x64-1.2.tar.gz"
+      #$vm= VirtualMachine.new('centos-6.0-x64-1.2.tar.gz','kvm6').create
+      $disk = Disk.new
       binding.pry
     end
   end

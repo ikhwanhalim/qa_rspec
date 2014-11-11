@@ -12,10 +12,10 @@ module Hypervisor
     data = get("#{@url}/hypervisors.json")
     data.each do |x|
       if x['hypervisor']['distro'] == distro and x['hypervisor']['hypervisor_type'] == virtualization
-        hv = x['hypervisor'] if max_free < x['hypervisor']['free_mem'] and x['hypervisor']['enabled'] and x['hypervisor']['server_type'] == 'virtual'
-        max_free = x['hypervisor']['free_mem'] if max_free < x['hypervisor']['free_mem'] and x['hypervisor']['enabled'] and x['hypervisor']['server_type'] == 'virtual'
+        hv = x['hypervisor'] if max_free < x['hypervisor']['free_mem'] and x['hypervisor']['enabled'] and x['hypervisor']['server_type'] == 'virtual' and x['hypervisor']['online'] 
+        max_free = x['hypervisor']['free_mem'] if max_free < x['hypervisor']['free_mem'] and x['hypervisor']['enabled'] and x['hypervisor']['server_type'] == 'virtual' and x['hypervisor']['online']
       end
     end
-    return hv
+    return hv['id']
   end
 end
