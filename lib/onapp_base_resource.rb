@@ -79,12 +79,13 @@ class OnappBaseResource
     return id
   end
 
-  def dsz_solidfire?
+  def dsz_zone_id_by_type(type=nil)
     dsz = nil
     data_stores = get("#{@ip}/settings/data_stores.json")
     data_stores.each do |data_store|
-      if data_store['data_store']['data_store_type'] == 'solidfire'
+      if data_store['data_store']['data_store_type'] == type
         dsz = data_store['data_store']['data_store_group_id']
+        break
       end
     end
     return dsz
