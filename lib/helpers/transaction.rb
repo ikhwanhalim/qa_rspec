@@ -14,12 +14,13 @@ module Transaction
     while result.empty? and i < 10 
       puts "looking for transaction on: #{@url}/transactions.json/page/#{i}/per_page/100"
       result = get("#{@url}/transactions.json/page/#{i}/per_page/100")    
-      result = result.select {|transaction| transaction['transaction']['parent_id'] == parent_id and transaction['transaction']['parent_type'] == parent_type and transaction['transaction']['action'] == action}
+      result = result.select {|t| t['transaction']['parent_id'] == parent_id and t['transaction']['parent_type'] == parent_type and t['transaction']['action'] == action}
       i += 1      
     end
     raise("Unable to find transaction according to credentials") if result.empty?    
-    transaction = result.sort{|t| t['transaction']['id']}.last
-    raise("Unable to find NEW transaction according to credentials") if transaction['transaction']['id'] <= $last_transaction_id
+    result = result.select {|t| t['transaction']['id'] > $last_transaction_id }    
+    raise("Unable to find NEW transaction according to credentials") if result.empty?
+    transaction = result.last     
     $last_transaction_id = transaction['transaction']['id']
     transaction_id = transaction['transaction']['id']    
     loop do      

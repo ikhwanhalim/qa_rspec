@@ -3,7 +3,8 @@ require 'helpers/hypervisor'
 require 'helpers/template_manager'
 require 'onapp_template'
 require 'virtual_machine/disks'
-require 'virtual_machine/vm_operations'
+require 'virtual_machine/vm_operations_waiter'
+
 require 'yaml'
 
 class VirtualMachine  
@@ -43,7 +44,7 @@ class VirtualMachine
     hash['virtual_machine']['swap_disk_size'] = '1' if @template.allowed_swap
   
     
-    result = post("#{@url}/virtual_machines", hash)
+    result = post("#{@url}/virtual_machines", hash)    
     result = result['virtual_machine']
     
     @id = result['id']
@@ -56,18 +57,47 @@ class VirtualMachine
     
     @disks = get("#{@url}/virtual_machines/#{@identifier}/disks.json")
     
-# Build VM process
+# Build VM process (BEGIN)
     disk_wait_for_build('primary')
     disk_wait_for_build('swap') if @template.allowed_swap    
     disk_wait_for_provision('primary') if @template.operating_system != 'freebsd'
-    disk_wait_for_provision('swap') if @template.operating_system == 'freebsd'
+    disk_wait_for_provision('swap') if @template.operating_system == 'freebsd'    
     wait_for_configure_operaiong_system
+    wait_for_provision_win if @template.operating_system == 'windows'
     wait_for_start
 # Build VM process (END)    
   end
   
+# OPERATIONS
+
   def destroy
     delete("#{@url}/virtual_machines/#{@identifier}.json")
     wait_for_destroy
+  end
+  def stop
+    post("#{@url}/virtual_machines/#{@identifier}/stop.json")
+    wait_for_stop
+  end
+  def shut_down
+    post("#{@url}/virtual_machines/#{@identifier}/shutdown.json")
+    wait_for_stop
+  end
+  def start_up
+    post("#{@url}/virtual_machines/#{@identifier}/startup.json")
+    wait_for_start
+  end
+  def reboot(mode=nil)
+    post("#{@url}/virtual_machines/#{@identifier}/reboot.json")
+    wait_for_reboot    
+  end
+  def rebuild(template = @template)
+    post("#{@url}/virtual_machines/#{@identifier}/build.json", {'template_id' => template.id.to_s, 'required_startup' => '1'})
+    disk_wait_for_format('primary')    
+    disk_wait_for_format('swap') if @template.allowed_swap    
+    disk_wait_for_provision('primary') if @template.operating_system != 'freebsd'
+    disk_wait_for_provision('swap') if @template.operating_system == 'freebsd'    
+    wait_for_configure_operaiong_system
+    wait_for_provision_win if @template.operating_system == 'windows'
+    wait_for_start
   end
 end

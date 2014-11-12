@@ -18,7 +18,7 @@ module OnappHTTP
   end
 
   def post(url, data="")    
-    request = @conn.post(url, data.to_json, @headers)
+    request = @conn.post(url, data.to_json, @headers)    
     JSON.parse(request.body) unless request.body.blank?
     rescue Mechanize::ResponseCodeError => e
       JSON.parse e.page.body

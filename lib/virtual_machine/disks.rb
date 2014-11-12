@@ -3,13 +3,17 @@ require 'helpers/transaction'
 module Disks  
   include Transaction
     
-  def disk_wait_for_build(type)
+  def disk_wait_for_build(type)    
     disk_id = select_id(type)          
     wait_for_transaction(disk_id, 'Disk', 'build_disk')       
   end  
   def disk_wait_for_provision(type)
     disk_id = select_id(type)          
     wait_for_transaction(disk_id, 'Disk', 'provisioning')        
+  end
+  def disk_wait_for_format(type)
+    disk_id = select_id(type)          
+    wait_for_transaction(disk_id, 'Disk', 'format_disk')
   end
   
   def select_id(type)
