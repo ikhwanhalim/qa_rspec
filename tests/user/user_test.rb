@@ -75,11 +75,18 @@ describe "Checking Billing Plan functionality" do
     response = @new_user.get_user_by_id(@user.user_id)
     expect(response['user']['id']).to eq(@user.user_id)
   end
+
+  it "Edit User, set BillingPlan" do
+    data = {:billing_plan_id => @bp.bp_id
+    }
+    @user.edit_user(@user.user_id, data)
+    response = @user.get_user_by_id(@user.user_id)
+    expect(response['user']['billing_plan_id']).to eq(@bp.bp_id)
+  end
   #
   it "Delete User" do
     data = {:force => true}
     @user.delete_user(@user.user_id, data)
-    sleep(2)
     response = @user.get_user_by_id(@user.user_id)
     expect(response['errors'].first).to eq('User not found')
   end

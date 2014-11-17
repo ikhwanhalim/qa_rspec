@@ -35,5 +35,11 @@ class OnappUser
 
   def delete_user(user_id, data='')
     delete("#{@ip}/users/#{user_id}.json", data)
+    attempt = 0
+    while attempt < 10 do
+      response = get_user_by_id(user_id)
+      break if response.has_key?('errors')
+      attempt += 1
+    end
   end
 end
