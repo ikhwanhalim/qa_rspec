@@ -1,51 +1,45 @@
-require "helpers/curl"
-require "helpers/parser"
-
+require 'yaml'
+require 'helpers/onapp_http'
+require 'json'
 
 class OnappUser
-  include Curl
-  include Parser
+  include OnappHTTP
+  attr_accessor :user_id
 
-  attr_reader :id, :first_name, :last_name, :email, :locale, :login, :password, :time_zone, :billing_plan_id, :role_id
-
-  def initialize
+  def initialize(user=nil, pass=nil)
+    config = YAML::load_file('./config/conf.yml')
+    @ip = config['cp']['ip']
+    @user = user ? user : config['cp']['admin_user']
+    @pass = pass ? pass : config['cp']['admin_pass']
+    auth("#{@ip}/users/sign_in", @user, @pass)
   end
 
-  def add_admin
-    @id = $db.select_user($cp.admin.split(":").first)
-    @login = $cp.admin.split(":").first
-    @password = $cp.admin.split(":").last
-    data = from_api(get("/users/#{@id}"))
-    fill_data(data)
-    set_as_current
-    return self
-  end
+  def create_user(data)
+    data = {"user" => data}
+    response = post("#{@ip}/users.json", data)
 
-  def create(data)
-  end
-
-  def set_as_current
-    $current_user = "#{login}:#{password}"
-  end
-
-  def billing_plan
-    $billing_plans.billing_plan(billing_plan_id)
-  end
-
-  def role
-    $roles.role(role_id)
-  end
-
-  private
-    def fill_data(data)
-      @login = data[:login]
-      @id = data[:id]
-      @first_name = data[:first_name]
-      @last_name = data[:last_name]
-      @email = data[:email]
-      @locale = data[:locale]
-      @time_zone = data[:time_zone]
-      @billing_plan_id = data[:billing_plan_id]
-      @role_id = data[:roles].first["role"]["id"]
+    if !response.has_key?('errors')
+      @user_id = response['user']['id']
     end
+    return response
+  end
+
+  def edit_user(user_id, data)
+    data = {"user" => data}
+    put("#{@ip}/users/#{user_id}.json", data)
+  end
+
+  def get_user_by_id(user_id)
+    get("#{@ip}/users/#{user_id}.json")
+  end
+
+  def delete_user(user_id, data='')
+    delete("#{@ip}/users/#{user_id}.json", data)
+    attempt = 0
+    while attempt < 10 do
+      response = get_user_by_id(user_id)
+      break if response.has_key?('errors')
+      attempt += 1
+    end
+  end
 end
