@@ -1,64 +1,86 @@
-require "helpers/curl"
-require "helpers/parser"
+require 'yaml'
+require 'helpers/onapp_http'
+require 'json'
 
 class OnappRole
-  include Curl
-  include Parser
+  include OnappHTTP
+  attr_accessor :role_id, :permissions
 
-  attr_reader :id, :label, :role_permissions
+  def initialize(user=nil, pass=nil)
+    config = YAML::load_file('./config/conf.yml')
+    @ip = config['cp']['ip']
+    @user = user ? user : config['cp']['admin_user']
+    @pass = pass ? pass : config['cp']['admin_pass']
+    auth("#{@ip}/users/sign_in", @user, @pass)
+    @permissions = {}
+    get_all_permissions
+  end
 
-  def initialize_permissions
-    class << self
-      @@all_permissions.each do |name, id|
-        attr_reader name
-        define_method("#{name}=") do |val|
-          instance_variable_set("@#{name}", val)
-        end
+  def create_role(label=nil, permission_ids=[])
+    data = {
+        "role" => {
+            "label" => label,
+            "permission_ids" => permission_ids
+        }
+    }
+    response = post("#{@ip}/roles.json", data)
+
+    if !response.has_key?('errors')
+      @role_id = response['role']['id']
+    end
+    return response
+  end
+
+  def create_user_role
+    return create_role(label="UsersPermissions", permission_ids=get_users_permissions_ids)
+  end
+
+  def create_admin_role
+    return create_role(label="AdminPermissions", permission_ids=get_admin_permissions_ids)
+  end
+
+  def delete_role(role_id, data='')
+    delete("#{@ip}/roles/#{role_id}.json", data)
+    attempt = 0
+    while attempt < 10 do
+      response = get("#{@ip}/roless/#{role_id}.json")
+      break if response.has_key?('errors')
+      attempt += 1
+    end
+  end
+
+
+  protected
+  def get_all_permissions
+    permissions = get("#{@ip}/permissions.json")
+    permissions.each do |permission|
+      @permissions[permission['permission']['identifier']] = permission['permission']['id']
+    end
+  end
+
+  # Testing version of method
+  def get_users_permissions_ids
+    users_permissions = []
+    @permissions.each do |identifier, id|
+      if identifier.include? '.create' or
+          identifier.include? '.own' or
+          identifier.include? '.read' or
+          identifier.include? '.list'
+        users_permissions.append(id)
       end
     end
+    return users_permissions
   end
 
-  def add(id)
-    get_all_permissions
-    initialize_permissions
-    data = from_api(get("/roles/#{id}"))
-    @id = data[:id]
-    @label = data[:label]
-    @role_permissions = permission_filter(data[:permissions])
-    @role_permissions.each do |name, id|
-      instance_variable_set("@#{name}", true)
+  # Testing version of method
+  def get_admin_permissions_ids
+    admin_permissions = []
+    @permissions.each do |identifier, id|
+      if !identifier.include? '.'
+        admin_permissions.append(id)
+      end
     end
-    return self
-  end 
-
-  def add_role_permissions(names)
-    names.each do |name|
-      @role_permissions[name] = @@all_permissions[name]
-      instance_variable_set("@#{name}", true)
-    end
-    put("/roles/#{@id}", to_api(:role => to_api({"permission_ids"=>@role_permissions.values})))
+    return admin_permissions
   end
 
-  def remove_role_permissions(names)
-    names.each do |name|
-      @role_permissions.delete(name)
-      instance_variable_set("@#{name}", false)
-    end
-    put("/roles/#{@id}", to_api(:role => to_api({"permission_ids"=>@role_permissions.values})))
-  end
-
-  def get_all_permissions
-    @@all_permissions = permission_filter(from_api(get("/permissions")))
-  end
-
-  def permission_filter(permissions)
-    hash = {}
-    permissions.each do |p|
-      permission_name = p["permission"]["identifier"].gsub(/\./,"_")
-      permission_id = p["permission"]["id"]
-      tmp = { permission_name => permission_id }
-      hash.merge! tmp
-    end
-    return hash
-  end
 end
