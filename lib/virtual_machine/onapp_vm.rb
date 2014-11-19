@@ -4,6 +4,7 @@ require 'helpers/template_manager'
 require 'onapp_template'
 require 'virtual_machine/disks'
 require 'virtual_machine/vm_operations_waiter'
+require 'virtual_machine/networks'
 
 require 'yaml'
 
@@ -11,7 +12,8 @@ class VirtualMachine
   include OnappHTTP
   include Hypervisor
   include Disks
-  include VmOperationsWaiters  
+  include VmOperationsWaiters
+  include VmNetwork  
   
   attr_reader :hypervisor_id, :template
   attr_reader :id, :identifier, :memory, :cpus, :cpu_share, :label, :hostname
@@ -44,9 +46,9 @@ class VirtualMachine
     hash['virtual_machine']['swap_disk_size'] = '1' if @template.allowed_swap
   
     
-    result = post("#{@url}/virtual_machines", hash)    
-    result = result['virtual_machine']
-    
+    result = post("#{@url}/virtual_machines", hash)
+    puts api_responce_code    
+    result = result['virtual_machine']    
     @id = result['id']
     @identifier = result['identifier']
     @label = result['label']
@@ -56,6 +58,11 @@ class VirtualMachine
     @cpu_shares = result['cpu_shares']
     
     @disks = get("#{@url}/virtual_machines/#{@identifier}/disks.json")
+    puts api_responce_code
+    @network_interfaces = get("#{@url}/virtual_machines/#{@identifier}/network_interfaces.json")
+    puts api_responce_code    
+    @ip_addresses = get("#{@url}/virtual_machines/#{@identifier}/ip_addresses.json")
+    puts api_responce_code
     
 # Build VM process (BEGIN)
     disk_wait_for_build('primary')
@@ -69,6 +76,9 @@ class VirtualMachine
   end
   
 # OPERATIONS
+  def api_responce_code
+    @conn.page.code
+  end
 
   def destroy
     delete("#{@url}/virtual_machines/#{@identifier}.json")
