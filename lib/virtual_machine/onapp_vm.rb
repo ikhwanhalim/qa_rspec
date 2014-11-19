@@ -15,7 +15,7 @@ class VirtualMachine
   include VmOperationsWaiters
   include VmNetwork  
   
-  attr_reader :hypervisor_id, :template
+  attr_reader :hypervisor_id, :hypervisor, :template
   attr_reader :id, :identifier, :memory, :cpus, :cpu_share, :label, :hostname
   
   def initialize(template,virtualization,user=nil)
@@ -24,7 +24,8 @@ class VirtualMachine
     @ip = data['ip']
     auth "#{@url}/users/sign_in", data['user'], data['pass']        
     @template = OnappTemplate.new template    
-    @hypervisor_id = for_vm_creation(virtualization)
+    @hypervisor = for_vm_creation(virtualization)
+    @hypervisor_id = @hypervisor['id']
     
     if !user.nil?
       @conn=nil      
