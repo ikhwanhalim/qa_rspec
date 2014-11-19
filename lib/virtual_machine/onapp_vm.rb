@@ -43,11 +43,8 @@ class VirtualMachine
       'required_virtual_machine_build' => '1',
       'required_ip_address_assignment' => '1',
       }}
-    hash['virtual_machine']['swap_disk_size'] = '1' if @template.allowed_swap
-  
-    
-    result = post("#{@url}/virtual_machines", hash)
-    puts api_responce_code    
+    hash['virtual_machine']['swap_disk_size'] = '1' if @template.allowed_swap   
+    result = post("#{@url}/virtual_machines", hash)        
     result = result['virtual_machine']    
     @id = result['id']
     @identifier = result['identifier']
@@ -57,12 +54,9 @@ class VirtualMachine
     @cpu = result['cpus']
     @cpu_shares = result['cpu_shares']
     
-    @disks = get("#{@url}/virtual_machines/#{@identifier}/disks.json")
-    puts api_responce_code
-    @network_interfaces = get("#{@url}/virtual_machines/#{@identifier}/network_interfaces.json")
-    puts api_responce_code    
-    @ip_addresses = get("#{@url}/virtual_machines/#{@identifier}/ip_addresses.json")
-    puts api_responce_code
+    @disks = get("#{@url}/virtual_machines/#{@identifier}/disks.json")    
+    @network_interfaces = get("#{@url}/virtual_machines/#{@identifier}/network_interfaces.json")    
+    @ip_addresses = get("#{@url}/virtual_machines/#{@identifier}/ip_addresses.json")    
     
 # Build VM process (BEGIN)
     disk_wait_for_build('primary')
@@ -70,6 +64,7 @@ class VirtualMachine
     disk_wait_for_provision('primary') if @template.operating_system != 'freebsd'
     disk_wait_for_provision('swap') if @template.operating_system == 'freebsd'    
     wait_for_configure_operaiong_system
+    wait_for_provision_freebsd if @template.operating_system == 'freebsd'
     wait_for_provision_win if @template.operating_system == 'windows'
     wait_for_start
 # Build VM process (END)    
@@ -82,23 +77,23 @@ class VirtualMachine
 
   def destroy
     delete("#{@url}/virtual_machines/#{@identifier}.json")
-    wait_for_destroy
+    api_responce_code == '201'    
   end
   def stop
     post("#{@url}/virtual_machines/#{@identifier}/stop.json")
-    wait_for_stop
+    api_responce_code == '201'
   end
   def shut_down
     post("#{@url}/virtual_machines/#{@identifier}/shutdown.json")
-    wait_for_stop
+    api_responce_code == '201'
   end
   def start_up
     post("#{@url}/virtual_machines/#{@identifier}/startup.json")
-    wait_for_start
+    api_responce_code == '201'
   end
   def reboot(mode=nil)
     post("#{@url}/virtual_machines/#{@identifier}/reboot.json")
-    wait_for_reboot    
+    api_responce_code == '201'
   end
   def rebuild(template = @template)
     post("#{@url}/virtual_machines/#{@identifier}/build.json", {'template_id' => template.id.to_s, 'required_startup' => '1'})

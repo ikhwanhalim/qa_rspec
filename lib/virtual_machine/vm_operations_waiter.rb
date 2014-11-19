@@ -9,6 +9,9 @@ module VmOperationsWaiters
   def wait_for_start
     wait_for_transaction(@id, 'VirtualMachine', 'startup_virtual_machine')
   end
+  def wait_for_provision_freebsd
+    wait_for_transaction(@id, 'VirtualMachine', 'provision_freebsd')
+  end
   def wait_for_provision_win
     wait_for_transaction(@id, 'VirtualMachine', 'provision_win')
   end

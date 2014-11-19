@@ -5,8 +5,15 @@ module VmNetwork
   
   def ssh_port_opened(network_interface = 1, ip_address_number = 1)
     ip_address = ip(network_interface, ip_address_number)
-    return false if `nc -z #{ip_address} 22 -w120 || echo false`.include?('false')
-    return true
+    attempts = 12
+    while `nc -z #{ip_address} 22 -w1 || echo false`.include?('false')
+      if attempts < 0
+        return false
+      end      
+      attempts-=1
+      sleep 10
+    end    
+    true
   end
   
   
