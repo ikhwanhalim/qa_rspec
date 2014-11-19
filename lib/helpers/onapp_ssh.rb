@@ -5,7 +5,6 @@ module OnappSSH
 
   #Example for cred - {'vm_user'=>'name', 'vm_host'=>'ip', 'vm_pass'=>'pass'}
   #Command can be as string  "hostname;ifconfig" or file File.open("path/to/file")
-  #If vm_pass not nil ssh connection execute with pass
   def vm_execute(cred={}, command)
     raise "VM ip should not be nil" unless cred['vm_host']
     cred['vm_user'] ||= 'root'
