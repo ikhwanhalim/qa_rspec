@@ -16,6 +16,6 @@ module Hypervisor
         max_free = x['hypervisor']['free_mem'] if max_free < x['hypervisor']['free_mem'] and x['hypervisor']['enabled'] and x['hypervisor']['server_type'] == 'virtual' and x['hypervisor']['online']
       end
     end
-    return hv['id']
+    return hv
   end
 end
