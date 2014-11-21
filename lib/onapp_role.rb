@@ -8,10 +8,10 @@ class OnappRole
 
   def initialize(user=nil, pass=nil)
     config = YAML::load_file('./config/conf.yml')
-    @ip = config['cp']['ip']
-    @user = user ? user : config['cp']['admin_user']
-    @pass = pass ? pass : config['cp']['admin_pass']
-    auth("#{@ip}/users/sign_in", @user, @pass)
+    @url = config['url']
+    @user ||= config['user']
+    @pass ||= config['pass']
+    auth("#{@url}/users/sign_in", @user, @pass)
     @permissions = {}
     get_all_permissions
   end
@@ -23,7 +23,7 @@ class OnappRole
             "permission_ids" => permission_ids
         }
     }
-    response = post("#{@ip}/roles.json", data)
+    response = post("#{@url}/roles.json", data)
 
     if !response.has_key?('errors')
       @role_id = response['role']['id']
@@ -40,10 +40,10 @@ class OnappRole
   end
 
   def delete_role(role_id, data='')
-    delete("#{@ip}/roles/#{role_id}.json", data)
+    delete("#{@url}/roles/#{role_id}.json", data)
     attempt = 0
     while attempt < 10 do
-      response = get("#{@ip}/roless/#{role_id}.json")
+      response = get("#{@url}/roless/#{role_id}.json")
       break if response.has_key?('errors')
       attempt += 1
     end
@@ -52,7 +52,7 @@ class OnappRole
 
   protected
   def get_all_permissions
-    permissions = get("#{@ip}/permissions.json")
+    permissions = get("#{@url}/permissions.json")
     permissions.each do |permission|
       @permissions[permission['permission']['identifier']] = permission['permission']['id']
     end
