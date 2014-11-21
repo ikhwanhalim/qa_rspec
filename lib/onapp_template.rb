@@ -4,7 +4,7 @@ require 'yaml'
 
 class OnappTemplate  
   include TemplateManager
-   include OnappHTTP
+  include OnappHTTP
   include Hypervisor
   attr_reader :url
   
