@@ -25,7 +25,7 @@ gem 'therubyracer'
 gem 'haml-rails'
 gem "erb2haml"
 gem 'json'
-gem 'spawnling'
+gem 'spawnling', '2.1.1'
 gem 'mechanize'
 gem 'pry'
 gem 'activerecord-import'
