@@ -5,7 +5,7 @@ require 'json'
 class OnappUser
   include OnappHTTP
   attr_accessor :user_id
-  attr_reader :user, :pass
+  attr_reader :login, :password
 
   def initialize(user=nil, pass=nil)
     config = YAML::load_file('./config/conf.yml')
@@ -17,6 +17,8 @@ class OnappUser
 
   def create_user(data)
     data = {"user" => data}
+    @login ||= data['user']['login']
+    @password ||= data['user']['password']
     response = post("#{@url}/users.json", data)
 
     if !response.has_key?('errors')
