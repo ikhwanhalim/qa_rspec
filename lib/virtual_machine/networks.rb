@@ -1,7 +1,7 @@
 #require 'helpers/onapp_ssh'
 
 module VmNetwork
-#  include OnappSSH
+  #include OnappSSH
   
   def ssh_port_opened(network_interface = 1, ip_address_number = 1)
     ip_address = ip(network_interface, ip_address_number)
@@ -12,7 +12,7 @@ module VmNetwork
       end      
       attempts-=1
       sleep 10
-    end    
+    end        
     true
   end
   
