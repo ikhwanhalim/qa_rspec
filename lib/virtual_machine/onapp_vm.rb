@@ -17,6 +17,7 @@ class VirtualMachine
   
   attr_reader :hypervisor_id, :hypervisor, :template
   attr_reader :id, :identifier, :memory, :cpus, :cpu_share, :label, :hostname
+  attr_reader :price_per_hour, :price_per_hour_powered_off
   
   def initialize(template,virtualization,user=nil)
     data = YAML::load_file('config/conf.yml')
@@ -28,10 +29,11 @@ class VirtualMachine
     @hypervisor_id = @hypervisor['id']
     
     if !user.nil?
+      puts "#{user.login}"
       @conn=nil      
       auth "#{@url}/users/sign_in", user.login, user.password
     end
-  
+    puts "#{@url}/users/sign_in", user.login, user.password
     hash ={'virtual_machine' => {
       'hypervisor_id' => @hypervisor_id,
       'template_id' => @template.id,
@@ -44,8 +46,8 @@ class VirtualMachine
       'required_virtual_machine_build' => '1',
       'required_ip_address_assignment' => '1',
       }}
-    hash['virtual_machine']['swap_disk_size'] = '1' if @template.allowed_swap   
-    result = post("#{@url}/virtual_machines", hash)        
+    hash['virtual_machine']['swap_disk_size'] = '1' if @template.allowed_swap
+    result = post("#{@url}/virtual_machines", hash)
     result = result['virtual_machine']    
     @id = result['id']
     @identifier = result['identifier']
@@ -54,6 +56,9 @@ class VirtualMachine
     @memory = result['memory']
     @cpu = result['cpus']
     @cpu_shares = result['cpu_shares']
+
+    @price_per_hour = result['price_per_hour']
+    @price_per_hour_powered_off = result['price_per_hour_powered_off']
     
     @disks = get("#{@url}/virtual_machines/#{@identifier}/disks.json")    
     @network_interfaces = get("#{@url}/virtual_machines/#{@identifier}/network_interfaces.json")    

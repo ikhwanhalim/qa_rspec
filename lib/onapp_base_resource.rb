@@ -47,8 +47,9 @@ class OnappBaseResource
   end
 
   def create_base_resource(bp_id, data)
-    data = {:base_resource => data}
-    response = post("#{@url}/billing_plans/#{bp_id}/base_resources.json", data)
+    params = {}
+    params[:base_resource] = data
+    response = post("#{@url}/billing_plans/#{bp_id}/base_resources.json", params)
 
     if !response.has_key?('errors')
       @br_id = response['base_resource']['id']
@@ -57,8 +58,9 @@ class OnappBaseResource
   end
 
   def edit_base_resource(bp_id, br_id, data)
-    data = {:base_resource => data}
-    put("#{@url}/billing_plans/#{bp_id}/base_resources/#{br_id}.json", data)
+    params = {}
+    params[:base_resource] = data
+    put("#{@url}/billing_plans/#{bp_id}/base_resources/#{br_id}.json", params)
   end
 
   def get_base_resource(bp_id, br_id)
@@ -112,7 +114,7 @@ class OnappBaseResource
       if hv['hypervisor']['server_type'] == 'virtual' and
           hv['hypervisor']['hypervisor_type'].in?(virtualization) and
           hv['hypervisor']['enabled'] == true
-        hvs_collector.append([hv['hypervisor']['"free_memory'], hv['hypervisor']['hypervisor_group_id']],)
+        hvs_collector.append([hv['hypervisor']['free_memory'], hv['hypervisor']['hypervisor_group_id']],)
       end
     end
     if !hvs_collector.empty?
@@ -122,6 +124,7 @@ class OnappBaseResource
   end
 
   def get_dsz_id(hvz_id)
+    puts hvz_id
     dsz_id = nil
     ds_joins = get("#{@url}/settings/hypervisor_zones/#{hvz_id}/data_store_joins.json")
     ds_id = ds_joins.first['data_store_join']['data_store_id']

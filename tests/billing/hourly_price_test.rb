@@ -15,10 +15,11 @@ describe "Checking Billing Plan functionality" do
     @br = OnappBaseResource.new
     @user = OnappUser.new
 
-    @template = OnappTemplate.new("debian-5.0-x86-1.2.tar.gz")
+    @template = OnappTemplate.new("ubuntu-14.04-x64-1.0-xen.kvm.kvm_virtio.tar.gz")
     virtualization = @template.virtualization.split(',')
     zones_ids = @br.hdn_zones_ids(virtualization)
     @hvz_id = zones_ids[:hvz_id]
+    puts @hvz_id
     @dsz_id = zones_ids[:dsz_id]
     @netz_id = zones_ids[:netz_id]
   end
@@ -30,9 +31,9 @@ describe "Checking Billing Plan functionality" do
   end
 
   it 'Create BP' do
-    bp_data = {'label' => 'Test Hourly Price BP',
-               'monthly_price' => '100.0',
-               'currency_code' => 'USD'
+    bp_data = {:label => 'Test Hourly Price BP',
+               :monthly_price => '100.0',
+               :currency_code => 'USD'
     }
     @bp.create_billing_plan(bp_data)
   end
@@ -117,7 +118,10 @@ describe "Checking Billing Plan functionality" do
   end
 
   it 'Create VS' do
-
+    @vm = VirtualMachine.new(@template.file_name, 'kvm6', @user)
+    puts "price_per_hour - #{@vm.price_per_hour}"
+    puts "price_per_hour_powered_off - #{@vm.price_per_hour_powered_off}"
+    @vm.destroy
   end
 
   it 'Check hourly price' do

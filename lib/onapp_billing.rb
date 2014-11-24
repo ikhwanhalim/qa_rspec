@@ -15,8 +15,10 @@ class OnappBilling
   end
 
   def create_billing_plan(data)
-    data = {"billing_plan" => data}
-    response = post("#{@url}/billing_plans.json", data)
+    params = {}
+    params[:billing_plan] = data
+    puts params
+    response = post("#{@url}/billing_plans.json", params)
 
     if !response.has_key?('errors')
       @bp_id = response['billing_plan']['id']
@@ -25,8 +27,9 @@ class OnappBilling
   end
 
   def edit_billing_plan(bp_id, data)
-    data = {"billing_plan" => data}
-    put("#{@url}/billing_plans/#{bp_id}.json", data)
+    params = {}
+    params[:billing_plan] = data
+    put("#{@url}/billing_plans/#{bp_id}.json", params)
   end
 
   def get_billing_plan(bp_id)

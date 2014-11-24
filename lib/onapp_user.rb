@@ -16,10 +16,11 @@ class OnappUser
   end
 
   def create_user(data)
-    data = {"user" => data}
-    @login ||= data['user']['login']
-    @password ||= data['user']['password']
-    response = post("#{@url}/users.json", data)
+    params = {}
+    params[:user] = data
+    @login ||= params[:user][:login]
+    @password ||= params[:user][:password]
+    response = post("#{@url}/users.json", params)
 
     if !response.has_key?('errors')
       @user_id = response['user']['id']
@@ -28,8 +29,9 @@ class OnappUser
   end
 
   def edit_user(user_id, data)
-    data = {"user" => data}
-    put("#{@url}/users/#{user_id}.json", data)
+    params = {}
+    params[:user] = data
+    put("#{@url}/users/#{user_id}.json", params)
   end
 
   def get_user_by_id(user_id)

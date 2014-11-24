@@ -17,13 +17,12 @@ class OnappRole
   end
 
   def create_role(label=nil, permission_ids=[])
-    data = {
-        "role" => {
-            "label" => label,
-            "permission_ids" => permission_ids
-        }
+    params = {}
+    params[:role] = {:label => label,
+                   :permission_ids => permission_ids
     }
-    response = post("#{@url}/roles.json", data)
+
+    response = post("#{@url}/roles.json", params)
 
     if !response.has_key?('errors')
       @role_id = response['role']['id']
