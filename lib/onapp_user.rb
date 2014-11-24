@@ -5,18 +5,21 @@ require 'json'
 class OnappUser
   include OnappHTTP
   attr_accessor :user_id
+  attr_reader :login, :password
 
   def initialize(user=nil, pass=nil)
     config = YAML::load_file('./config/conf.yml')
-    @ip = config['cp']['ip']
-    @user = user ? user : config['cp']['admin_user']
-    @pass = pass ? pass : config['cp']['admin_pass']
-    auth("#{@ip}/users/sign_in", @user, @pass)
+    @url = config['url']
+    @user ||= config['user']
+    @pass ||= config['pass']
+    auth("#{@url}/users/sign_in", @user, @pass)
   end
 
   def create_user(data)
     data = {"user" => data}
-    response = post("#{@ip}/users.json", data)
+    @login ||= data['user']['login']
+    @password ||= data['user']['password']
+    response = post("#{@url}/users.json", data)
 
     if !response.has_key?('errors')
       @user_id = response['user']['id']
@@ -26,15 +29,15 @@ class OnappUser
 
   def edit_user(user_id, data)
     data = {"user" => data}
-    put("#{@ip}/users/#{user_id}.json", data)
+    put("#{@url}/users/#{user_id}.json", data)
   end
 
   def get_user_by_id(user_id)
-    get("#{@ip}/users/#{user_id}.json")
+    get("#{@url}/users/#{user_id}.json")
   end
 
   def delete_user(user_id, data='')
-    delete("#{@ip}/users/#{user_id}.json", data)
+    delete("#{@url}/users/#{user_id}.json", data)
     attempt = 0
     while attempt < 10 do
       response = get_user_by_id(user_id)
