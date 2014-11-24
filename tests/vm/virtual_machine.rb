@@ -4,7 +4,7 @@ require 'pry'
 
 describe "VIRTUAL MACHINE REGRESSION AUTOTEST" do
   before :all do    
-    @vm = VirtualMachine.new('debian-7.0-x64-1.4-xen.kvm.kvm_virtio.tar.gz','kvm6')                 
+    @vm = VirtualMachine.new(ENV['TEMPLATE_FILE_NAME'],ENV['VIRT_TYPE'])                 
   end
   after :all do
     @vm.destroy

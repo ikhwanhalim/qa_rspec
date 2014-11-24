@@ -25,15 +25,14 @@ class VirtualMachine
     auth "#{@url}/users/sign_in", data['user'], data['pass']        
     @template = OnappTemplate.new template    
     @hypervisor = for_vm_creation(virtualization)
-    @hypervisor_id = @hypervisor['id']
-    
+    @hypervisor_id = @hypervisor['id']    
     if !user.nil?
       @conn=nil      
       auth "#{@url}/users/sign_in", user.login, user.password
     end
   
     hash ={'virtual_machine' => {
-      'hypervisor_id' => @hypervisor_id,
+      'hypervisor_id' => @hypervisor['id'],
       'template_id' => @template.id,
       'label' => @template.file_name,
       'memory' => @template.min_memory_size,
