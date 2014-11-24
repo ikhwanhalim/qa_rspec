@@ -28,11 +28,9 @@ class VirtualMachine
     @hypervisor = for_vm_creation(virtualization)
     @hypervisor_id = @hypervisor['id']    
     if !user.nil?
-      puts "#{user.login}"
       @conn=nil      
       auth "#{@url}/users/sign_in", user.login, user.password
     end
-    puts "#{@url}/users/sign_in", user.login, user.password
     hash ={'virtual_machine' => {
       'hypervisor_id' => @hypervisor['id'],
       'template_id' => @template.id,
