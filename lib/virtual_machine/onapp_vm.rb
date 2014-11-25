@@ -108,4 +108,23 @@ class VirtualMachine
     wait_for_provision_win if @template.operating_system == 'windows'
     wait_for_start
   end
+
+  def info_update
+    result = get("#{@url}/virtual_machines/#{@identifier}.json")
+    result = result['virtual_machine']
+    @id = result['id']
+    @identifier = result['identifier']
+    @label = result['label']
+    @hostname = result['hostname']
+    @memory = result['memory']
+    @cpu = result['cpus']
+    @cpu_shares = result['cpu_shares']
+
+    @price_per_hour = result['price_per_hour']
+    @price_per_hour_powered_off = result['price_per_hour_powered_off']
+
+    @disks = get("#{@url}/virtual_machines/#{@identifier}/disks.json")
+    @network_interfaces = get("#{@url}/virtual_machines/#{@identifier}/network_interfaces.json")
+    @ip_addresses = get("#{@url}/virtual_machines/#{@identifier}/ip_addresses.json")
+  end
 end

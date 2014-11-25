@@ -17,7 +17,6 @@ class OnappBilling
   def create_billing_plan(data)
     params = {}
     params[:billing_plan] = data
-    puts params
     response = post("#{@url}/billing_plans.json", params)
 
     if !response.has_key?('errors')

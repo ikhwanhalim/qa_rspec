@@ -113,7 +113,8 @@ class OnappBaseResource
     hvs.each do |hv|
       if hv['hypervisor']['server_type'] == 'virtual' and
           hv['hypervisor']['hypervisor_type'].in?(virtualization) and
-          hv['hypervisor']['enabled'] == true
+          hv['hypervisor']['enabled'] == true and
+          hv['hypervisor']['online'] == true
         hvs_collector.append([hv['hypervisor']['free_memory'], hv['hypervisor']['hypervisor_group_id']],)
       end
     end
@@ -124,7 +125,6 @@ class OnappBaseResource
   end
 
   def get_dsz_id(hvz_id)
-    puts hvz_id
     dsz_id = nil
     ds_joins = get("#{@url}/settings/hypervisor_zones/#{hvz_id}/data_store_joins.json")
     ds_id = ds_joins.first['data_store_join']['data_store_id']

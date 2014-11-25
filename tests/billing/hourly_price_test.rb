@@ -12,14 +12,16 @@ include Hypervisor
 describe "Checking Billing Plan functionality" do
   before(:all) do
     @bp = OnappBilling.new
-    @br = OnappBaseResource.new
+    @hv_br = OnappBaseResource.new
+    @ds_br = OnappBaseResource.new
+    @ntw_br = OnappBaseResource.new
     @user = OnappUser.new
+    @vm = nil
 
     @template = OnappTemplate.new("ubuntu-14.04-x64-1.0-xen.kvm.kvm_virtio.tar.gz")
     virtualization = @template.virtualization.split(',')
-    zones_ids = @br.hdn_zones_ids(virtualization)
+    zones_ids = @hv_br.hdn_zones_ids(virtualization)
     @hvz_id = zones_ids[:hvz_id]
-    puts @hvz_id
     @dsz_id = zones_ids[:dsz_id]
     @netz_id = zones_ids[:netz_id]
 
@@ -50,7 +52,7 @@ describe "Checking Billing Plan functionality" do
                                :price_off_memory => "2"
                    }
     }
-    @br.create_base_resource(@bp.bp_id, @hv_br_data)
+    @hv_br.create_base_resource(@bp.bp_id, @hv_br_data)
 
     # DS
     @ds_br_data = {:resource_class => "Resource::DataStoreGroup",
@@ -72,7 +74,7 @@ describe "Checking Billing Plan functionality" do
                                :price_reads_completed => "10"
                    }
     }
-    @br.create_base_resource(@bp.bp_id, @ds_br_data)
+    @ds_br.create_base_resource(@bp.bp_id, @ds_br_data)
 
     # NW
     @ntw_br_data = {:resource_class => "Resource::NetworkGroup",
@@ -94,7 +96,7 @@ describe "Checking Billing Plan functionality" do
                                 :price_data_received => "10"
                     }
     }
-    @br.create_base_resource(@bp.bp_id, @ntw_br_data)
+    @ntw_br.create_base_resource(@bp.bp_id, @ntw_br_data)
 
     # Create User
     @user_data = {:login => 'hourlypricechecker',
@@ -107,12 +109,15 @@ describe "Checking Billing Plan functionality" do
     expect(response['user']['login']).to eq(@user_data[:login])
 
     # Create VS
-    @vm = VirtualMachine.new(@template.file_name, 'kvm6', @user)
+    @vm = VirtualMachine.new(@template.file_name, 'xen4', @user)
 
   end
 
   after(:all) do
-    @vm.destroy
+    if !@vm.nil?
+      @vm.destroy
+      @vm.wait_for_destroy
+    end
     data = {:force => true}
     @user.delete_user(@user.user_id, data)
     @bp.delete_billing_plan(@bp.bp_id)
@@ -120,6 +125,48 @@ describe "Checking Billing Plan functionality" do
 
   it 'Check hourly price' do
     expect(@vm.price_per_hour).to eq(0.0) and expect(@vm.price_per_hour_powered_off).to eq(0.0)
+
+  end
+
+  # Change BP
+  it "Change BP to get Price for resources" do
+  # HV
+    @hv_br_data = {:limits => {:limit_free_cpu => "0",
+                               :limit_cpu => "2",
+                               :limit_free_cpu_share => "0",
+                               :limit_cpu_share => "",
+                               :limit_free_memory => "0",
+                               :limit_memory => "1024"
+                   }
+    }
+    @hv_br.edit_base_resource(@bp.bp_id, @hv_br.br_id, @hv_br_data)
+
+    # DS
+    @ds_br_data = {:limits=> {:limit_free=>"0",
+                              :limit => "20",
+                              :limit_reads_completed_free => "0",
+                              :limit_data_written_free => "0",
+                              :limit_data_read_free => "0",
+                              :limit_writes_completed_free => "0"
+                   }
+    }
+    @ds_br.edit_base_resource(@bp.bp_id, @ds_br.br_id, @ds_br_data)
+
+    # NW
+    @ntw_br_data = {:limits => {:limit_ip => "2",
+                                :limit_rate => "500",
+                                :limit_data_sent_free => "0",
+                                :limit_rate_free => "0",
+                                :limit_ip_free => "0",
+                                :limit_data_received_free =>"0"
+                    }
+    }
+    @ntw_br.edit_base_resource(@bp.bp_id, @ntw_br.br_id, @ntw_br_data)
+  end
+
+  it 'Check hourly price' do
+    @vm.info_update
+    expect(@vm.price_per_hour).to eq(2660.0) and expect(@vm.price_per_hour_powered_off).to eq(524.0)
 
   end
 
