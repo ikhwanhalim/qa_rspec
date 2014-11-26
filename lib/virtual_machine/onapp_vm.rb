@@ -125,7 +125,6 @@ class VirtualMachine
     wait_for_start
   end
 
-
   def info_update
     result = get("#{@url}/virtual_machines/#{@identifier}.json")
     result = result['virtual_machine']
@@ -144,6 +143,7 @@ class VirtualMachine
     @network_interfaces = get("#{@url}/virtual_machines/#{@identifier}/network_interfaces.json")
     @ip_addresses = get("#{@url}/virtual_machines/#{@identifier}/ip_addresses.json")
   end
+
 
   def exist_on_hv?
     cred = { 'vm_host' => "#{@hypervisor['ip_address']}" }
