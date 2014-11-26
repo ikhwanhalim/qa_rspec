@@ -3,7 +3,9 @@ require 'virtual_machine/onapp_vm'
 require 'pry'
 
 describe "VIRTUAL MACHINE REGRESSION AUTOTEST" do
-  before :all do    
+  before :all do
+    puts ENV['TEMPLATE_FILE_NAME']
+    puts ENV['VIRT_TYPE']
     @vm = VirtualMachine.new(ENV['TEMPLATE_FILE_NAME'],ENV['VIRT_TYPE'])                 
   end
   after :all do
@@ -13,25 +15,36 @@ describe "VIRTUAL MACHINE REGRESSION AUTOTEST" do
   describe "VM power operations" do    
     it "Stop/Start Virtual Machine" do
       @vm.ssh_port_opened.should be_truthy
+      @vm.exist_on_hv?.should be_truthy
+
       @vm.stop.should be_truthy      
       @vm.wait_for_stop.should be_truthy
-      @vm.ssh_port_opened.should be_falsey      
+      @vm.exist_on_hv?.should be_falsey
+
       @vm.start_up.should be_truthy      
       @vm.wait_for_start.should be_truthy
+      @vm.exist_on_hv?.should be_truthy
       @vm.ssh_port_opened.should be_truthy            
     end
     it "ShutDown/Start Virtual Machine" do
+      @vm.ssh_port_opened.should be_truthy
+      @vm.exist_on_hv?.should be_truthy
+
       @vm.shut_down.should be_truthy      
       @vm.wait_for_stop.should be_truthy
-      @vm.ssh_port_opened.should be_falsey  
+      @vm.exist_on_hv?.should be_falsey
+
+
       @vm.start_up.should be_truthy      
       @vm.wait_for_start.should be_truthy
+      @vm.exist_on_hv?.should be_truthy
       @vm.ssh_port_opened.should be_truthy
     end    
     it "Reboot Virtual Machine" do
       @vm.reboot.should be_truthy      
       @vm.wait_for_reboot
-      @vm.ssh_port_opened.should be_truthy                  
+      @vm.exist_on_hv?.should be_truthy
+      @vm.ssh_port_opened.should be_truthy
     end
   end
   describe "Network operations" do

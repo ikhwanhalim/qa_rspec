@@ -5,11 +5,13 @@ require 'onapp_template'
 require 'virtual_machine/disks'
 require 'virtual_machine/vm_operations_waiter'
 require 'virtual_machine/networks'
+require 'helpers/onapp_ssh'
 
 require 'yaml'
 
 class VirtualMachine  
   include OnappHTTP
+  include OnappSSH
   include Hypervisor
   include Disks
   include VmOperationsWaiters
@@ -69,6 +71,8 @@ class VirtualMachine
     wait_for_start
 # Build VM process (END)    
   end
+
+
   
 # OPERATIONS
   def api_responce_code
@@ -105,4 +109,16 @@ class VirtualMachine
     wait_for_provision_win if @template.operating_system == 'windows'
     wait_for_start
   end
+
+# Checkers
+  def exist_on_hv?
+    cred = { 'vm_host' => "#{@hypervisor['ip_address']}" }
+    result = !tunnel_execute(cred, "virsh list | grep #{@identifier} || echo 'false'").first.include?('false') if @hypervisor['hypervisor_type'] == 'kvm'
+    result = !tunnel_execute(cred, "xm list | grep #{@identifier} || echo 'false'").first.include?('false') if @hypervisor['hypervisor_type'] == 'xen'
+    return result
+  end
+
 end
+
+
+
