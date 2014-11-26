@@ -166,7 +166,24 @@ describe "Checking Billing Plan functionality" do
 
   it 'Check hourly price' do
     @vm.info_update
-    expect(@vm.price_per_hour).to eq(2660.0) and expect(@vm.price_per_hour_powered_off).to eq(524.0)
+    cpu_price = @vm.cpus * @hv_br_data[:prices][:price_on_cpu].to_i
+    cpu_shares_price = @vm.cpu_shares * @hv_br_data[:prices][:price_on_cpu_share].to_i
+    memory_price = @vm.memory * @hv_br_data[:prices][:price_on_memory].to_i
+    @cpu_shares
+    total_disks_size = 0
+    @vm.disks.each do |disk|
+      total_disks_size += disk['disk']['disk_size']
+    end
+    disks_price = total_disks_size * @ds_br_data[:prices][:price_on].to_i
+
+    total_ips = @vm.ip_addresses.length
+    ip_price = total_ips * @ntw_br_data[:prices][:price_ip_on].to_i
+    rate_limit_price = @vm.network_interfaces.first['network_interface']['rate_limit'] * @ntw_br_data[:prices][:price_rate_on].to_i
+
+    price_on = cpu_price + cpu_shares_price + memory_price + disks_price + ip_price + rate_limit_price
+
+
+    expect(@vm.price_per_hour.to_i).to eq(price_on) and expect(@vm.price_per_hour_powered_off).to eq(524.0)
 
   end
 

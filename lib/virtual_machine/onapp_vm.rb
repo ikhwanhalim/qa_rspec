@@ -15,9 +15,21 @@ class VirtualMachine
   include VmOperationsWaiters
   include VmNetwork  
   
-  attr_reader :hypervisor_id, :hypervisor, :template
-  attr_reader :id, :identifier, :memory, :cpus, :cpu_share, :label, :hostname
-  attr_reader :price_per_hour, :price_per_hour_powered_off
+  attr_reader :hypervisor_id,
+              :hypervisor,
+              :template,
+              :id,
+              :identifier,
+              :memory,
+              :cpus,
+              :cpu_shares,
+              :label,
+              :hostname,
+              :price_per_hour,
+              :price_per_hour_powered_off,
+              :disks,
+              :network_interfaces,
+              :ip_addresses
   
   def initialize(template,virtualization,user=nil)
     data = YAML::load_file('config/conf.yml')
@@ -51,7 +63,7 @@ class VirtualMachine
     @label = result['label']
     @hostname = result['hostname']
     @memory = result['memory']
-    @cpu = result['cpus']
+    @cpus = result['cpus']
     @cpu_shares = result['cpu_shares']
 
     @price_per_hour = result['price_per_hour']
