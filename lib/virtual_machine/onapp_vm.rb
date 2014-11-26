@@ -17,8 +17,21 @@ class VirtualMachine
   include VmOperationsWaiters
   include VmNetwork  
   
-  attr_reader :hypervisor_id, :hypervisor, :template
-  attr_reader :id, :identifier, :memory, :cpus, :cpu_share, :label, :hostname
+  attr_reader :hypervisor_id,
+              :hypervisor,
+              :template,
+              :id,
+              :identifier,
+              :memory,
+              :cpus,
+              :cpu_shares,
+              :label,
+              :hostname,
+              :price_per_hour,
+              :price_per_hour_powered_off,
+              :disks,
+              :network_interfaces,
+              :ip_addresses
   
   def initialize(template,virtualization,user=nil)
     data = YAML::load_file('config/conf.yml')
@@ -32,7 +45,6 @@ class VirtualMachine
       @conn=nil      
       auth "#{@url}/users/sign_in", user.login, user.password
     end
-  
     hash ={'virtual_machine' => {
       'hypervisor_id' => @hypervisor['id'],
       'template_id' => @template.id,
@@ -45,16 +57,19 @@ class VirtualMachine
       'required_virtual_machine_build' => '1',
       'required_ip_address_assignment' => '1',
       }}
-    hash['virtual_machine']['swap_disk_size'] = '1' if @template.allowed_swap   
-    result = post("#{@url}/virtual_machines", hash)        
+    hash['virtual_machine']['swap_disk_size'] = '1' if @template.allowed_swap
+    result = post("#{@url}/virtual_machines", hash)
     result = result['virtual_machine']    
     @id = result['id']
     @identifier = result['identifier']
     @label = result['label']
     @hostname = result['hostname']
     @memory = result['memory']
-    @cpu = result['cpus']
+    @cpus = result['cpus']
     @cpu_shares = result['cpu_shares']
+
+    @price_per_hour = result['price_per_hour']
+    @price_per_hour_powered_off = result['price_per_hour_powered_off']
     
     @disks = get("#{@url}/virtual_machines/#{@identifier}/disks.json")    
     @network_interfaces = get("#{@url}/virtual_machines/#{@identifier}/network_interfaces.json")    
@@ -110,7 +125,26 @@ class VirtualMachine
     wait_for_start
   end
 
-# Checkers
+
+  def info_update
+    result = get("#{@url}/virtual_machines/#{@identifier}.json")
+    result = result['virtual_machine']
+    @id = result['id']
+    @identifier = result['identifier']
+    @label = result['label']
+    @hostname = result['hostname']
+    @memory = result['memory']
+    @cpu = result['cpus']
+    @cpu_shares = result['cpu_shares']
+
+    @price_per_hour = result['price_per_hour']
+    @price_per_hour_powered_off = result['price_per_hour_powered_off']
+
+    @disks = get("#{@url}/virtual_machines/#{@identifier}/disks.json")
+    @network_interfaces = get("#{@url}/virtual_machines/#{@identifier}/network_interfaces.json")
+    @ip_addresses = get("#{@url}/virtual_machines/#{@identifier}/ip_addresses.json")
+  end
+
   def exist_on_hv?
     cred = { 'vm_host' => "#{@hypervisor['ip_address']}" }
     result = !tunnel_execute(cred, "virsh list | grep #{@identifier} || echo 'false'").first.include?('false') if @hypervisor['hypervisor_type'] == 'kvm'
@@ -118,7 +152,6 @@ class VirtualMachine
     return result
   end
 
+
 end
-
-
 
