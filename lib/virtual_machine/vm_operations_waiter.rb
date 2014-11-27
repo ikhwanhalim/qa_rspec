@@ -24,4 +24,10 @@ module VmOperationsWaiters
   def wait_for_reboot
     wait_for_transaction(@id, 'VirtualMachine', 'reboot_virtual_machine')
   end
+  def wait_for_resize_without_reboot
+    wait_for_transaction(@id, 'VirtualMachine', 'resize_virtual_machine')
+  end
+  def wait_for_resize
+    wait_for_transaction(@id, 'VirtualMachine', 'resize_vm_without_reboot')
+  end
 end
