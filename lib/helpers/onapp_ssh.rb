@@ -10,10 +10,10 @@ module OnappSSH
     cred['vm_user'] ||= 'root'
     if command.kind_of? File
       cmd = "cat %s | ssh %s@%s" % [command.path, cred['vm_user'], cred['vm_host']]
-      JSON.parse %x[ #{cmd} ]
+      JSON.parse(%x[ #{cmd} ])
     else
       cmd = "echo '%s' | ssh %s@%s" % [command, cred['vm_user'], cred['vm_host']]
-      %x[ #{cmd} ].split "\r\n"
+      %x[ #{cmd} ].split("\r\n")
     end
   end
 
@@ -27,12 +27,12 @@ module OnappSSH
       cmd = "cat %s | ssh -t %s@%s ssh %s@%s" % [command.path,
                                                 cred['cp_hostname'], cred['cp_ip'],
                                                 cred['vm_user'], cred['vm_host'],]
-      JSON.parse %x[ #{cmd} ]
+      JSON.parse(%x[ #{cmd} ])
     else
       cmd = "echo '%s' | ssh -t %s@%s ssh %s@%s" % [command,
                                                       cred['cp_hostname'], cred['cp_ip'],
                                                       cred['vm_user'], cred['vm_host'],]
-      %x[ #{cmd} ].split "\r\n"
+      %x[ #{cmd} ].split("\r\n")
     end
   end
 
@@ -40,6 +40,6 @@ module OnappSSH
   #Command can be as string  "hostname;ifconfig" or file File.open("path/to/file")
   def execute_with_pass(cred={}, command)
     ssh = Net::SSH.start(cred['vm_host'], cred['vm_user'], :password => cred['vm_pass'], :paranoid => false)
-    result = command.kind_of?(File) ? ssh.exec!(command.read) : ssh.exec!(command).split "\n"
+    result = command.kind_of?(File) ? ssh.exec!(command.read) : ssh.exec!(command).split("\n")
   end
 end

@@ -1,8 +1,8 @@
 module TemplateManager
   attr_reader :template_store
 
-  def get_template(file_name)
-    @file_name = file_name
+  def get_template(manager_id)
+    @manager_id = manager_id
     @template = installed_template.nil? ? download_template : installed_template
     if @template.nil?
       raise 'Template does not exist'
@@ -16,7 +16,7 @@ module TemplateManager
   private
 
   def installed_template
-    templates = get(@url + "/templates/all.json").select {|t| t['image_template']['file_name'] == @file_name}
+    templates = get(@url + "/templates/all.json").select {|t| t['image_template']['manager_id'] == @manager_id}
     if templates.any?
       return templates.first['image_template']
     else
@@ -25,10 +25,13 @@ module TemplateManager
   end
 
   def download_template
-    templates = get(@url + "/templates/available.json").select {|t| t['remote_template']['file_name'] == @file_name}
+    templates = get(@url + "/templates/available.json").select {|t| t['remote_template']['manager_id'] == @manager_id}
+    for_upgrade = get(@url + "/templates/upgrades.json").select {|t| t['remote_template']['manager_id'] == @manager_id}
     if templates.any?
-      id = templates.first['remote_template']['manager_id']
-      return post(@url + "/templates.json", {'image_template'=>{'manager_id'=>id}})["image_template"]
+      return post(@url + "/templates.json", {'image_template'=>{'manager_id'=>@manager_id}})["image_template"]
+    elsif for_upgrade.any?
+      id = for_upgrade.first['remote_template']['id']
+      return put(@url + "/templates/#{id}/upgrade.json")["image_template"]
     else
       return nil
     end
