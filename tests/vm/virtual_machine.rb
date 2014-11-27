@@ -45,6 +45,7 @@ describe "VIRTUAL MACHINE REGRESSION AUTOTEST" do
       @vm.wait_for_reboot
       @vm.exist_on_hv?.should be_truthy
       @vm.ssh_port_opened.should be_truthy
+      @vm.template.virtualization
     end
   end
   describe "Network operations" do
