@@ -5,16 +5,14 @@ class Run < ActiveRecord::Base
   validates :title, :files, :server, :threads, presence: true
 
   def self.thread(server, report)
-  	template = Template.where(template_name: report.template_name).first
+  	template = Template.where(manager_id: report.template_name).first
   	files = YAML.load(report.spec_files)
   	report.report_file ||= Report.file_ident
   	report.save
   	str_run = "SERVER='#{server}' "\
               "VIRT_TYPE='#{report.virt}' "\
-              "TEMPLATE_FILE_NAME='#{template.template_name}' "\
-              "TEMPLATE_URL='#{template.template_url}' "\
+              "TEMPLATE_MANAGER_ID='#{template.manager_id}' "\
               "rspec #{files.join ' '} --format h --out reports/#{Report.today}/#{report.report_file}"
-    # p str_run
 	  Spawnling.new do
       Report.find(report.id).update_attribute(:status, "Running")
       system str_run

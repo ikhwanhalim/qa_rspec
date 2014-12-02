@@ -13,6 +13,14 @@ module TemplateManager
     end
   end
 
+  def installed_templates
+    get(@url + "/templates/all.json").map {|t| t = t['image_template']}
+  end
+
+  def available_templates
+    get(@url + "/templates/available.json").map {|t| t = t['remote_template']}
+  end
+
   private
 
   def installed_template

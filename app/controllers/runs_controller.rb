@@ -1,4 +1,5 @@
 class RunsController < ApplicationController
+
   before_filter :authenticate_user!
 
   def index
@@ -9,8 +10,7 @@ class RunsController < ApplicationController
     @run = Run.new
     @virt = ["xen3", "xen4", "kvm5", "kvm6"]
     @files = Dir.glob File.join("tests", "**", "*.rb")
-    @templates = Template.find(:all, :order => :template_name)
-    p headers
+    @templates = Template.all.sort_by {|t| t.label}
   end
  
   def create
@@ -36,7 +36,7 @@ class RunsController < ApplicationController
   end
 
   def update_templates
-    Template.update
+    Template.new.update
     redirect_to root_path
   end
 
