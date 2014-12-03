@@ -4,6 +4,7 @@
       %th Report file
       %th Template
       %th Virtualization
+      %th Date
       %th Status
     %tbody
       -@reports.each do |r|
@@ -19,10 +20,16 @@
           %th 
             = r.virt
           %th
+            = r.created_at
+          %th
             - if r.status == "Stopped"
               %span.label.label-default= r.status
             - elsif r.status == "Running"
               %span.label.label-warning= r.status
+            - elsif r.status == "Failed"
+              %span.label.label-danger= r.status
+            - elsif r.status == "Old"
+              %span.label.label-default= r.status
             - else
               %span.label.label-success= r.status
         -if !Dir[@directory + '/*'].empty?

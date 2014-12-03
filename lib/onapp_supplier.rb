@@ -35,8 +35,10 @@ class OnappSupplier
   end
 
   def add_to_federation
-    get_template(@template_file_name)
+    raise 'Template manager_id is empty' unless ENV['TEMPLATE_MANAGER_ID']
+    get_template(ENV['TEMPLATE_MANAGER_ID'])
     res = not_federated_resources
+    hvz_id = res['hypervisor_group']['id']
     stamp = 'federation-autotest' + DateTime.now.strftime('-%d-%m-%y(%H:%M:%S)')
     data = { 'hypervisor_zone' => {'label' => stamp,
                                'data_store_zone_id' => res['data_store_group']['id'],
@@ -44,9 +46,9 @@ class OnappSupplier
                                'network_zone_id' => res['network_group']['id'],
                                'network_zone_label' => stamp,
                                'template_group_id' => @template_store['id']}}
-    response = post("#{@url}/federation/hypervisor_zones/#{res['hypervisor_group']['id']}/add.json", data)
+    response = post("#{@url}/federation/hypervisor_zones/#{hvz_id}/add.json", data)
     raise response.values.join("\n") if response.has_key? 'errors'
-    @published_zone = get("#{@url}/settings/hypervisor_zones/#{res['hypervisor_group']['id']}.json").values.first
+    @published_zone = get("#{@url}/settings/hypervisor_zones/#{hvz_id}.json").values.first
   end
 
   def disable_zone(id=@published_zone['id'])

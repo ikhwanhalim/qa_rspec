@@ -27,6 +27,8 @@ gem "erb2haml"
 gem 'json'
 gem 'spawnling', '2.1.1'
 gem 'mechanize'
+gem 'nokogiri'
+gem 'awesome_print'
 gem 'pry'
 gem 'activerecord-import'
 gem 'thin'

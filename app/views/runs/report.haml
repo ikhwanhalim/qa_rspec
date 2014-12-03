@@ -3,8 +3,9 @@
     = render partial: "status"
 
 :javascript
-  setInterval(function() {
-    if ($('.in').length == 0){
-      $('.dynamic').load('/runs/refresh_report', {"id":1});
-    };
-  }, 10000);
+  $(document).ready(
+     function() {
+      setInterval(function() {
+        $('.dynamic').load('/runs/refresh_report', { "id":"#{params[:id]}"} );
+    }, 5000);
+  });
