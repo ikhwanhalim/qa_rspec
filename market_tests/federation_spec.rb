@@ -31,7 +31,7 @@ describe "Supplier basic tests" do
     expect(@trader.subscribed_zone['federation_id']).to eq @supplier.published_zone['federation_id']
   end
 
-  it "Trader should not be able subscribe to disable zone" do
+  it "Trader should not be able subscribe to disabled zone" do
     @supplier.disable_zone @supplier.published_zone['id']
     expect(@trader.subscribe(@supplier.published_zone["federation_id"]).keys.first).to eq 'errors'
   end

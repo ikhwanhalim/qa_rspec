@@ -85,9 +85,17 @@ class RunsController < ApplicationController
   end
 
   def refresh_report
-    @directory = 'reports/' + Report.today
+    @directory = 'reports/' + Report.today + "/"
     Dir.mkdir @directory if !File.directory?(@directory)
     @reports = Run.find(params[:id]).reports
+    @reports.each do |r|
+      begin
+        report_page = Nokogiri::HTML(open(@directory + r.report_file))
+        r.update_attribute(:status, "Failed") if report_page.css(".failed").any?
+      rescue
+        r.update_attribute(:status, "Old")
+      end
+    end
     render :partial => "runs/status"
   end
 
