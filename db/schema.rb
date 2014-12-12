@@ -36,10 +36,11 @@ ActiveRecord::Schema.define(:version => 20140827124001) do
   end
 
   create_table "templates", :force => true do |t|
-    t.string   "template_name"
-    t.string   "template_url"
-    t.datetime "created_at",    :null => false
-    t.datetime "updated_at",    :null => false
+    t.string   "label"
+    t.string   "manager_id"
+    t.string   "virtualization"
+    t.datetime "created_at",     :null => false
+    t.datetime "updated_at",     :null => false
   end
 
   create_table "users", :force => true do |t|

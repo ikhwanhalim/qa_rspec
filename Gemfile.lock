@@ -160,7 +160,7 @@ GEM
       tilt (~> 1.3)
     sexp_processor (4.4.4)
     slop (3.6.0)
-    spawnling (2.1.5)
+    spawnling (2.1.1)
     sprockets (2.2.3)
       hike (~> 1.2)
       multi_json (~> 1.0)
@@ -216,7 +216,7 @@ DEPENDENCIES
   rails (= 3.2.18)
   rspec (< 3.0)
   sass-rails (~> 3.2.3)
-  spawnling
+  spawnling (= 2.1.1)
   sqlite3
   therubyracer
   thin

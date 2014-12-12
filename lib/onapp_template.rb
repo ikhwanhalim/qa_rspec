@@ -8,7 +8,7 @@ class OnappTemplate
   include Hypervisor
   attr_reader :url
   attr_reader :allow_resize_without_reboot, :resize_without_reboot_policy, :allowed_hot_migrate, :allowed_swap, :id, :label, :min_disk_size
-  attr_reader :min_memory_size, :operating_system, :operating_system_arch, :operating_system_distro, :state, :virtualization, :file_name
+  attr_reader :min_memory_size, :operating_system, :operating_system_arch, :operating_system_distro, :state, :virtualization, :file_name, :manager_id
 
   def initialize(file_name)
     data = YAML::load_file('config/conf.yml')
@@ -42,6 +42,7 @@ class OnappTemplate
     @state = template['state']
     @virtualization = template['virtualization']
     @file_name = template['file_name']
+    @manager_id = template['manager_id']
     
     @conn=nil
   end
