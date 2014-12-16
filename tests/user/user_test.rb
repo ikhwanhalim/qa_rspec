@@ -22,7 +22,7 @@ describe "Checking Billing Plan functionality" do
     response = @user.create_user(data)
     expect(response['errors']['login']).to include("can't be blank") and
         expect(response['errors']['email']).to include("can't be blank") and
-        expect(response['errors']['password']).to include("should include letters and digits")
+        expect(response['errors']['password']).to include("is too short (minimum is 6 characters)")
   end
 
   it "Create User with required parameters" do

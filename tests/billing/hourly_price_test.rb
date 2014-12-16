@@ -58,7 +58,7 @@ describe "Checking Billing Plan functionality" do
     @user = OnappUser.new
     @vm = nil
 
-    @template = OnappTemplate.new("ubuntu-14.04-x64-1.0-xen.kvm.kvm_virtio.tar.gz")
+    @template = OnappTemplate.new("ubuntu14.04x64")
     virtualization = @template.virtualization.split(',')
     zones_ids = @hv_br.hdn_zones_ids(virtualization)
     @hvz_id = zones_ids[:hvz_id]
@@ -149,7 +149,7 @@ describe "Checking Billing Plan functionality" do
     expect(response['user']['login']).to eq(@user_data[:login])
 
     # Create VS
-    @vm = VirtualMachine.new(@template.file_name, 'xen4', @user)
+    @vm = VirtualMachine.new(@template.manager_id, 'xen4', @user)
 
   end
 
@@ -211,4 +211,8 @@ describe "Checking Billing Plan functionality" do
     expect(@vm.price_per_hour.to_i).to eq(price_on) and expect(@vm.price_per_hour_powered_off.to_i).to eq(price_off)
 
   end
+  # TODO
+  # Shutdown VS from UI, check hourly price and built value - should be 0.
+  # Turn On VS from UI, check hourly price and built value - should be 1.
+  # Shutdown VS from inside, check hourly price and built value - should be 0.
 end
