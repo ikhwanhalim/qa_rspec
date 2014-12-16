@@ -1,10 +1,12 @@
 require 'yaml'
 require 'helpers/onapp_http'
 require 'helpers/template_manager'
+require 'helpers/hypervisor'
 
 class OnappSupplier
   include OnappHTTP
   include TemplateManager
+  include Hypervisor
   attr_accessor :published_zone
 
   def initialize
@@ -20,13 +22,14 @@ class OnappSupplier
   end
 
   def not_federated_resources
+    raise 'Virtualization type is empty' unless ENV['VIRT_TYPE']
     location_groups = get("#{@url}/settings/location_groups.json")
     ids = location_groups.map {|z| z['location_group']['id']}
     ids.each do |id|
       ntz = get("#{@url}/settings/location_groups/#{id}/network_groups.json").first["network_group"] rescue next
       dsz = get("#{@url}/settings/location_groups/#{id}/data_store_groups.json").first["data_store_group"] rescue next
       hvz = get("#{@url}/settings/location_groups/#{id}/hypervisor_groups.json").first["hypervisor_group"] rescue next
-      if !ntz["federation_id"] && !hvz["federation_id"] && !dsz["federation_id"]
+      if !ntz["federation_id"] && !hvz["federation_id"] && !dsz["federation_id"] && for_vm_creation(ENV['VIRT_TYPE'], hvz['id'])
         return {'hypervisor_group' => hvz, 'data_store_group' => dsz,  'network_group' => ntz}
       else
         raise 'HypervisorNotFound'

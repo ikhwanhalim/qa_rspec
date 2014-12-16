@@ -5,7 +5,10 @@
 :javascript
   $(document).ready(
      function() {
-      setInterval(function() {
-        $('.dynamic').load('/runs/refresh_report', { "id":"#{params[:id]}"} );
-    }, 5000);
-  });
+       var intervalId = setInterval(function() {
+         var opened = $(".modal.fade").attr("aria-hidden")
+         if (opened == "true") {
+           $('.dynamic').load('/runs/refresh_report', { "id":"#{params[:id]}"})
+         };
+       }, 15000);
+     });

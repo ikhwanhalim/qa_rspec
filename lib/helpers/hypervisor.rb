@@ -1,7 +1,7 @@
 require 'yaml'
 
 module Hypervisor
-  def for_vm_creation(virt)
+  def for_vm_creation(virt, hvz_id = nil)
     max_free = 0
     hv = nil
     virtualization = 'xen' if virt == 'xen3' or virt == 'xen4'
@@ -9,11 +9,16 @@ module Hypervisor
 
     distro = 'centos5' if virt == 'xen3' or virt == 'kvm5'
     distro = 'centos6' if virt == 'xen4' or virt == 'kvm6'
-    data = get("#{@url}/hypervisors.json")
+    data = get("#{@url}/hypervisors.json").map {|x| x['hypervisor']}
     data.each do |x|
-      if x['hypervisor']['distro'] == distro and x['hypervisor']['hypervisor_type'] == virtualization
-        hv = x['hypervisor'] if max_free < x['hypervisor']['free_mem'] and x['hypervisor']['enabled'] and x['hypervisor']['server_type'] == 'virtual' and x['hypervisor']['online'] 
-        max_free = x['hypervisor']['free_mem'] if max_free < x['hypervisor']['free_mem'] and x['hypervisor']['enabled'] and x['hypervisor']['server_type'] == 'virtual' and x['hypervisor']['online']
+      if max_free < x['free_mem'] and x['distro'] == distro and x['hypervisor_type'] == virtualization and
+          x['enabled'] and x['server_type'] == 'virtual' and x['online']
+        if hvz_id
+          hv = x if hvz_id == x['hypervisor_group_id']
+        else
+          hv = x
+        end
+        max_free = x['free_mem']
       end
     end
     return hv

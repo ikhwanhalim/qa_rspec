@@ -9,7 +9,6 @@ supplier:
   url: http://194.44.20.163
   user: admin
   pass: changeme
-  template_file_name: 'debian-5.0-x86-1.2.tar.gz'
 
 trader:
   ip: 194.44.20.162

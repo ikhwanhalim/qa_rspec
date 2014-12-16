@@ -14,6 +14,7 @@ class Run < ActiveRecord::Base
               "VIRT_TYPE='#{report.virt}' "\
               "TEMPLATE_MANAGER_ID='#{template.manager_id}' "\
               "rspec #{files.join ' '} --format h --out #{full_report_path}"
+    p str_run
 	  Spawnling.new do
       report_by_id = Report.find(report.id)
       report_by_id.update_attribute(:status, "Running")

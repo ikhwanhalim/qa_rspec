@@ -4,7 +4,8 @@
     %meta{:charset => "utf-8"}/
     %meta{:content => "IE=Edge,chrome=1", "http-equiv" => "X-UA-Compatible"}/
     %meta{:content => "width=device-width, initial-scale=1.0", :name => "viewport"}/
-    %title= content_for?(:title) ? yield(:title) : "repair"
+    %title= content_for?(:title) ? yield(:title) : "Regression auto tests"
+    = favicon_link_tag 'cloud_icon.png'
     = csrf_meta_tags
     / Le HTML5 shim, for IE6-8 support of HTML elements
     /[if lt IE 9]
@@ -22,26 +23,12 @@
             %span.icon-bar
             %span.icon-bar
             %span.icon-bar
-          / %a.navbar-brand{:href => "#"} Integration Testing
         .navbar-collapse.collapse
           %ul.nav.navbar-nav
             %li
               %a{:href => root_path} Runs
             %li
               %a{:href => new_run_path} New run
-            / %li.dropdown
-            /   %a.dropdown-toggle{"data-toggle" => "dropdown", :href => "#"}
-            /     Dropdown
-            /     %b.caret
-            /   %ul.dropdown-menu
-            /     %li
-            /       %a{:href => "#"} Action
-            /     %li
-            /       %a{:href => "#"} Something else here
-            /     %li.divider
-            /     %li.dropdown-header Nav header
-            /     %li
-            /       %a{:href => "#"} Separated link
             - if user_signed_in?
               %li= link_to "Sign out", destroy_user_session_path, :method => :delete
             - else
@@ -54,6 +41,5 @@
       Javascripts
       \==================================================
     / Placed at the end of the document so the pages load faster
- 
     = yield(:page_javascript) if content_for?(:page_javascript)
 
