@@ -63,8 +63,12 @@ class OnappSupplier
   end
 
   def remove_from_federation(id=@published_zone['id'])
-    delete("#{@url}/federation/hypervisor_zones/#{id}/remove.json")
-    @published_zone = nil
+    result = delete("#{@url}/federation/hypervisor_zones/#{id}/remove.json")
+    if result.has_key?('errors')
+      result
+    else
+      @published_zone = nil
+    end
   end
 
   def all_federated

@@ -40,4 +40,10 @@ describe "Supplier basic tests" do
     @trader.subscribe(@supplier.published_zone["federation_id"])
     expect(@trader.subscribe(@supplier.published_zone["federation_id"]).keys.first).to eq 'errors'
   end
+
+  it "Supplier should not be able remove zone if trader has subscribed to it" do
+    @trader.subscribe(@supplier.published_zone["federation_id"])
+    @supplier.disable_zone
+    expect(@supplier.remove_from_federation.keys.first).to eq 'errors'
+  end
 end

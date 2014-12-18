@@ -107,6 +107,16 @@ select.form-control {
 	width: 95%;
 }
 
+li {
+    display: flex;
+}
+
+input.checkbox {
+    margin-top: 1px!important;
+    margin-right: 10px!important;
+}
+
+
 /*Number spinner and fields*/
 input[type="number"],input[type="text"] {
 	display: inline-block;

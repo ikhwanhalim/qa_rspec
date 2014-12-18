@@ -4,9 +4,9 @@ require 'pry'
 
 describe "VIRTUAL MACHINE REGRESSION AUTOTEST" do
   before :all do
-    puts ENV['TEMPLATE_FILE_NAME']
+    puts ENV['TEMPLATE_MANAGER_ID']
     puts ENV['VIRT_TYPE']
-    @vm = VirtualMachine.new(ENV['TEMPLATE_FILE_NAME'],ENV['VIRT_TYPE'])                 
+    @vm = VirtualMachine.new(ENV['TEMPLATE_MANAGER_ID'],ENV['VIRT_TYPE'])
   end
   after :all do
     @vm.destroy

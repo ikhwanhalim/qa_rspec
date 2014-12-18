@@ -8,8 +8,8 @@ class RunsController < ApplicationController
 
   def new
     @run = Run.new
-    @virt = ["xen3", "xen4", "kvm5", "kvm6"]
-    @files = Dir.glob File.join("tests", "**", "*.rb")
+    @virt = %w{xen3 xen4 kvm5 kvm6}
+    @files = Array[Run.directory_hash("tests")]#Dir.glob File.join("tests", "**", "*.rb")
     @templates = Template.all.sort_by {|t| t.label}
   end
  
