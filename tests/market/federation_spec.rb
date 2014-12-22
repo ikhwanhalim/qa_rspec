@@ -46,4 +46,7 @@ describe "Supplier basic tests" do
     @supplier.disable_zone
     expect(@supplier.remove_from_federation.keys.first).to eq 'errors'
   end
+
+  it "Traders resources should be created" do
+  end
 end

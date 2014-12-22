@@ -33,33 +33,36 @@ class VirtualMachine
               :network_interfaces,
               :ip_addresses
   
-  def initialize(template,virtualization,user=nil)
+  def initialize(user=nil)
     data = YAML::load_file('config/conf.yml')
     @url = data['url']    
     @ip = data['ip']
-    auth "#{@url}/users/sign_in", data['user'], data['pass']        
-    @template = OnappTemplate.new template    
-    @hypervisor = for_vm_creation(virtualization)
-    @hypervisor_id = @hypervisor['id']    
-    if !user.nil?
+    auth "#{@url}/users/sign_in", data['user'], data['pass']
+    if user
       @conn=nil      
       auth "#{@url}/users/sign_in", user.login, user.password
     end
+  end
+
+  def create(template,virtualization)
+    @template = OnappTemplate.new template
+    @hypervisor = for_vm_creation(virtualization)
+    @hypervisor_id = @hypervisor['id']
     hash ={'virtual_machine' => {
-      'hypervisor_id' => @hypervisor['id'],
-      'template_id' => @template.id,
-      'label' => @template.file_name,
-      'memory' => @template.min_memory_size,
-      'cpus' => '1',
-      'cpu_shares' => '1',
-      'primary_disk_size' => @template.min_disk_size,
-      'hostname' => 'autotest',
-      'required_virtual_machine_build' => '1',
-      'required_ip_address_assignment' => '1',
-      }}
+        'hypervisor_id' => @hypervisor['id'],
+        'template_id' => @template.id,
+        'label' => @template.file_name,
+        'memory' => @template.min_memory_size,
+        'cpus' => '1',
+        'cpu_shares' => '1',
+        'primary_disk_size' => @template.min_disk_size,
+        'hostname' => 'autotest',
+        'required_virtual_machine_build' => '1',
+        'required_ip_address_assignment' => '1',
+    }}
     hash['virtual_machine']['swap_disk_size'] = '1' if @template.allowed_swap
     result = post("#{@url}/virtual_machines", hash)
-    result = result['virtual_machine']    
+    result = result['virtual_machine']
     @id = result['id']
     @identifier = result['identifier']
     @label = result['label']
@@ -70,25 +73,36 @@ class VirtualMachine
 
     @price_per_hour = result['price_per_hour']
     @price_per_hour_powered_off = result['price_per_hour_powered_off']
-    
-    @disks = get("#{@url}/virtual_machines/#{@identifier}/disks.json")    
-    @network_interfaces = get("#{@url}/virtual_machines/#{@identifier}/network_interfaces.json")    
-    @ip_addresses = get("#{@url}/virtual_machines/#{@identifier}/ip_addresses.json")    
-    
+
+    @disks = get("#{@url}/virtual_machines/#{@identifier}/disks.json")
+    @network_interfaces = get("#{@url}/virtual_machines/#{@identifier}/network_interfaces.json")
+    @ip_addresses = get("#{@url}/virtual_machines/#{@identifier}/ip_addresses.json")
+
 # Build VM process (BEGIN)
     disk_wait_for_build('primary')
-    disk_wait_for_build('swap') if @template.allowed_swap    
+    disk_wait_for_build('swap') if @template.allowed_swap
     disk_wait_for_provision('primary') if @template.operating_system != 'freebsd'
-    disk_wait_for_provision('swap') if @template.operating_system == 'freebsd'    
+    disk_wait_for_provision('swap') if @template.operating_system == 'freebsd'
     wait_for_configure_operaiong_system
     wait_for_provision_freebsd if @template.operating_system == 'freebsd'
     wait_for_provision_win if @template.operating_system == 'windows'
     wait_for_start
-# Build VM process (END)    
+# Build VM process (END)
   end
 
+# Get an existing VM
+  def find_by_id(identifier)
+    hash = get("#{@url}/virtual_machines/#{identifier}.json")['virtual_machine']
+    hash.each do |k,v|
+      self.class.send(:attr_accessor, k)
+      instance_variable_set("@#{k}", v)
+    end
+  end
 
-  
+  def edit(**params)
+    put("#{@url}/virtual_machines/#{@identifier}.json", {'virtual_machine'=>params})
+    info_update
+  end
 # OPERATIONS
   def api_responce_code
     @conn.page.code
@@ -98,22 +112,27 @@ class VirtualMachine
     delete("#{@url}/virtual_machines/#{@identifier}.json")
     api_responce_code == '201'    
   end
+
   def stop
     post("#{@url}/virtual_machines/#{@identifier}/stop.json")
     api_responce_code == '201'
   end
+
   def shut_down
     post("#{@url}/virtual_machines/#{@identifier}/shutdown.json")
     api_responce_code == '201'
   end
+
   def start_up
     post("#{@url}/virtual_machines/#{@identifier}/startup.json")
     api_responce_code == '201'
   end
+
   def reboot(mode=nil)
     post("#{@url}/virtual_machines/#{@identifier}/reboot.json")
     api_responce_code == '201'
   end
+
   def rebuild(template = @template)
     post("#{@url}/virtual_machines/#{@identifier}/build.json", {'template_id' => template.id.to_s, 'required_startup' => '1'})
     disk_wait_for_format('primary')    
@@ -128,22 +147,14 @@ class VirtualMachine
   def info_update
     result = get("#{@url}/virtual_machines/#{@identifier}.json")
     result = result['virtual_machine']
-    @id = result['id']
-    @identifier = result['identifier']
-    @label = result['label']
-    @hostname = result['hostname']
-    @memory = result['memory']
-    @cpu = result['cpus']
-    @cpu_shares = result['cpu_shares']
-
-    @price_per_hour = result['price_per_hour']
-    @price_per_hour_powered_off = result['price_per_hour_powered_off']
 
     @disks = get("#{@url}/virtual_machines/#{@identifier}/disks.json")
     @network_interfaces = get("#{@url}/virtual_machines/#{@identifier}/network_interfaces.json")
     @ip_addresses = get("#{@url}/virtual_machines/#{@identifier}/ip_addresses.json")
+    result.each do |k,v|
+      instance_variable_set("@#{k.to_s}", v)
+    end
   end
-
 
   def exist_on_hv?
     cred = { 'vm_host' => "#{@hypervisor['ip_address']}" }

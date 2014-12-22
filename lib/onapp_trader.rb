@@ -18,7 +18,6 @@ class OnappTrader
   end
 
   def subscribe(federation_id)
-    #all_unsubscribed.select {|z| z['federation_id'] == federation_id}.first
     data = {'hypervisor_zone_namer' =>
                 {'hypervisor_group_label' => federation_id,
                  'hypervisor_label' => federation_id,
