@@ -14,7 +14,6 @@ describe "Checking Billing Plan functionality" do
   end
 
   after(:all) do
-    @user.delete_user({:force => true})
     @bp.delete_billing_plan(@bp.bp_id)
   end
 
@@ -78,7 +77,7 @@ describe "Checking Billing Plan functionality" do
     response = @user.get_user_by_id(@user.user_id)
     expect(response['billing_plan_id']).to eq(@bp.bp_id)
   end
-  #
+
   it "Delete User" do
     data = {:force => true}
     @user.delete_user(data)

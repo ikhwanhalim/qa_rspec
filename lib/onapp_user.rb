@@ -1,9 +1,11 @@
 require 'yaml'
 require 'helpers/onapp_http'
+require 'helpers/transaction'
 require 'json'
 
 class OnappUser
   include OnappHTTP
+  include Transaction
   attr_accessor :user_id, :data
   attr_reader :login, :password
 
@@ -46,5 +48,6 @@ class OnappUser
 
   def delete_user(data='')
     delete("#{@url}/users/#{@user_id}.json", data)
+    wait_for_transaction(@user_id, "User", "destroy_user")
   end
 end
