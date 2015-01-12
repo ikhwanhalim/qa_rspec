@@ -1,10 +1,12 @@
 require 'yaml'
 require 'helpers/onapp_http'
+require 'helpers/transaction'
 require 'json'
 
 class OnappUser
   include OnappHTTP
-  attr_accessor :user_id
+  include Transaction
+  attr_accessor :user_id, :data
   attr_reader :login, :password
 
   def initialize(user=nil, pass=nil)
@@ -21,30 +23,31 @@ class OnappUser
     @login ||= params[:user][:login]
     @password ||= params[:user][:password]
     response = post("#{@url}/users.json", params)
-
-    if !response.has_key?('errors')
+    if response['user']
       @user_id = response['user']['id']
+      @data = response['user']
+    else
+      @data = response['errors']
     end
-    return response
   end
 
-  def edit_user(user_id, data)
+  def edit_user(data)
     params = {}
     params[:user] = data
-    put("#{@url}/users/#{user_id}.json", params)
+    put("#{@url}/users/#{@user_id}.json", params)
   end
 
   def get_user_by_id(user_id)
-    get("#{@url}/users/#{user_id}.json")
+    response = get("#{@url}/users/#{user_id}.json")
+    if response['user']
+      return response['user']
+    else
+      return response['errors']
+    end
   end
 
-  def delete_user(user_id, data='')
-    delete("#{@url}/users/#{user_id}.json", data)
-    attempt = 0
-    while attempt < 10 do
-      response = get_user_by_id(user_id)
-      break if response.has_key?('errors')
-      attempt += 1
-    end
+  def delete_user(data='')
+    delete("#{@url}/users/#{@user_id}.json", data)
+    wait_for_transaction(@user_id, "User", "destroy_user")
   end
 end
