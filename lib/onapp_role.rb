@@ -4,7 +4,7 @@ require 'json'
 
 class OnappRole
   include OnappHTTP
-  attr_accessor :role_id, :permissions
+  attr_accessor :role_id, :permissions, :data
 
   def initialize(user=nil, pass=nil)
     config = YAML::load_file('./config/conf.yml')
@@ -24,8 +24,11 @@ class OnappRole
 
     response = post("#{@url}/roles.json", params)
 
-    if !response.has_key?('errors')
+    if response.has_key?('role')
       @role_id = response['role']['id']
+      @data = response['role']
+    else
+      @data = response['errors']
     end
     return response
   end
@@ -38,11 +41,11 @@ class OnappRole
     return create_role(label="AdminPermissions", permission_ids=get_admin_permissions_ids)
   end
 
-  def delete_role(role_id, data='')
-    delete("#{@url}/roles/#{role_id}.json", data)
+  def delete_role(data='')
+    delete("#{@url}/roles/#{@role_id}.json", data)
     attempt = 0
     while attempt < 10 do
-      response = get("#{@url}/roless/#{role_id}.json")
+      response = get("#{@url}/roless/#{@role_id}.json")
       break if response.has_key?('errors')
       attempt += 1
     end

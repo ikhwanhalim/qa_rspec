@@ -149,7 +149,8 @@ describe "Checking Billing Plan functionality" do
     expect(response['user']['login']).to eq(@user_data[:login])
 
     # Create VS
-    @vm = VirtualMachine.new(@template.manager_id, 'xen4', @user)
+    @vm = VirtualMachine.new(@user)
+    @vm.create(@template.manager_id, 'xen4')
 
   end
 

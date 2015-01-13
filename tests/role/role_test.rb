@@ -15,7 +15,7 @@ describe "Checking Billing Plan functionality" do
   end
 
   it "Delete Role with users permissions" do
-    @role.delete_role(@role.role_id)
+    @role.delete_role
   end
 
   it "Create Role with admin permissions" do
@@ -23,6 +23,6 @@ describe "Checking Billing Plan functionality" do
   end
 
   it "Delete Role with admin permissions" do
-    @role.delete_role(@role.role_id)
+    @role.delete_role
   end
 end
