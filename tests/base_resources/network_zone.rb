@@ -14,7 +14,7 @@ describe "Check Network Zones limits" do
   end
 
   after(:all) do
-    @bp.delete_billing_plan(@bp_id)
+    @bp.delete_billing_plan()
   end
 ########################################################################################################################
   it "Create Network Zones limit with unexisted network zones id" do
@@ -23,7 +23,7 @@ describe "Check Network Zones limits" do
             :target_type => "Pack"
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['base'].first).to eq("Target not found")
+    expect(response['base'].first).to eq("Target not found")
   end
 ########################################################################################################################
   # Check 'IP Address' limits
@@ -38,7 +38,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_ip_free'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit_ip_free'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'IP Address' limit with pozitive 'Free' value > 0" do 
@@ -50,7 +50,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_ip_free']).to eq(data[:limits][:limit_ip_free])
+    expect(response['limits']['limit_ip_free']).to eq(data[:limits][:limit_ip_free])
   end
 
   it "Edit 'IP Address' limit 'Free' value, set 0" do
@@ -60,13 +60,13 @@ describe "Check Network Zones limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_ip_free'].to_s).to eq(data[:limits][:limit_ip_free])
+    expect(response['limits']['limit_ip_free'].to_s).to eq(data[:limits][:limit_ip_free])
   end
 
   it "Delete 'IP Address' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Max' limits
@@ -79,7 +79,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_ip'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit_ip'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'IP Address' limit with pozitive 'Max' value > 0" do 
@@ -91,7 +91,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_ip']).to eq(data[:limits][:limit_ip])
+    expect(response['limits']['limit_ip']).to eq(data[:limits][:limit_ip])
   end
 
   it "Edit 'IP Address' limit 'Max' value, set 0 (Unlimited)" do
@@ -101,13 +101,13 @@ describe "Check Network Zones limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_ip'].to_s).to eq(data[:limits][:limit_ip])
+    expect(response['limits']['limit_ip'].to_s).to eq(data[:limits][:limit_ip])
   end
 
   it "Delete 'IP Address' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices On'
@@ -120,7 +120,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_ip_on'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_ip_on'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'IP Address' limit with pozitive 'Price On' value > 0" do 
@@ -132,7 +132,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_ip_on']).to eq("$#{data[:prices][:price_ip_on]}.00 per IP /hr")
+    expect(response['prices']['price_ip_on']).to eq("$#{data[:prices][:price_ip_on]}.00 per IP /hr")
   end
 
   it "Edit 'IP Address' limit 'Price On' value, set 0" do
@@ -142,13 +142,13 @@ describe "Check Network Zones limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_ip_on']).to eq(data[:prices][:price_ip_on])
+    expect(response['prices']['price_ip_on']).to eq(data[:prices][:price_ip_on])
   end
 
   it "Delete 'IP Address' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices Off'
@@ -161,7 +161,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_ip_off'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_ip_off'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'IP Address' limit with pozitive 'Price Off' value > 0" do 
@@ -173,7 +173,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_ip_off']).to eq("$#{data[:prices][:price_ip_off]}.00 per IP /hr")
+    expect(response['prices']['price_ip_off']).to eq("$#{data[:prices][:price_ip_off]}.00 per IP /hr")
   end
 
   it "Edit 'IP Address' limit 'Price Off' value, set 0" do
@@ -183,13 +183,13 @@ describe "Check Network Zones limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_ip_off']).to eq(data[:prices][:price_ip_off])
+    expect(response['prices']['price_ip_off']).to eq(data[:prices][:price_ip_off])
   end
 
   it "Delete 'IP Address' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Port Speed' limits
@@ -204,7 +204,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_rate_free'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit_rate_free'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'Port Speed' limit with pozitive 'Free' value > 0" do 
@@ -216,7 +216,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_rate_free']).to eq("#{data[:limits][:limit_rate_free]} Mb per second")
+    expect(response['limits']['limit_rate_free']).to eq("#{data[:limits][:limit_rate_free]} Mb per second")
   end
 
   it "Edit 'Port Speed' limit 'Free' value, set 0" do
@@ -226,13 +226,13 @@ describe "Check Network Zones limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_rate_free'].to_s).to eq(data[:limits][:limit_rate_free])
+    expect(response['limits']['limit_rate_free'].to_s).to eq(data[:limits][:limit_rate_free])
   end
 
   it "Delete 'Port Speed' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Max' limits
@@ -245,7 +245,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_rate'].first).to eq("must be greater than or equal to 1")
+    expect(response['limit_rate'].first).to eq("must be greater than or equal to 1")
   end
 
   it "Create 'Port Speed' limit with pozitive 'Max' value > 0" do 
@@ -257,7 +257,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_rate']).to eq("#{data[:limits][:limit_rate]} Mb per second")
+    expect(response['limits']['limit_rate']).to eq("#{data[:limits][:limit_rate]} Mb per second")
   end
 
   it "Edit 'Port Speed' limit 'Max' value, set as empty (Unlimited)" do
@@ -267,13 +267,13 @@ describe "Check Network Zones limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_rate'].to_s).to eq(data[:limits][:limit_rate])
+    expect(response['limits']['limit_rate'].to_s).to eq(data[:limits][:limit_rate])
   end
 
   it "Delete 'Port Speed' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices On'
@@ -286,7 +286,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_rate_on'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_rate_on'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'Port Speed' limit with pozitive 'Price On' value > 0" do 
@@ -298,7 +298,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_rate_on']).to eq("$#{data[:prices][:price_rate_on]}.00 per Mbps /hr")
+    expect(response['prices']['price_rate_on']).to eq("$#{data[:prices][:price_rate_on]}.00 per Mbps /hr")
   end
 
   it "Edit 'Port Speed' limit 'Price On' value, set 0" do
@@ -308,13 +308,13 @@ describe "Check Network Zones limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_rate_on']).to eq(data[:prices][:price_rate_on])
+    expect(response['prices']['price_rate_on']).to eq(data[:prices][:price_rate_on])
   end
 
   it "Delete 'Port Speed' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices Off'
@@ -327,7 +327,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_rate_off'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_rate_off'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'Port Speed' limit with pozitive 'Price Off' value > 0" do 
@@ -339,7 +339,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_rate_off']).to eq("$#{data[:prices][:price_rate_off]}.00 per Mbps /hr")
+    expect(response['prices']['price_rate_off']).to eq("$#{data[:prices][:price_rate_off]}.00 per Mbps /hr")
   end
 
   it "Edit 'Port Speed' limit 'Price Off' value, set 0" do
@@ -349,13 +349,13 @@ describe "Check Network Zones limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_rate_off']).to eq(data[:prices][:price_rate_off])
+    expect(response['prices']['price_rate_off']).to eq(data[:prices][:price_rate_off])
   end
 
   it "Delete 'Port Speed' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Data Received' limits
@@ -370,7 +370,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_data_received_free'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit_data_received_free'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'Data Received' limit with pozitive 'Free' value > 0" do 
@@ -382,7 +382,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_data_received_free']).to eq("#{data[:limits][:limit_data_received_free]} GB")
+    expect(response['limits']['limit_data_received_free']).to eq("#{data[:limits][:limit_data_received_free]} GB")
   end
 
   it "Edit 'Data Received' limit 'Free' value, set 0" do
@@ -392,13 +392,13 @@ describe "Check Network Zones limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_data_received_free'].to_s).to eq(data[:limits][:limit_data_received_free])
+    expect(response['limits']['limit_data_received_free'].to_s).to eq(data[:limits][:limit_data_received_free])
   end
 
   it "Delete 'Data Received' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices'
@@ -411,7 +411,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_data_received'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_data_received'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'Data Received' limit with pozitive 'Price' value > 0" do 
@@ -423,7 +423,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_data_received']).to eq("$#{data[:prices][:price_data_received]}.00 per GB /hr")
+    expect(response['prices']['price_data_received']).to eq("$#{data[:prices][:price_data_received]}.00 per GB /hr")
   end
 
   it "Edit 'Data Received' limit 'Price' value, set 0" do
@@ -433,13 +433,13 @@ describe "Check Network Zones limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_data_received']).to eq(data[:prices][:price_data_received])
+    expect(response['prices']['price_data_received']).to eq(data[:prices][:price_data_received])
   end
 
   it "Delete 'Data Received' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Data Sent' limits
@@ -454,7 +454,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_data_sent_free'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit_data_sent_free'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'Data Sent' limit with pozitive 'Free' value > 0" do 
@@ -466,7 +466,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_data_sent_free']).to eq("#{data[:limits][:limit_data_sent_free]} GB")
+    expect(response['limits']['limit_data_sent_free']).to eq("#{data[:limits][:limit_data_sent_free]} GB")
   end
 
   it "Edit 'Data Sent' limit 'Free' value, set 0" do
@@ -476,13 +476,13 @@ describe "Check Network Zones limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_data_sent_free'].to_s).to eq(data[:limits][:limit_data_sent_free])
+    expect(response['limits']['limit_data_sent_free'].to_s).to eq(data[:limits][:limit_data_sent_free])
   end
 
   it "Delete 'Data Sent' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices'
@@ -495,7 +495,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_data_sent'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_data_sent'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'Data Sent' limit with pozitive 'Price' value > 0" do 
@@ -507,7 +507,7 @@ describe "Check Network Zones limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_data_sent']).to eq("$#{data[:prices][:price_data_sent]}.00 per GB /hr")
+    expect(response['prices']['price_data_sent']).to eq("$#{data[:prices][:price_data_sent]}.00 per GB /hr")
   end
 
   it "Edit 'Data Sent' limit 'Price' value, set 0" do
@@ -517,19 +517,19 @@ describe "Check Network Zones limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_data_sent']).to eq(data[:prices][:price_data_sent])
+    expect(response['prices']['price_data_sent']).to eq(data[:prices][:price_data_sent])
   end
 ########################################################################################################################
   it "Check Use Master Template Zone? switcher." do
     data = {:in_template_zone => "true"}
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['in_template_zone'].to_s).to eq(data[:in_template_zone])
+    expect(response['in_template_zone'].to_s).to eq(data[:in_template_zone])
   end
 ########################################################################################################################
   it "Delete 'Data Sent' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 end

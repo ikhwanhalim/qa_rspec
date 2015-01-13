@@ -5,7 +5,7 @@ require 'onapp_billing'
 
 class OnappBaseResource
   include OnappHTTP
-  attr_accessor :br_id
+  attr_accessor :br_id, :data
 
   def initialize
     config = YAML::load_file('./config/conf.yml')
@@ -51,24 +51,38 @@ class OnappBaseResource
     params[:base_resource] = data
     response = post("#{@url}/billing_plans/#{bp_id}/base_resources.json", params)
 
-    if !response.has_key?('errors')
+    if response.has_key?('base_resource')
       @br_id = response['base_resource']['id']
+      @data = response['base_resource']
+    else
+      @data = response['errors']
     end
-    return response
   end
 
   def edit_base_resource(bp_id, br_id, data)
     params = {}
     params[:base_resource] = data
-    put("#{@url}/billing_plans/#{bp_id}/base_resources/#{br_id}.json", params)
+    response = put("#{@url}/billing_plans/#{bp_id}/base_resources/#{br_id}.json", params)
+    if !response.nil? and response.has_key?('errors')
+      @data = response['errors']
+    end
   end
 
   def get_base_resource(bp_id, br_id)
-    get("#{@url}/billing_plans/#{bp_id}/base_resources/#{br_id}.json")
+    response = get("#{@url}/billing_plans/#{bp_id}/base_resources/#{br_id}.json")
+    if response.has_key?('base_resource')
+      @data = response['base_resource']
+    else
+      @data = response['errors']
+    end
   end
 
   def delete_base_resource(bp_id, br_id, data = '')
-    delete("#{@url}/billing_plans/#{bp_id}/base_resources/#{br_id}.json", data)
+    response = delete("#{@url}/billing_plans/#{bp_id}/base_resources/#{br_id}.json", data)
+    puts response
+    if response.is_a?(Hash) and response.has_key?('errors')
+      @data = response['errors']
+    end
   end
 
   def get_zone_id(type=nil)

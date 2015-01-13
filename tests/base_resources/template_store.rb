@@ -14,7 +14,7 @@ describe "Check resources for Template Store" do
   end
 
   after(:all) do
-    @bp.delete_billing_plan(@bp_id)
+    @bp.delete_billing_plan()
   end
 ########################################################################################################################
   it "Create Template Store limit with unexisted template store id" do 
@@ -23,7 +23,7 @@ describe "Check resources for Template Store" do
             :target_type => "ImageTemplateGroup"
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['base'].first).to eq("Target not found")
+    expect(response['base'].first).to eq("Target not found")
   end
   it "Create Template Store limit with existed template store id" do 
     data = {:resource_class => "Resource::TemplateGroup",
@@ -31,11 +31,11 @@ describe "Check resources for Template Store" do
             :target_type => "ImageTemplateGroup"
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['target_id']).to eq(data[:target_id])
+    expect(response['target_id']).to eq(data[:target_id])
   end
   it "Delete Template Store limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 end

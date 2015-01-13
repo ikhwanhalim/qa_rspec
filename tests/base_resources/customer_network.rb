@@ -12,7 +12,7 @@ describe "Check Customer Network Limits" do
   end
 
   after(:all) do
-    @bp.delete_billing_plan(@bp_id)
+    @bp.delete_billing_plan()
   end
 ########################################################################################################################
 # Check 'Free' limits
@@ -23,7 +23,7 @@ describe "Check Customer Network Limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_free'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit_free'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create with pozitive 'Free' value > 0" do
@@ -33,7 +33,7 @@ describe "Check Customer Network Limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_free']).to eq(data[:limits][:limit_free])
+    expect(response['limits']['limit_free']).to eq(data[:limits][:limit_free])
   end
 
   it "Edit 'Free' value, set 0" do
@@ -43,13 +43,13 @@ describe "Check Customer Network Limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_free']).to eq(data[:limits][:limit_free])
+    expect(response['limits']['limit_free']).to eq(data[:limits][:limit_free])
   end
 
   it "Delete resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
 # Check 'Max' limits
@@ -60,7 +60,7 @@ describe "Check Customer Network Limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit'].first).to eq("must be greater than or equal to 0")
   end
   it "Create with pozitive 'Max' value > 0" do
     data = {:resource_class => "Resource::CustomerNetwork",
@@ -69,7 +69,7 @@ describe "Check Customer Network Limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit']).to eq(data[:limits][:limit])
+    expect(response['limits']['limit']).to eq(data[:limits][:limit])
   end
   it "Edit 'Max' value, set 0 (Unlimited)" do
     data = {:limits => {
@@ -78,12 +78,12 @@ describe "Check Customer Network Limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit']).to eq(data[:limits][:limit])
+    expect(response['limits']['limit']).to eq(data[:limits][:limit])
   end
   it "Delete resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
 # Check 'Prices'
@@ -94,7 +94,7 @@ describe "Check Customer Network Limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price'].first).to eq("must be greater than or equal to 0")
+    expect(response['price'].first).to eq("must be greater than or equal to 0")
   end
   it "Create with pozitive 'Price' value > 0" do
     data = {:resource_class => "Resource::CustomerNetwork",
@@ -103,7 +103,7 @@ describe "Check Customer Network Limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price']).to eq("$#{data[:prices][:price]}.00 /hr")
+    expect(response['prices']['price']).to eq("$#{data[:prices][:price]}.00 /hr")
   end
   it "Edit 'Price' value, set 0" do
     data = {:prices => {
@@ -112,11 +112,11 @@ describe "Check Customer Network Limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price']).to eq(data[:prices][:price])
+    expect(response['prices']['price']).to eq(data[:prices][:price])
   end
   it "Delete resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 end

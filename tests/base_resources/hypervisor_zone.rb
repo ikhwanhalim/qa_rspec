@@ -14,7 +14,7 @@ describe "Check Hypervisor Zone limits" do
   end
 
   after(:all) do
-    @bp.delete_billing_plan(@bp_id)
+    @bp.delete_billing_plan()
   end
 ########################################################################################################################
   it "Create Hypervisor Zone limit with unexisted Hypervisor Zone id" do
@@ -23,7 +23,7 @@ describe "Check Hypervisor Zone limits" do
             :target_type => "Pack"
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['base'].first).to eq("Target not found")
+    expect(response['base'].first).to eq("Target not found")
   end
 ########################################################################################################################
   # Check 'CPU Cores' limits
@@ -38,7 +38,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_free_cpu'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit_free_cpu'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'CPU Cores' limit with pozitive 'Free' value > 0" do
@@ -50,7 +50,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_free_cpu']).to eq(data[:limits][:limit_free_cpu])
+    expect(response['limits']['limit_free_cpu']).to eq(data[:limits][:limit_free_cpu])
   end
 
   it "Edit 'CPU Cores' limit 'Free' value, set 0" do
@@ -60,13 +60,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_free_cpu'].to_s).to eq(data[:limits][:limit_free_cpu])
+    expect(response['limits']['limit_free_cpu'].to_s).to eq(data[:limits][:limit_free_cpu])
   end
 
   it "Delete 'CPU Cores' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Max' limits
@@ -79,7 +79,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_cpu'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit_cpu'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'CPU Cores' limit with pozitive 'Max' value > 0" do
@@ -91,7 +91,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_cpu']).to eq(data[:limits][:limit_cpu])
+    expect(response['limits']['limit_cpu']).to eq(data[:limits][:limit_cpu])
   end
 
   it "Edit 'CPU Cores' limit 'Max' value, set 0 (Unlimited)" do
@@ -101,13 +101,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_cpu'].to_s).to eq(data[:limits][:limit_cpu])
+    expect(response['limits']['limit_cpu'].to_s).to eq(data[:limits][:limit_cpu])
   end
 
   it "Delete 'CPU Cores' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices On'
@@ -120,7 +120,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_on_cpu'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_on_cpu'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'CPU Cores' limit with pozitive 'Price On' value > 0" do
@@ -132,7 +132,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_on_cpu']).to eq("$#{data[:prices][:price_on_cpu]}.00 per core /hr")
+    expect(response['prices']['price_on_cpu']).to eq("$#{data[:prices][:price_on_cpu]}.00 per core /hr")
   end
 
   it "Edit 'CPU Cores' limit 'Price On' value, set 0" do
@@ -142,13 +142,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_on_cpu']).to eq(data[:prices][:price_on_cpu])
+    expect(response['prices']['price_on_cpu']).to eq(data[:prices][:price_on_cpu])
   end
 
   it "Delete 'CPU Cores' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices Off'
@@ -161,7 +161,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_off_cpu'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_off_cpu'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'CPU Cores' limit with pozitive 'Price Off' value > 0" do 
@@ -173,7 +173,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_off_cpu']).to eq("$#{data[:prices][:price_off_cpu]}.00 per core /hr")
+    expect(response['prices']['price_off_cpu']).to eq("$#{data[:prices][:price_off_cpu]}.00 per core /hr")
   end
 
   it "Edit 'CPU Cores' limit 'Price Off' value, set 0" do
@@ -183,13 +183,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_off_cpu']).to eq(data[:prices][:price_off_cpu])
+    expect(response['prices']['price_off_cpu']).to eq(data[:prices][:price_off_cpu])
   end
 
   it "Delete 'CPU Cores' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'CPU Shares' limits
@@ -204,7 +204,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_free_cpu_share'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit_free_cpu_share'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'CPU Shares' limit with pozitive 'Free' value > 0" do 
@@ -216,7 +216,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_free_cpu_share']).to eq("#{data[:limits][:limit_free_cpu_share]}%")
+    expect(response['limits']['limit_free_cpu_share']).to eq("#{data[:limits][:limit_free_cpu_share]}%")
   end
 
   it "Edit 'CPU Shares' limit 'Free' value, set 0" do
@@ -226,13 +226,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_free_cpu_share'].to_s).to eq(data[:limits][:limit_free_cpu_share])
+    expect(response['limits']['limit_free_cpu_share'].to_s).to eq(data[:limits][:limit_free_cpu_share])
   end
 
   it "Delete 'CPU Shares' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Max' limits
@@ -245,7 +245,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_cpu_share'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit_cpu_share'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'CPU Shares' limit with pozitive 'Max' value > 0" do 
@@ -257,7 +257,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_cpu_share']).to eq("#{data[:limits][:limit_cpu_share]}%")
+    expect(response['limits']['limit_cpu_share']).to eq("#{data[:limits][:limit_cpu_share]}%")
   end
 
   it "Edit 'CPU Shares' limit 'Max' value, set 0 (Unlimited)" do
@@ -267,13 +267,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_cpu_share'].to_s).to eq(data[:limits][:limit_cpu_share])
+    expect(response['limits']['limit_cpu_share'].to_s).to eq(data[:limits][:limit_cpu_share])
   end
 
   it "Delete 'CPU Shares' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices On'
@@ -286,7 +286,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_on_cpu_share'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_on_cpu_share'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'CPU Shares' limit with pozitive 'Price On' value > 0" do 
@@ -298,7 +298,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_on_cpu_share']).to eq("$#{data[:prices][:price_on_cpu_share]}.00 per percent /hr")
+    expect(response['prices']['price_on_cpu_share']).to eq("$#{data[:prices][:price_on_cpu_share]}.00 per percent /hr")
   end
 
   it "Edit 'CPU Shares' limit 'Price On' value, set 0" do
@@ -308,13 +308,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_on_cpu_share']).to eq(data[:prices][:price_on_cpu_share])
+    expect(response['prices']['price_on_cpu_share']).to eq(data[:prices][:price_on_cpu_share])
   end
 
   it "Delete 'CPU Shares' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices Off'
@@ -327,7 +327,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_off_cpu_share'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_off_cpu_share'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'CPU Shares' limit with pozitive 'Price Off' value > 0" do 
@@ -339,7 +339,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_off_cpu_share']).to eq("$#{data[:prices][:price_off_cpu_share]}.00 per percent /hr")
+    expect(response['prices']['price_off_cpu_share']).to eq("$#{data[:prices][:price_off_cpu_share]}.00 per percent /hr")
   end
 
   it "Edit 'CPU Shares' limit 'Price Off' value, set 0" do
@@ -349,7 +349,7 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_off_cpu_share']).to eq(data[:prices][:price_off_cpu_share])
+    expect(response['prices']['price_off_cpu_share']).to eq(data[:prices][:price_off_cpu_share])
   end
 
 ########################################################################################################################
@@ -360,7 +360,7 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['preferences']['use_cpu_units'].to_s).to eq(data[:preferences][:use_cpu_units])
+    expect(response['preferences']['use_cpu_units'].to_s).to eq(data[:preferences][:use_cpu_units])
   end
 
   it "Edit 'CPU Units' limit 'Free' value, set 0" do
@@ -370,7 +370,7 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_free_cpu_units'].to_s).to eq(data[:limits][:limit_free_cpu_units])
+    expect(response['limits']['limit_free_cpu_units'].to_s).to eq(data[:limits][:limit_free_cpu_units])
   end
 
   it "Edit 'CPU Units' limit 'Max' value, set 0 (Unlimited)" do
@@ -380,7 +380,7 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_cpu_units'].to_s).to eq(data[:limits][:limit_cpu_units])
+    expect(response['limits']['limit_cpu_units'].to_s).to eq(data[:limits][:limit_cpu_units])
   end
 
   it "Edit 'CPU Units' limit 'Price On' value, set 0" do
@@ -390,7 +390,7 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_on_cpu_units'].to_s).to eq(data[:prices][:price_on_cpu_units])
+    expect(response['prices']['price_on_cpu_units'].to_s).to eq(data[:prices][:price_on_cpu_units])
   end
 
   it "Edit 'CPU Units' limit 'Price Off' value, set 0" do
@@ -400,13 +400,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_on_cpu_units'].to_s).to eq(data[:prices][:price_on_cpu_units])
+    expect(response['prices']['price_on_cpu_units'].to_s).to eq(data[:prices][:price_on_cpu_units])
   end
 ########################################################################################################################
   it "Delete 'CPU Shares/Units' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'RAM' limits
@@ -421,7 +421,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_free_memory'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit_free_memory'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'RAM' limit with pozitive 'Free' value > 0" do 
@@ -433,7 +433,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_free_memory']).to eq(data[:limits][:limit_free_memory])
+    expect(response['limits']['limit_free_memory']).to eq(data[:limits][:limit_free_memory])
   end
 
   it "Edit 'RAM' limit 'Free' value, set 0" do
@@ -443,13 +443,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_free_memory'].to_s).to eq(data[:limits][:limit_free_memory])
+    expect(response['limits']['limit_free_memory'].to_s).to eq(data[:limits][:limit_free_memory])
   end
 
   it "Delete 'RAM' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Max' limits
@@ -462,7 +462,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_memory'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit_memory'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'RAM' limit with pozitive 'Max' value > 0" do 
@@ -474,7 +474,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_memory']).to eq(data[:limits][:limit_memory])
+    expect(response['limits']['limit_memory']).to eq(data[:limits][:limit_memory])
   end
 
   it "Edit 'RAM' limit 'Max' value, set 0 (Unlimited)" do
@@ -484,13 +484,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_memory'].to_s).to eq(data[:limits][:limit_memory])
+    expect(response['limits']['limit_memory'].to_s).to eq(data[:limits][:limit_memory])
   end
 
   it "Delete 'RAM' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices On'
@@ -503,7 +503,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_on_memory'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_on_memory'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'RAM' limit with pozitive 'Price On' value > 0" do
@@ -515,7 +515,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_on_memory']).to eq("$#{data[:prices][:price_on_memory]}.00 per MB /hr")
+    expect(response['prices']['price_on_memory']).to eq("$#{data[:prices][:price_on_memory]}.00 per MB /hr")
   end
 
   it "Edit 'RAM' limit 'Price On' value, set 0" do
@@ -525,13 +525,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_on_memory']).to eq(data[:prices][:price_on_memory])
+    expect(response['prices']['price_on_memory']).to eq(data[:prices][:price_on_memory])
   end
 
   it "Delete 'RAM' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices Off'
@@ -544,7 +544,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_off_memory'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_off_memory'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'RAM' limit with pozitive 'Price Off' value > 0" do
@@ -556,7 +556,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_off_memory']).to eq("$#{data[:prices][:price_off_memory]}.00 per MB /hr")
+    expect(response['prices']['price_off_memory']).to eq("$#{data[:prices][:price_off_memory]}.00 per MB /hr")
   end
 
   it "Edit 'RAM' limit 'Price Off' value, set 0" do
@@ -566,13 +566,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_off_memory']).to eq(data[:prices][:price_off_memory])
+    expect(response['prices']['price_off_memory']).to eq(data[:prices][:price_off_memory])
   end
 
   it "Delete 'RAM' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # VS creation properties
@@ -587,7 +587,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_min_cpu'].first).to eq("must be greater than or equal to 1")
+    expect(response['limit_min_cpu'].first).to eq("must be greater than or equal to 1")
   end
 
   it "Create limit with pozitive 'Min' value for CPU Cores" do 
@@ -599,7 +599,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_min_cpu']).to eq(data[:limits][:limit_min_cpu])
+    expect(response['limits']['limit_min_cpu']).to eq(data[:limits][:limit_min_cpu])
   end
 
   it "Edit limit 'Min' value for CPU Cores, set 5" do
@@ -609,13 +609,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_min_cpu'].to_s).to eq(data[:limits][:limit_min_cpu])
+    expect(response['limits']['limit_min_cpu'].to_s).to eq(data[:limits][:limit_min_cpu])
   end
 
   it "Delete limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   it "Create limit with negative 'Default values' value for CPU Cores" do 
@@ -627,7 +627,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_default_cpu'].first).to eq("must be greater than or equal to 1")
+    expect(response['limit_default_cpu'].first).to eq("must be greater than or equal to 1")
   end
 
   it "Create limit with pozitive 'Default values' value for CPU Cores" do 
@@ -639,7 +639,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_default_cpu']).to eq(data[:limits][:limit_default_cpu])
+    expect(response['limits']['limit_default_cpu']).to eq(data[:limits][:limit_default_cpu])
   end
 
   it "Edit limit 'Default values' value for CPU Cores, set 5" do
@@ -649,7 +649,7 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_default_cpu'].to_s).to eq(data[:limits][:limit_default_cpu])
+    expect(response['limits']['limit_default_cpu'].to_s).to eq(data[:limits][:limit_default_cpu])
   end
 ########################################################################################################################
   it "Check 'Use default values?' switcher for CPU." do
@@ -659,13 +659,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['preferences']['use_default_cpu'].to_s).to eq(data[:preferences][:use_default_cpu])
+    expect(response['preferences']['use_default_cpu'].to_s).to eq(data[:preferences][:use_default_cpu])
   end
 
   it "Delete limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # CPU Priority
@@ -678,7 +678,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_min_cpu_priority'].first).to eq("must be greater than or equal to 1")
+    expect(response['limit_min_cpu_priority'].first).to eq("must be greater than or equal to 1")
   end
 
   it "Create limit with pozitive 'Min' value for CPU Priority" do 
@@ -690,7 +690,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_min_cpu_priority']).to eq("#{data[:limits][:limit_min_cpu_priority]}%")
+    expect(response['limits']['limit_min_cpu_priority']).to eq("#{data[:limits][:limit_min_cpu_priority]}%")
   end
 
   it "Edit limit 'Min' value for CPU Priority, set 5" do
@@ -700,13 +700,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_min_cpu_priority'].to_s).to eq(data[:limits][:limit_min_cpu_priority])
+    expect(response['limits']['limit_min_cpu_priority'].to_s).to eq(data[:limits][:limit_min_cpu_priority])
   end
 
   it "Delete limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   it "Create limit with negative 'Default values' value for CPU Priority" do
@@ -718,7 +718,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_default_cpu_share'].first).to eq("must be greater than or equal to 1")
+    expect(response['limit_default_cpu_share'].first).to eq("must be greater than or equal to 1")
   end
 
   it "Create limit with pozitive 'Default values' value for CPU Priority" do 
@@ -730,7 +730,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_default_cpu_share']).to eq("#{data[:limits][:limit_default_cpu_share]}%")
+    expect(response['limits']['limit_default_cpu_share']).to eq("#{data[:limits][:limit_default_cpu_share]}%")
   end
 
   it "Edit limit 'Default values' value for CPU Priority, set 5" do
@@ -740,7 +740,7 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_default_cpu_share'].to_s).to eq(data[:limits][:limit_default_cpu_share])
+    expect(response['limits']['limit_default_cpu_share'].to_s).to eq(data[:limits][:limit_default_cpu_share])
   end
 ########################################################################################################################
   it "Check 'Use default values?' switcher for CPU Share." do
@@ -750,13 +750,13 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['preferences']['use_default_cpu_share'].to_s).to eq(data[:preferences][:use_default_cpu_share])
+    expect(response['preferences']['use_default_cpu_share'].to_s).to eq(data[:preferences][:use_default_cpu_share])
   end
 
   it "Delete limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # RAM
@@ -769,7 +769,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_min_memory'].first).to eq("must be greater than or equal to 128")
+    expect(response['limit_min_memory'].first).to eq("must be greater than or equal to 128")
   end
 
   it "Create limit with pozitive 'Min values' value for RAM" do
@@ -781,7 +781,7 @@ describe "Check Hypervisor Zone limits" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_min_memory']).to eq(data[:limits][:limit_min_memory])
+    expect(response['limits']['limit_min_memory']).to eq(data[:limits][:limit_min_memory])
   end
 
   it "Edit limit 'Min values' value for RAM, set 512" do
@@ -791,7 +791,7 @@ describe "Check Hypervisor Zone limits" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_min_memory'].to_s).to eq(data[:limits][:limit_min_memory])
+    expect(response['limits']['limit_min_memory'].to_s).to eq(data[:limits][:limit_min_memory])
   end
 
 ########################################################################################################################
@@ -799,12 +799,12 @@ describe "Check Hypervisor Zone limits" do
     data = {:in_bucket_zone => "true"}
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['in_bucket_zone'].to_s).to eq(data[:in_bucket_zone])
+    expect(response['in_bucket_zone'].to_s).to eq(data[:in_bucket_zone])
   end
 ########################################################################################################################
   it "Delete limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 end

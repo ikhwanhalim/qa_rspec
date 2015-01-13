@@ -14,7 +14,7 @@ describe "Check resources for Edge Group" do
   end
 
   after(:all) do
-    @bp.delete_billing_plan(@bp_id)
+    @bp.delete_billing_plan()
   end
 ########################################################################################################################
   it "Create Edge Group limit with unexisted edge group id" do 
@@ -23,7 +23,7 @@ describe "Check resources for Edge Group" do
             :target_type => "EdgeGroup"
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['base'].first).to eq("Target not found")
+    expect(response['base'].first).to eq("Target not found")
   end
 
   it "Create Edge Group limit with existed edge group id" do
@@ -32,34 +32,40 @@ describe "Check resources for Edge Group" do
             :target_type => "EdgeGroup"
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['target_id']).to eq(data[:target_id])
+    expect(response['target_id']).to eq(data[:target_id])
   end
 ########################################################################################################################
   # Check 'Prices'
   it "Edit, set negative 'Price' value" do
     data = {:price => "-2"}
     response = @br.edit_base_resource(@bp_id, @br.br_id, data)
-    expect(response['errors']).to eq("Price Data must be greater than or equal to 0")
+    expect(response).to eq("Price Data must be greater than or equal to 0")
   end
 
   it "Edit, set pozitive 'Price' value > 0" do
     data = {:price => 2.0}
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price']).to eq(data[:price])
+    expect(response['prices']['price']).to eq(data[:price])
   end
 
   it "Edit, set 'Price' value equal 0" do
     data = {:price => 0.0}
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price']).to eq(data[:price])
+    expect(response['prices']['price']).to eq(data[:price])
   end
 
   it "Delete Edge Group resource" do
     data = {:force => true}
     @br.delete_base_resource(@bp_id, @br.br_id, data)
-    response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    attempt = 0
+    while attempt < 10 do
+      response = @br.get_base_resource(@bp_id, @br.br_id)
+      break if response.first == 'BaseResource not found'
+      attempt += 1
+      sleep(1)
+    end
+    expect(response.first).to eq('BaseResource not found')
   end
 end

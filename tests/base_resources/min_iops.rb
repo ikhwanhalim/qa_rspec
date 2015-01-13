@@ -16,7 +16,7 @@ describe "Check Limits for guaranteed minIOPS" do
   end
 
   after(:all) do
-    @bp.delete_billing_plan(@bp_id)
+    @bp.delete_billing_plan()
   end
 
   def ds_solidfire?
@@ -29,7 +29,7 @@ describe "Check Limits for guaranteed minIOPS" do
             :target_type => "Pack"
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['base'].first).to eq("Target not found")
+    expect(response['base'].first).to eq("Target not found")
   end
 ########################################################################################################################
   it "Create 'min IOPS' limit for unexisted DataStore Zone id" do
@@ -38,7 +38,7 @@ describe "Check Limits for guaranteed minIOPS" do
             :target_type => "Pack"
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['base'].first).to eq("Target not found")
+    expect(response['base'].first).to eq("Target not found")
   end
 ########################################################################################################################
   # Check 'Free' limits
@@ -52,7 +52,7 @@ describe "Check Limits for guaranteed minIOPS" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit_free'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit_free'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'min IOPS' limit with pozitive 'Free' value > 0" do
@@ -65,7 +65,7 @@ describe "Check Limits for guaranteed minIOPS" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit_free']).to eq("#{data[:limits][:limit_free]} request")
+    expect(response['limits']['limit_free']).to eq("#{data[:limits][:limit_free]} request")
   end
 
   it "Edit 'min IOPS' limit 'Free' value, set 0" do
@@ -76,14 +76,14 @@ describe "Check Limits for guaranteed minIOPS" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit_free'].to_s).to eq(data[:limits][:limit_free])
+    expect(response['limits']['limit_free'].to_s).to eq(data[:limits][:limit_free])
   end
 
   it "Delete 'min IOPS' limit resource" do
     ds_solidfire?
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Max' limits
@@ -97,7 +97,7 @@ describe "Check Limits for guaranteed minIOPS" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['limit'].first).to eq("must be greater than or equal to 0")
+    expect(response['limit'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'min IOPS' limit with pozitive 'Max' value > 0" do
@@ -110,7 +110,7 @@ describe "Check Limits for guaranteed minIOPS" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['limits']['limit']).to eq("#{data[:limits][:limit]} request")
+    expect(response['limits']['limit']).to eq("#{data[:limits][:limit]} request")
   end
 
   it "Edit 'min IOPS' limit 'Max' value, set 0 (Unlimited)" do
@@ -121,14 +121,14 @@ describe "Check Limits for guaranteed minIOPS" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['limits']['limit'].to_s).to eq(data[:limits][:limit])
+    expect(response['limits']['limit'].to_s).to eq(data[:limits][:limit])
   end
 
   it "Delete 'min IOPS' limit resource" do
     ds_solidfire?
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices On'
@@ -142,7 +142,7 @@ describe "Check Limits for guaranteed minIOPS" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_on'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_on'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'min IOPS' limit with pozitive 'Price On' value > 0" do
@@ -155,7 +155,7 @@ describe "Check Limits for guaranteed minIOPS" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_on']).to eq("$#{data[:prices][:price_on]}.00 per request /hr")
+    expect(response['prices']['price_on']).to eq("$#{data[:prices][:price_on]}.00 per request /hr")
   end
 
   it "Edit 'min IOPS' limit 'Price On' value, set 0" do
@@ -166,14 +166,14 @@ describe "Check Limits for guaranteed minIOPS" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_on']).to eq(data[:prices][:price_on])
+    expect(response['prices']['price_on']).to eq(data[:prices][:price_on])
   end
 
   it "Delete 'min IOPS' limit resource" do
     ds_solidfire?
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 ########################################################################################################################
   # Check 'Prices Off'
@@ -187,7 +187,7 @@ describe "Check Limits for guaranteed minIOPS" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['errors']['price_off'].first).to eq("must be greater than or equal to 0")
+    expect(response['price_off'].first).to eq("must be greater than or equal to 0")
   end
 
   it "Create 'min IOPS' limit with pozitive 'Price Off' value > 0" do
@@ -200,7 +200,7 @@ describe "Check Limits for guaranteed minIOPS" do
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['base_resource']['prices']['price_off']).to eq("$#{data[:prices][:price_off]}.00 per request /hr")
+    expect(response['prices']['price_off']).to eq("$#{data[:prices][:price_off]}.00 per request /hr")
   end
 
   it "Edit 'min IOPS' limit 'Price Off' value, set 0" do
@@ -211,13 +211,13 @@ describe "Check Limits for guaranteed minIOPS" do
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['base_resource']['prices']['price_off']).to eq(data[:prices][:price_off])
+    expect(response['prices']['price_off']).to eq(data[:prices][:price_off])
   end
 
   it "Delete 'min IOPS' limit resource" do
     ds_solidfire?
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['errors'].first).to eq('BaseResource not found')
+    expect(response.first).to eq('BaseResource not found')
   end
 end
