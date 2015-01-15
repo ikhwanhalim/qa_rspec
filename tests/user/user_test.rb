@@ -2,19 +2,24 @@
 
 require './lib/onapp_billing'
 require './lib/onapp_user'
+require './lib/onapp_role'
 
 describe "Checking Billing Plan functionality" do
   before(:all) do
     @bp = OnappBilling.new
     @user = OnappUser.new
-    data = {'label' => 'Test User BP',
+    @role = OnappRole.new
+    @role.create_user_role
+    bp_data = {'label' => 'Test User BP',
             'monthly_price' => '100.0',
             'currency_code' => 'USD'}
-    @bp.create_billing_plan(data)
+    @bp.create_billing_plan(bp_data)
   end
 
   after(:all) do
-    @bp.delete_billing_plan()
+    @user.delete_user({:force => true})
+    @bp.delete_billing_plan
+    @role.delete_role
   end
 
   it "Create User with empty parameters" do
@@ -31,7 +36,8 @@ describe "Checking Billing Plan functionality" do
             :password => 'qwaszxsdomino!Q2'
     }
     response = @user.create_user(data)
-    expect(response['login']).to eq(data[:login])
+    expect(response['login']).to eq(data[:login]) and
+        expect(response['email']).to eq(data[:email])
   end
 
   it "Edit User, set first_name" do
@@ -78,10 +84,14 @@ describe "Checking Billing Plan functionality" do
     expect(response['billing_plan_id']).to eq(@bp.bp_id)
   end
 
-  it "Delete User" do
-    data = {:force => true}
-    @user.delete_user(data)
-    response = @user.get_user_by_id(@user.user_id)
-    expect(response.first).to eq('User not found')
+  it "Access to settings should be blocked for user" do
+    @role.remove_permission("settings.read")
+    data = {:role_ids => [@role.role_id]}
+    @user.edit_user(data)
+    @user.login_as_user
+    @user.get("#{@user.url}/settings.json")
+    expect(@user.get("#{@user.url}/settings.json")['error']).to eq("You do not have permissions for this action")
+    @user.login_as_user(1)
   end
+
 end

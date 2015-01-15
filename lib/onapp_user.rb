@@ -7,7 +7,7 @@ class OnappUser
   include OnappHTTP
   include Transaction
   attr_accessor :user_id, :data
-  attr_reader :login, :password
+  attr_reader :login, :password, :url
 
   def initialize(user=nil, pass=nil)
     config = YAML::load_file('./config/conf.yml')
@@ -44,6 +44,10 @@ class OnappUser
     else
       return response['errors']
     end
+  end
+
+  def login_as_user(id=nil)
+    get("#{@url}/users/#{id || @user_id}/login_as")
   end
 
   def delete_user(data='')

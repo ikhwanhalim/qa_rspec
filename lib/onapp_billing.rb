@@ -45,7 +45,7 @@ class OnappBilling
     end
   end
 
-  def delete_billing_plan()
+  def delete_billing_plan
     delete("#{@url}/billing_plans/#{@bp_id}.json")
   end
 end

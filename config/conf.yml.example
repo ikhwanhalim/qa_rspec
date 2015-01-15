@@ -1,17 +1,17 @@
 ---
-ip: 194.44.20.161
-url: http://194.44.20.161
+ip: 69.168.237.161
+url: http://69.168.237.161
 user: admin
 pass: changeme
 
 supplier:
-  ip: 194.44.20.163
-  url: http://194.44.20.163
+  ip: 69.168.237.163
+  url: http://69.168.237.163
   user: admin
   pass: changeme
 
 trader:
-  ip: 194.44.20.162
-  url: http://194.44.20.162
+  ip: 69.168.237.162
+  url: http://69.168.237.162
   user: admin
   pass: changeme

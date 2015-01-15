@@ -15,6 +15,8 @@ module OnappHTTP
     JSON.parse @conn.get(url, @headers).body
     rescue Mechanize::ResponseCodeError => e
       JSON.parse e.page.body
+    rescue JSON::ParserError
+      nil
   end
 
   def post(url, data="")    
