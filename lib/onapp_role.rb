@@ -41,11 +41,20 @@ class OnappRole
     return create_role(label="AdminPermissions", permission_ids=get_admin_permissions_ids)
   end
 
+  def remove_permission(permission)
+    raise "Permission does not exist in role" unless @permissions.has_key?(permission)
+    @data['permissions'].select! {|p| p['permission']['identifier'] != permission}
+    ids = @data['permissions'].map {|p| p['permission']['id']}
+    hash = {"role" => {"permission_ids" => ids}}
+    put("#{@url}/roles/#{@role_id}", hash)
+    @data
+  end
+
   def delete_role(data='')
     delete("#{@url}/roles/#{@role_id}.json", data)
     attempt = 0
     while attempt < 10 do
-      response = get("#{@url}/roless/#{@role_id}.json")
+      response = get("#{@url}/roles/#{@role_id}.json")
       break if response.has_key?('errors')
       attempt += 1
     end
