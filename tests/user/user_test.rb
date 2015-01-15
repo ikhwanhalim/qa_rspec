@@ -8,11 +8,6 @@ describe "Checking Billing Plan functionality" do
   before(:all) do
     @bp = OnappBilling.new
     @user = OnappUser.new
-    user_data = {:login => 'autotestuser',
-            :email => 'autotest@user.test',
-            :password => 'qwaszxsdomino!Q2'
-    }
-    @user.create_user(user_data)
     @role = OnappRole.new
     @role.create_user_role
     bp_data = {'label' => 'Test User BP',
@@ -32,7 +27,17 @@ describe "Checking Billing Plan functionality" do
     response = @user.create_user(data)
     expect(response['login']).to include("can't be blank") and
         expect(response['email']).to include("can't be blank") and
-        expect(response['password']).to include("is too short (minimum is 6 characters)")
+        expect(response['password'].first).to include("is too short")
+  end
+
+  it "Create User with required parameters" do
+    data = {:login => 'autotestuser',
+            :email => 'autotest@user.test',
+            :password => 'qwaszxsdomino!Q2'
+    }
+    response = @user.create_user(data)
+    expect(response['login']).to eq(data[:login]) and
+        expect(response['email']).to eq(data[:email])
   end
 
   it "Edit User, set first_name" do

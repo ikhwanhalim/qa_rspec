@@ -146,7 +146,7 @@ describe "Checking Billing Plan functionality" do
                   :billing_plan_id => @bp.bp_id
     }
     response = @user.create_user(@user_data)
-    expect(response['user']['login']).to eq(@user_data[:login])
+    expect(response['login']).to eq(@user_data[:login])
 
     # Create VS
     @vm = VirtualMachine.new(@user)
@@ -160,13 +160,17 @@ describe "Checking Billing Plan functionality" do
       @vm.wait_for_destroy
     end
     data = {:force => true}
-    @user.delete_user(@user.user_id, data)
-    @bp.delete_billing_plan(@bp.bp_id)
+    @user.delete_user(data)
+    @bp.delete_billing_plan()
   end
 
   it 'Check hourly price' do
     price_on = vm_resources_price_on_usage(@vm, @hv_br_data, @ds_br_data, @ntw_br_data)
+    puts "Billing Price ON - #{price_on}"
+    puts "VS Price ON - #{@vm.price_per_hour}"
     price_off = vm_resources_price_off_usage(@vm, @hv_br_data, @ds_br_data, @ntw_br_data)
+    puts "Billing Price OFF - #{price_off}"
+    puts "VS Price OFF - #{@vm.price_per_hour_powered_off}"
     expect(@vm.price_per_hour.to_i).to eq(price_on) and expect(@vm.price_per_hour_powered_off.to_i).to eq(price_off)
 
   end
@@ -207,8 +211,11 @@ describe "Checking Billing Plan functionality" do
   it 'Check hourly price' do
     @vm.info_update
     price_on = vm_resources_price_on_usage(@vm, @hv_br_data, @ds_br_data, @ntw_br_data)
+    puts "Billing Price ON - #{price_on}"
+    puts "VS Price ON - #{@vm.price_per_hour}"
     price_off = vm_resources_price_off_usage(@vm, @hv_br_data, @ds_br_data, @ntw_br_data)
-
+    puts "Billing Price OFF - #{price_off}"
+    puts "VS Price OFF - #{@vm.price_per_hour_powered_off}"
     expect(@vm.price_per_hour.to_i).to eq(price_on) and expect(@vm.price_per_hour_powered_off.to_i).to eq(price_off)
 
   end
