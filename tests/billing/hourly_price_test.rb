@@ -62,7 +62,6 @@ describe "Checking Billing Plan functionality" do
     virtualization = @template.virtualization.split(',')
     zones_ids = @hv_br.hdn_zones_ids(virtualization)
     @hvz_id = zones_ids[:hvz_id]
-    puts @hvz_id
     @dsz_id = zones_ids[:dsz_id]
     @netz_id = zones_ids[:netz_id]
 
