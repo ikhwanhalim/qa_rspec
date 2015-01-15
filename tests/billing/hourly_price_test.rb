@@ -2,7 +2,7 @@
 
 require './lib/onapp_billing'
 require './lib/onapp_base_resource'
-require './lib/virtual_machine/onapp_vm'
+require './lib/virtual_machine/vm_base'
 require './lib/onapp_user'
 require './lib/onapp_template'
 require './lib/helpers/hypervisor'

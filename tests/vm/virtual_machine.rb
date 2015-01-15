@@ -1,4 +1,4 @@
-require 'virtual_machine/onapp_vm'
+require 'virtual_machine/vm_base'
 
 require 'pry'
 

@@ -1,7 +1,7 @@
 require 'helpers/transaction'
 
-module Disks  
-  include Transaction
+module VmDisks
+include Transaction
     
   def disk_wait_for_build(type)    
     disk_id = select_id(type)          

@@ -3,7 +3,7 @@ require 'helpers/transaction'
 module VmOperationsWaiters
   include Transaction  
   
-  def wait_for_configure_operaiong_system
+  def wait_for_configure_operating_system
     wait_for_transaction(@id, 'VirtualMachine', 'configure_operating_system')
   end
   def wait_for_start
