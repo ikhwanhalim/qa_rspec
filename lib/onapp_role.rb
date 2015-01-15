@@ -6,7 +6,7 @@ class OnappRole
   include OnappHTTP
   attr_accessor :role_id, :permissions, :data
 
-  def initialize(user=nil, pass=nil)
+  def initialize
     config = YAML::load_file('./config/conf.yml')
     @url = config['url']
     @user ||= config['user']
@@ -43,12 +43,6 @@ class OnappRole
 
   def delete_role(data='')
     delete("#{@url}/roles/#{@role_id}.json", data)
-    attempt = 0
-    while attempt < 10 do
-      response = get("#{@url}/roless/#{@role_id}.json")
-      break if response.has_key?('errors')
-      attempt += 1
-    end
   end
 
 

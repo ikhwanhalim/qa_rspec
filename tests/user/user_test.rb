@@ -14,7 +14,7 @@ describe "Checking Billing Plan functionality" do
   end
 
   after(:all) do
-    @bp.delete_billing_plan(@bp.bp_id)
+    @bp.delete_billing_plan()
   end
 
   it "Create User with empty parameters" do
@@ -22,7 +22,7 @@ describe "Checking Billing Plan functionality" do
     response = @user.create_user(data)
     expect(response['login']).to include("can't be blank") and
         expect(response['email']).to include("can't be blank") and
-        expect(response['password']).to include("is too short (minimum is 12 characters)")
+        expect(response['password'].first).to include("is too short")
   end
 
   it "Create User with required parameters" do

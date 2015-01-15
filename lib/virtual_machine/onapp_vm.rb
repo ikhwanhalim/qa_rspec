@@ -61,7 +61,9 @@ class VirtualMachine
         'required_ip_address_assignment' => '1',
     }}
     hash['virtual_machine']['swap_disk_size'] = '1' if @template.allowed_swap
+    puts hash
     result = post("#{@url}/virtual_machines", hash)
+    puts result
     result = result['virtual_machine']
     @id = result['id']
     @identifier = result['identifier']
