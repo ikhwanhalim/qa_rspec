@@ -7,17 +7,13 @@ class OnappBilling
   attr_accessor :bp_id, :data
 
   def initialize
-    config = YAML::load_file('./config/conf.yml')
-    @url = config['url']
-    @user = config['user']
-    @pass = config['pass']
-    auth("#{@url}/users/sign_in", @user, @pass)
+    auth unless self.conn
   end
 
   def create_billing_plan(data)
     params = {}
     params[:billing_plan] = data
-    response = post("#{@url}/billing_plans.json", params)
+    response = post("/billing_plans", params)
 
     if response['billing_plan']
       @bp_id = response['billing_plan']['id']
@@ -30,14 +26,14 @@ class OnappBilling
   def edit_billing_plan(data)
     params = {}
     params[:billing_plan] = data
-    response = put("#{@url}/billing_plans/#{@bp_id}.json", params)
+    response = put("/billing_plans/#{@bp_id}", params)
     if !response.nil? and response.has_key?('errors')
       @data = response['errors']
     end
   end
 
   def get_billing_plan(bp_id)
-    response = get("#{@url}/billing_plans/#{bp_id}.json")
+    response = get("/billing_plans/#{bp_id}")
     if response['billing_plan']
       @data = response['billing_plan']
     else
@@ -46,6 +42,6 @@ class OnappBilling
   end
 
   def delete_billing_plan
-    delete("#{@url}/billing_plans/#{@bp_id}.json")
+    delete("/billing_plans/#{@bp_id}")
   end
 end

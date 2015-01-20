@@ -9,12 +9,12 @@ class OnappUser
   attr_accessor :user_id, :data
   attr_reader :login, :password, :url
 
-  def initialize(user=nil, pass=nil)
-    config = YAML::load_file('./config/conf.yml')
-    @url = config['url']
-    @user ||= config['user']
-    @pass ||= config['pass']
-    auth("#{@url}/users/sign_in", @user, @pass)
+  def initialize(user: nil, pass: nil)
+    if user && pass
+      auth(user: user, pass: pass)
+    else
+      auth unless self.conn
+    end
   end
 
   def create_user(data)
@@ -22,7 +22,7 @@ class OnappUser
     params[:user] = data
     @login ||= params[:user][:login]
     @password ||= params[:user][:password]
-    response = post("#{@url}/users.json", params)
+    response = post("/users", params)
     if response['user']
       @user_id = response['user']['id']
       @data = response['user']
@@ -34,11 +34,11 @@ class OnappUser
   def edit_user(data)
     params = {}
     params[:user] = data
-    put("#{@url}/users/#{@user_id}.json", params)
+    put("/users/#{@user_id}", params)
   end
 
   def get_user_by_id(user_id)
-    response = get("#{@url}/users/#{user_id}.json")
+    response = get("/users/#{user_id}")
     if response['user']
       return response['user']
     else
@@ -47,11 +47,11 @@ class OnappUser
   end
 
   def login_as_user(id=nil)
-    get("#{@url}/users/#{id || @user_id}/login_as")
+    get("/users/#{id || @user_id}/login_as")
   end
 
   def delete_user(data='')
-    delete("#{@url}/users/#{@user_id}.json", data)
+    delete("/users/#{@user_id}", data)
     wait_for_transaction(@user_id, "User", "destroy_user")
   end
 end
