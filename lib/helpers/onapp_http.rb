@@ -18,8 +18,8 @@ module OnappHTTP
     @conn.add_auth("#{url || @url}/users/sign_in", user || data['user'], pass || data['pass'])
   end
 
-  def get(link)
-    JSON.parse @conn.get(@url + link + '.json', @headers).body
+  def get(link, data="")
+    JSON.parse @conn.get(@url + link + '.json', data, nil, @headers).body
     rescue Mechanize::ResponseCodeError => e
       JSON.parse e.page.body
     rescue JSON::ParserError

@@ -1,7 +1,6 @@
 require 'helpers/onapp_http'
 require 'helpers/hypervisor'
 require 'helpers/template_manager'
-# require 'onapp_template'
 require 'virtual_machine/vm_disks'
 require 'virtual_machine/vm_operations_waiter'
 require 'virtual_machine/vm_networks'
@@ -20,7 +19,7 @@ class VirtualMachine
   include VmNetwork  
 
   def initialize(user=nil)
-    auth url: @url, user: data['user'], pass: data['pass']
+    auth unless self.conn
     if user
       auth url: @url, user: user.login, pass: user.password
     end
@@ -46,9 +45,9 @@ class VirtualMachine
 
     hash['virtual_machine']['swap_disk_size'] = '1' if @template['allowed_swap']
 
-    @virtual_machine = post("#{@url}/virtual_machines", hash)['virtual_machine']
+    @virtual_machine = post("/virtual_machines", hash)['virtual_machine']
 
-    @route = "#{@url}/virtual_machines/#{@virtual_machine['identifier']}"
+    @route = "/virtual_machines/#{@virtual_machine['identifier']}"
 
     @disks = get("#{@route}/disks")
     @network_interfaces = get("#{@route}/network_interfaces")
