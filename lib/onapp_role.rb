@@ -7,11 +7,7 @@ class OnappRole
   attr_accessor :role_id, :permissions, :data
 
   def initialize
-    config = YAML::load_file('./config/conf.yml')
-    @url = config['url']
-    @user ||= config['user']
-    @pass ||= config['pass']
-    auth("#{@url}/users/sign_in", @user, @pass)
+    auth unless self.conn
     @permissions = {}
     get_all_permissions
   end
@@ -22,7 +18,7 @@ class OnappRole
                    :permission_ids => permission_ids
     }
 
-    response = post("#{@url}/roles.json", params)
+    response = post("/roles", params)
 
     if response.has_key?('role')
       @role_id = response['role']['id']
@@ -46,18 +42,18 @@ class OnappRole
     @data['permissions'].select! {|p| p['permission']['identifier'] != permission}
     ids = @data['permissions'].map {|p| p['permission']['id']}
     hash = {"role" => {"permission_ids" => ids}}
-    put("#{@url}/roles/#{@role_id}", hash)
+    put("/roles/#{@role_id}", hash)
     @data
   end
 
   def delete_role(data='')
-    delete("#{@url}/roles/#{@role_id}.json", data)
+    delete("/roles/#{@role_id}", data)
   end
 
 
   protected
   def get_all_permissions
-    permissions = get("#{@url}/permissions.json")
+    permissions = get("/permissions")
     permissions.each do |permission|
       @permissions[permission['permission']['identifier']] = permission['permission']['id']
     end

@@ -72,7 +72,7 @@ describe "Checking Billing Plan functionality" do
     data = {:user_password => 'qwaszxsdomino!Q2'}
     @user.edit_user(data)
     response = @user.get_user_by_id(@user.user_id)
-    @new_user = OnappUser.new(user= response['login'], pass=data[:user_password])
+    @new_user = OnappUser.new(user: response['login'], pass: data[:user_password])
     response = @new_user.get_user_by_id(@user.user_id)
     expect(response['id']).to eq(@user.user_id)
   end

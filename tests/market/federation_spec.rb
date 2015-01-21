@@ -32,7 +32,7 @@ describe "Supplier basic tests" do
   end
 
   it "Trader should not be able subscribe to disabled zone" do
-    @supplier.disable_zone @supplier.published_zone['id']
+    @supplier.disable_zone
     expect(@trader.subscribe(@supplier.published_zone["federation_id"]).keys.first).to eq 'errors'
   end
 

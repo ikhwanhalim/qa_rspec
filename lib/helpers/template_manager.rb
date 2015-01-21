@@ -1,3 +1,5 @@
+require_relative 'onapp_http'
+
 module TemplateManager
   attr_reader :template_store
 
@@ -14,17 +16,17 @@ module TemplateManager
   end
 
   def installed_templates
-    get(@url + "/templates/all.json").map {|t| t = t['image_template']}
+    get("/templates/all").map {|t| t['image_template']}
   end
 
   def available_templates
-    get(@url + "/templates/available.json").map {|t| t = t['remote_template']}
+    get("/templates/available").map {|t| t['remote_template']}
   end
 
   private
 
   def installed_template
-    templates = get(@url + "/templates/all.json").select {|t| t['image_template']['manager_id'] == @manager_id}
+    templates = get("/templates/all").select {|t| t['image_template']['manager_id'] == @manager_id}
     if templates.any?
       return templates.first['image_template']
     else
@@ -33,13 +35,13 @@ module TemplateManager
   end
 
   def download_template
-    templates = get(@url + "/templates/available.json").select {|t| t['remote_template']['manager_id'] == @manager_id}
-    for_upgrade = get(@url + "/templates/upgrades.json").select {|t| t['remote_template']['manager_id'] == @manager_id}
+    templates = get("/templates/available").select {|t| t['remote_template']['manager_id'] == @manager_id}
+    for_upgrade = get("/templates/upgrades").select {|t| t['remote_template']['manager_id'] == @manager_id}
     if templates.any?
-      return post(@url + "/templates.json", {'image_template'=>{'manager_id'=>@manager_id}})["image_template"]
+      return post( "/templates", {'image_template'=>{'manager_id'=>@manager_id}})["image_template"]
     elsif for_upgrade.any?
       id = for_upgrade.first['remote_template']['id']
-      return put(@url + "/templates/#{id}/upgrade.json")["image_template"]
+      return put("/templates/#{id}/upgrade")["image_template"]
     else
       return nil
     end
@@ -47,22 +49,22 @@ module TemplateManager
 
   def add_to_template_store(template_id, price=0)
     data = {"relation_group_template"=>{"template_id"=>template_id, "price"=>price}}
-    template_store_list = get(@url + "/template_store.json").select {|s| s['system_group'] == false}
+    template_store_list = get("/template_store").select {|s| s['system_group'] == false}
     if template_store_list
       @template_store = template_store_list.first
     else
-      @template_store = post(@url + "/settings/image_template_groups.json", {"image_template_group"=>{"label"=>"AutoTests"}})
+      @template_store = post("/settings/image_template_groups", {"image_template_group"=>{"label"=>"AutoTests"}})
     end
-    post(@url + "/settings/image_template_groups/#{@template_store['id']}/relation_group_templates.json", data)
+    post("/settings/image_template_groups/#{@template_store['id']}/relation_group_templates", data)
   end
 
   def active?(id)
-    @template = get(@url + "/templates/#{id}.json").values.first
+    @template = get("/templates/#{id}").values.first
     @template['state'] == 'active'
   end
 
   def remove_template(id)
-    delete(@url + "/templates/#{id}.json")
+    delete("/templates/#{id}")
   end
 end
 

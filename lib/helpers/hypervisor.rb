@@ -1,4 +1,5 @@
 require 'yaml'
+require_relative 'onapp_http'
 
 module Hypervisor
   def for_vm_creation(virt, hvz_id = nil)
@@ -9,7 +10,7 @@ module Hypervisor
 
     distro = 'centos5' if virt == 'xen3' or virt == 'kvm5'
     distro = 'centos6' if virt == 'xen4' or virt == 'kvm6'
-    data = get("#{@url}/hypervisors.json").map {|x| x['hypervisor']}
+    data = get("/hypervisors").map {|x| x['hypervisor']}
     data.each do |x|
       if max_free < x['free_mem'] and x['distro'] == distro and x['hypervisor_type'] == virtualization and
           x['enabled'] and x['server_type'] == 'virtual' and x['online']
