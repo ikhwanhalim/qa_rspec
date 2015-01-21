@@ -19,28 +19,36 @@ module OnappHTTP
   end
 
   def get(link, data="")
-    JSON.parse @conn.get(@url + link + '.json', data, nil, @headers).body
+    request = JSON.parse @conn.get(@url + link + '.json', data, nil, @headers).body
+    Log.info("GET request has been sent to #{link} with params #{data}")
+    request
     rescue Mechanize::ResponseCodeError => e
       JSON.parse e.page.body
     rescue JSON::ParserError
-      nil
+      Log.warn("This is HTML page")
   end
 
   def post(link, data="")
     request = @conn.post(@url + link + '.json', data.to_json, @headers)
+    Log.info("POST request has been sent to #{link} with params #{data}")
+    request
     JSON.parse(request.body) unless request.body.blank?
     rescue Mechanize::ResponseCodeError => e
       JSON.parse e.page.body
   end
 
   def delete(link, data="")
-    @conn.delete(@url + link + '.json', data, @headers)
+    request = @conn.delete(@url + link + '.json', data, @headers)
+    Log.info("DELETE request has been sent to #{link} with params #{data}")
+    request
     rescue Mechanize::ResponseCodeError => e
       JSON.parse e.page.body
   end
 
   def put(link, data="")
     request = @conn.put(@url + link + '.json', data.to_json, @headers)
+    Log.info("PUT request has been sent to #{link} with params #{data}")
+    request
     JSON.parse(request.body) unless request.body.blank?
     rescue Mechanize::ResponseCodeError => e
       JSON.parse e.page.body
