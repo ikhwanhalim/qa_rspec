@@ -11,7 +11,7 @@ class Run < ActiveRecord::Base
   	report.save
     full_report_path = "reports/#{Report.today}/#{report.report_file}"
   	str_run = "SERVER='#{server}' "\
-  	          "LOG_FILE=#{report.report_file}"\
+  	          "LOG_FILE='#{report.report_file}' "\
               "VIRT_TYPE='#{report.virt}' "\
               "TEMPLATE_MANAGER_ID='#{template.manager_id}' "\
               "rspec #{files.join ' '} --format h --out #{full_report_path}"
