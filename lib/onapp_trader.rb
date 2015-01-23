@@ -45,4 +45,8 @@ class OnappTrader
       delete("/federation/hypervisor_zones/#{z['id']}/unsubscribe")
     end
   end
+
+  def get_all(resource)
+    get(resource)
+  end
 end
