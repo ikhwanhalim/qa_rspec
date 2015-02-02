@@ -22,8 +22,18 @@
 }
 
 /* Icons */
-.minus, .plus {
-	width: 30px; 
+.plus {
+	width: 16px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.minus {
+    width: 32px;
+}
+
+.reload {
+    width: 20px;
 }
 
 .lock {
@@ -36,11 +46,11 @@
 
 .icon {
 	background-repeat: no-repeat;
-  background-size: 40px;
+    background-size: 40px;
 	position: absolute;
 	height:40px;
-  width:40px;
-  margin: 5px 0 0 10px; 
+    width:40px;
+    margin: 5px 0 0 10px;
 }
 
 /* Home page */

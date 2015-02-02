@@ -3,8 +3,8 @@
     %tr
       %th 
         %span1 Template name
-        = link_to image_tag('Plus.png', :class => "plus"), "#", :class => "icon-plus"
-        = link_to 'Update templates', runs_update_templates_path, :class => "btn btn-primary space"
+        = link_to image_tag('Plus.png', :class => "plus", :title => "Add template"), "#", :class => "icon-plus"
+        = link_to image_tag('Reload.png', :class => "reload", :title => "Download new templates"), runs_update_templates_path, :class => "icon-reload"
     %tbody.template
 
 :javascript
