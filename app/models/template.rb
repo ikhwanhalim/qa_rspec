@@ -5,9 +5,7 @@ class Template < ActiveRecord::Base
 
   def update
     data = YAML::load_file('config/conf.yml')
-    @url = data['url']
-    @ip = data['ip']
-    auth "#{@url}/users/sign_in", data['user'], data['pass']
+    auth(url: data['url'], user: data['user'], pass: data['pass'])
     templates = []
     array = []
     templates += installed_templates
