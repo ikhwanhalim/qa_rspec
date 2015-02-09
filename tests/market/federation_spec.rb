@@ -1,5 +1,7 @@
 require 'onapp_supplier'
 require 'onapp_trader'
+require 'virtual_machine/vm_base'
+
 
 describe "Market" do
   before :all do
@@ -8,6 +10,7 @@ describe "Market" do
     if @supplier.all_federated.empty?
       @supplier.add_to_federation
     else
+      @supplier.get_template(ENV['TEMPLATE_MANAGER_ID'])
       @supplier.published_zone = @supplier.all_federated.first
     end
     @federation_id = @supplier.published_zone['federation_id']
@@ -74,5 +77,24 @@ describe "Market" do
       hv_labels = @trader.get_all('/settings/hypervisors').map {|hv| hv['hypervisor']['label']}
       expect(hv_labels).to include @federation_id
     end
+  end
+
+  describe "Federation Virtual Machine" do
+    before :all do
+      template_label = @supplier.template['label']
+      hash = @trader.building_resources(template_label, @federation_id)
+      @vm = @trader.create(nil,nil,hash)
+      expect(@vm.is_created?).to be true
+    end
+
+    after :all do
+      @trader.destroy
+      @trader.wait_for_destroy
+    end
+
+    it "should pinged after booting" do
+      expect(@vm.pinged?).to be true
+    end
+
   end
 end

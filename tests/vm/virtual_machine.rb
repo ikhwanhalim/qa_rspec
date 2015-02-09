@@ -8,12 +8,13 @@ describe "VIRTUAL MACHINE REGRESSION AUTOTEST" do
     puts ENV['VIRT_TYPE']
     @vm = VirtualMachine.new
     @vm.create(ENV['TEMPLATE_MANAGER_ID'],ENV['VIRT_TYPE'])
+    expect(@vm.is_created?).to be true
   end
   after :all do
     @vm.destroy
     @vm.wait_for_destroy
   end  
-  describe "VM power operations" do    
+  describe "VM power operations" do
     it "Stop/Start Virtual Machine" do
       @vm.ssh_port_opened.should be_truthy
       @vm.exist_on_hv?.should be_truthy
