@@ -2,3 +2,19 @@
 = r.text_field :title, :class => "form-control"
 %br
 = Run.render_hash(@files).html_safe
+
+:javascript
+  $('.folder').next().hide()
+  $('.folder').click(function(){
+    var $status = $(this).prev()
+    var $list = $(this).next()
+    if($status.is('.arrow-right')) {
+      $status.attr('class','arrow-down')
+    } else {
+      $status.attr('class','arrow-right')
+    }
+    $list.toggle('slow');
+  })
+  $('.checkbox').next().click(function(){
+    $(this).prev().trigger('click')
+  })

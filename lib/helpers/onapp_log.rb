@@ -8,6 +8,7 @@ module Log
 
   def error(message)
     write formatted_message(message, "ERR")
+    raise message
   end
 
   def warn(message)

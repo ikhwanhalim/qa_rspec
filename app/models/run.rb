@@ -52,7 +52,8 @@ class Run < ActiveRecord::Base
   def self.render_hash(hash, html=nil)
     html ||= ''
     hash.each do |h|
-      html << "<label>#{h[:data].upcase}</label><ul>"
+      html << "<div class='arrow-right'></div>"
+      html << "<label class='folder'>#{h[:data].upcase}</label><ul>"
       if h[:children].first.kind_of? Hash
         render_hash(h[:children], html)
       else
@@ -60,7 +61,7 @@ class Run < ActiveRecord::Base
           cb = "<input class='checkbox' type='checkbox' name='files[]' value='#{c}'>"
           html << "<li>#{cb}<label>#{c.split('/').last}</label></li>"
         end
-        html << "</ul>"
+        html << "</ul><br>"
       end
     end
     html

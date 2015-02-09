@@ -1,4 +1,5 @@
 #require 'helpers/onapp_ssh'
+require 'net/ping'
 
 module VmNetwork
   #include OnappSSH
@@ -15,10 +16,13 @@ module VmNetwork
     end        
     true
   end
-  
-  
-  
-  
+
+  def pinged?(network_interface = 1, ip_address_number = 1)
+    ip_address = ip(network_interface, ip_address_number)
+    host = Net::Ping::External.new(ip_address)
+    host.ping?
+  end
+
   private
   def ip(network_interface = 1, ip_address_number = 1)
     network_interface = @network_interfaces.select {|t| t['network_interface']['primary'] } if network_interface == 1    

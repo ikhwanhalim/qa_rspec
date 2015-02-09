@@ -1,9 +1,10 @@
 require_relative 'onapp_http'
 
 module TemplateManager
-  attr_reader :template_store
+  attr_reader :template_store, :template
 
   def get_template(manager_id)
+    Log.error('Template manager_id is empty') unless manager_id
     @manager_id = manager_id
     @template = installed_template.nil? ? download_template : installed_template
     if @template.nil?

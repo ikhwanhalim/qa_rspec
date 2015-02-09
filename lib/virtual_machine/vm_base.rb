@@ -25,14 +25,20 @@ class VirtualMachine
     end
   end
 
-  def create(manager_id, virtualization)
-    @template = get_template(manager_id)
+  def create(manager_id, virtualization, federation={})
 
-    @hypervisor = for_vm_creation(virtualization)
+    if federation.any?
+      @template = federation['template']
+      @hypervisor = federation['hypervisor']
+    else
+      @template = get_template(manager_id)
+      @hypervisor = for_vm_creation(virtualization)
+    end
+
     hash ={'virtual_machine' => {
                                   'hypervisor_id' => @hypervisor['id'],
                                   'template_id' => @template['id'],
-                                  'label' => @template['file_name'],
+                                  'label' => @template['label'],
                                   'memory' => @template['min_memory_size'],
                                   'cpus' => '1',
                                   'cpu_shares' => '1',
@@ -44,17 +50,21 @@ class VirtualMachine
           }
 
     hash['virtual_machine']['swap_disk_size'] = '1' if @template['allowed_swap']
-
     @virtual_machine = post("/virtual_machines", hash)['virtual_machine']
-
     @route = "/virtual_machines/#{@virtual_machine['identifier']}"
 
-    @disks = get("#{@route}/disks")
-    @network_interfaces = get("#{@route}/network_interfaces")
-    @ip_addresses = get("#{@route}/ip_addresses")
+    3.times do
+      @disks = get("#{@route}/disks")
+      @network_interfaces = get("#{@route}/network_interfaces")
+      @ip_addresses = get("#{@route}/ip_addresses")
+      break if @disks.any? && @network_interfaces.any? && @ip_addresses.any?
+      sleep 10
+    end
+    return self
+  end
 
-# Build VM process (BEGIN)
-
+  def is_created?
+    # Build VM process (BEGIN)
     disk_wait_for_build('primary')
     disk_wait_for_build('swap') if @template['allowed_swap']
     disk_wait_for_provision('primary') if @template['operating_system'] != 'freebsd'
@@ -63,11 +73,12 @@ class VirtualMachine
     wait_for_provision_freebsd if @template['operating_system'] == 'freebsd'
     wait_for_provision_win if @template['operating_system'] == 'windows'
     wait_for_start
-# Build VM process (END)
+    # Build VM process (END)
   end
 
 # Get an existing VM
-  def find_by_id(identifier)
+  def find_by_id(identifier=nil)
+    identifier ||= @virtual_machine['identifier']
     @virtual_machine = get("/virtual_machines/#{identifier}")['virtual_machine']
     @route = "/virtual_machines/#{@virtual_machine['identifier']}"
     @disks = get("#{@route}/disks")
@@ -130,11 +141,12 @@ class VirtualMachine
 
   def exist_on_hv?
     cred = { 'vm_host' => "#{@hypervisor['ip_address']}" }
-    result = !tunnel_execute(cred, "virsh list | grep #{@virtual_machine['identifier']} || echo 'false'").first.include?('false') if @hypervisor['hypervisor_type'] == 'kvm'
-    result = !tunnel_execute(cred, "xm list | grep #{@virtual_machine['identifier']} || echo 'false'").first.include?('false') if @hypervisor['hypervisor_type'] == 'xen'
+    if @hypervisor['hypervisor_type'] == 'kvm'
+      result = !tunnel_execute(cred, "virsh list | grep #{@virtual_machine['identifier']} || echo 'false'").first.include?('false')
+    elsif @hypervisor['hypervisor_type'] == 'xen'
+      result = !tunnel_execute(cred, "xm list | grep #{@virtual_machine['identifier']} || echo 'false'").first.include?('false')
+    end
     return result
   end
-
-
 end
 

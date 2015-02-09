@@ -2,8 +2,9 @@ require 'yaml'
 require 'helpers/onapp_http'
 require 'helpers/template_manager'
 require 'helpers/hypervisor'
+require 'virtual_machine/vm_base'
 
-class OnappSupplier
+class OnappSupplier < VirtualMachine
   include OnappHTTP
   include TemplateManager
   include Hypervisor
@@ -18,7 +19,7 @@ class OnappSupplier
   end
 
   def not_federated_resources
-    raise 'Virtualization type is empty' unless ENV['VIRT_TYPE']
+    Log.error('Virtualization type is empty') unless ENV['VIRT_TYPE']
     location_groups = get("/settings/location_groups")
     ids = location_groups.map {|z| z['location_group']['id']}
     ids.each do |id|
@@ -28,13 +29,12 @@ class OnappSupplier
       if !ntz["federation_id"] && !hvz["federation_id"] && !dsz["federation_id"] && for_vm_creation(ENV['VIRT_TYPE'], hvz['id'])
         return {'hypervisor_group' => hvz, 'data_store_group' => dsz,  'network_group' => ntz}
       else
-        raise 'HypervisorNotFound'
+        Log.error 'HypervisorNotFound'
       end
     end
   end
 
   def add_to_federation
-    raise 'Template manager_id is empty' unless ENV['TEMPLATE_MANAGER_ID']
     get_template(ENV['TEMPLATE_MANAGER_ID'])
     res = not_federated_resources
     hvz_id = res['hypervisor_group']['id']
@@ -46,7 +46,7 @@ class OnappSupplier
                                'network_zone_label' => stamp,
                                'template_group_id' => @template_store['id']}}
     response = post("/federation/hypervisor_zones/#{hvz_id}/add", data)
-    raise response.values.join("\n") if response.has_key? 'errors'
+    Log.error(response.values.join("\n")) if response.has_key? 'errors'
     @published_zone = get("/settings/hypervisor_zones/#{hvz_id}").values.first
   end
 
