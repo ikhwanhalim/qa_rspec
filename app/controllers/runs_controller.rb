@@ -16,15 +16,11 @@ class RunsController < ApplicationController
   def create
     array = []
     keys = ["template_name", "virt", "spec_files"]
-    params[:run][:templates] = params[:templates]
-    params[:run][:files] = params[:files]
-    errors = Run.errors_handler(params[:run])
-    if errors.first
-      flash.merge! errors
-      redirect_to new_run_path
-    else
-      @run = Run.new(params[:run])
-      reports = @run.templates.product(@run.virt)
+    params[:run][:templates] ||= ["NoTemplatesSelected"]
+    params[:run][:virt] ||= ["NoVirtualization"]
+    @run = Run.new(params[:run])
+    if @run.valid?
+      reports = (@run.templates).product(@run.virt)
       reports.each do |report|
         hash = Hash[[keys,report + [@run.files.to_yaml]].transpose]
         array << Report.new(hash)
@@ -32,6 +28,10 @@ class RunsController < ApplicationController
       @run.reports += array
       @run.save
       redirect_to root_path
+    else
+      errors = @run.errors.messages
+      errors.each {|k,v| errors[k]=v.first}
+      redirect_to new_run_path, flash: errors
     end
   end
 

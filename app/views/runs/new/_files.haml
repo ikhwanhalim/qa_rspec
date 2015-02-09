@@ -1,5 +1,5 @@
 = r.label "Test suite name:"
-= r.text_field :title, :class => "form-control"
+= r.text_field :title, :class => "form-control", :value => "Default suite"
 %br
 = Run.render_hash(@files).html_safe
 

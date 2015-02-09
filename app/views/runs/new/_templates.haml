@@ -13,7 +13,7 @@
     $("#{escape_javascript(render :partial => "runs/new/template_new_select")}").appendTo("tbody.template");
     
     $('.template select').each(function(){
-      $(this).attr("name", "templates[]");
+      $(this).attr("name", "run[templates][]");
     })
 
     $( ".icon-minus" ).click(function() {

@@ -24,16 +24,6 @@ class Run < ActiveRecord::Base
     end
   end
 
-  def self.errors_handler(params)
-    errors = Hash.new
-    params.each do |key, value|
-      if value.blank?
-        errors[key] = "can't be blank!"
-      end
-    end
-    return errors
-  end
-
   def self.directory_hash(path, name=nil)
     data = {:data => (name || path)}
     data[:children] = children = []
@@ -58,7 +48,7 @@ class Run < ActiveRecord::Base
         render_hash(h[:children], html)
       else
         h[:children].each do |c|
-          cb = "<input class='checkbox' type='checkbox' name='files[]' value='#{c}'>"
+          cb = "<input class='checkbox' type='checkbox' name='run[files][]' value='#{c}'>"
           html << "<li>#{cb}<label>#{c.split('/').last}</label></li>"
         end
         html << "</ul><br>"

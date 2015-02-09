@@ -2,7 +2,7 @@ require 'mechanize'
 require 'json'
 require 'yaml'
 require 'active_support/all'
-require_relative 'onapp_log'
+require 'helpers/onapp_log'
 
 module OnappHTTP
   attr_accessor :conn
