@@ -6,6 +6,7 @@ class Run < ActiveRecord::Base
 
   def self.thread(server, report)
   	template = Template.where(manager_id: report.template_name).first
+    manager_id = template ? template.manager_id : ""
   	files = YAML.load(report.spec_files)
   	report.report_file ||= Report.file_ident
   	report.save
@@ -13,7 +14,7 @@ class Run < ActiveRecord::Base
   	str_run = "SERVER='#{server}' "\
   	          "LOG_FILE='#{report.report_file}' "\
               "VIRT_TYPE='#{report.virt}' "\
-              "TEMPLATE_MANAGER_ID='#{template.manager_id}' "\
+              "TEMPLATE_MANAGER_ID='#{manager_id}' "\
               "rspec #{files.join ' '} --format h --out #{full_report_path}"
     p str_run
 	  Spawnling.new do
