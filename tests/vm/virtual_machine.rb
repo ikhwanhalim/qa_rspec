@@ -54,7 +54,6 @@ describe "VIRTUAL MACHINE REGRESSION AUTOTEST" do
   describe "VM disks operations" do
     it "Should be possible edit primary disk" do
       @vm.edit_disk
-      require 'pry';binding.pry
     end
   end
 

@@ -18,7 +18,6 @@ module OnappSSH
 
   #Example for cred - {'vm_user'=>'name', 'vm_host'=>'ip', 'vm_pass'=>'pass'}
   def execute_with_pass(cred={}, command)
-    require 'pry';binding.pry
     cred['vm_host'] ||= @vm_ip
     cred['vm_pass'] ||= @virtual_machine['initial_root_password']
     ssh = Net::SSH.start(cred['vm_host'], cred['vm_user'] || 'root', :password => cred['vm_pass'], :paranoid => false)
