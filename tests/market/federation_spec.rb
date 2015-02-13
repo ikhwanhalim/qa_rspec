@@ -7,12 +7,7 @@ describe "Market" do
   before :all do
     @supplier = OnappSupplier.new
     @trader = OnappTrader.new
-    if @supplier.all_federated.empty?
-      @supplier.add_to_federation
-    else
-      @supplier.get_template(ENV['TEMPLATE_MANAGER_ID'])
-      @supplier.published_zone = @supplier.all_federated.first
-    end
+    @supplier.add_to_federation
     @federation_id = @supplier.published_zone['federation_id']
     @trader.subscribe(@federation_id)
   end
@@ -30,7 +25,8 @@ describe "Market" do
 
     it "should not be able remove zone if trader has subscribed to it" do
       @supplier.disable_zone
-      expect(@supplier.remove_from_federation.keys.first).to eq 'errors'
+      @supplier.remove_from_federation
+      expect(@supplier.all_federated.any?).to be true
       @supplier.enable_zone
     end
   end
@@ -95,6 +91,5 @@ describe "Market" do
     it "should pinged after booting" do
       expect(@vm.pinged?).to be true
     end
-
   end
 end

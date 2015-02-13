@@ -59,12 +59,8 @@ class OnappSupplier < VirtualMachine
   end
 
   def remove_from_federation(id=@published_zone['id'])
-    result = delete("/federation/hypervisor_zones/#{id}/remove")
-    if result['errors']
-      result
-    else
-      @published_zone = nil
-    end
+    delete("/federation/hypervisor_zones/#{id}/remove")
+    @published_zone = nil if all_federated.empty?
   end
 
   def all_federated
