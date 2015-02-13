@@ -15,7 +15,7 @@ module OnappHTTP
     @ip = data['ip']
     @conn = Mechanize.new
     @headers = {'Accept' => 'application/json','Content-Type' => 'application/json'}
-    @conn.add_auth("#{url || @url}/users/sign_in", user || data['user'], pass || data['pass'])
+    @conn.add_auth("#{@url}/users/sign_in", @user, @pass)
   end
 
   def get(link, data="")

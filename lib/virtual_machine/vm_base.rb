@@ -16,7 +16,7 @@ class VirtualMachine
   include TemplateManager
   include VmDisks
   include VmOperationsWaiters
-  include VmNetwork  
+  include VmNetwork
 
   def initialize(user=nil)
     auth unless self.conn
@@ -26,7 +26,8 @@ class VirtualMachine
   end
 
   def create(manager_id, virtualization, federation={})
-
+    Log.info("Template manager id is: #{manager_id || federation['template']['label']}")
+    Log.info("Hypervisor virtualization is: #{virtualization || federation['hypervisor']['hypervisor_type']}")
     if federation.any?
       @template = federation['template']
       @hypervisor = federation['hypervisor']
@@ -60,6 +61,7 @@ class VirtualMachine
       break if @disks.any? && @network_interfaces.any? && @ip_addresses.any?
       sleep 10
     end
+    find_by_id
     return self
   end
 
@@ -84,6 +86,7 @@ class VirtualMachine
     @disks = get("#{@route}/disks")
     @network_interfaces = get("#{@route}/network_interfaces")
     @ip_addresses = get("#{@route}/ip_addresses")
+    @virtual_machine
   end
 
   def edit(**params)

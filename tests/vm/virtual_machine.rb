@@ -4,16 +4,16 @@ require 'pry'
 
 describe "VIRTUAL MACHINE REGRESSION AUTOTEST" do
   before :all do
-    puts ENV['TEMPLATE_MANAGER_ID']
-    puts ENV['VIRT_TYPE']
     @vm = VirtualMachine.new
     @vm.create(ENV['TEMPLATE_MANAGER_ID'],ENV['VIRT_TYPE'])
     expect(@vm.is_created?).to be true
+    expect(@vm.pinged?).to be true
   end
   after :all do
     @vm.destroy
     @vm.wait_for_destroy
-  end  
+  end
+
   describe "VM power operations" do
     it "Stop/Start Virtual Machine" do
       @vm.ssh_port_opened.should be_truthy
@@ -50,6 +50,14 @@ describe "VIRTUAL MACHINE REGRESSION AUTOTEST" do
       @vm.template.virtualization
     end
   end
+
+  describe "VM disks operations" do
+    it "Should be possible edit primary disk" do
+      @vm.edit_disk
+      require 'pry';binding.pry
+    end
+  end
+
   describe "Network operations" do
     it "Should be possible to do something" do
       true
