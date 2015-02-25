@@ -50,7 +50,12 @@ class VirtualMachine
           }
 
     hash['virtual_machine']['swap_disk_size'] = '1' if @template['allowed_swap']
-    @virtual_machine = post("/virtual_machines", hash)['virtual_machine']
+    @virtual_machine = post("/virtual_machines", hash)
+    if @virtual_machine.has_key?("errors")
+      return @virtual_machine['errors']
+    else
+      @virtual_machine = @virtual_machine['virtual_machine']
+    end
     @route = "/virtual_machines/#{@virtual_machine['identifier']}"
 
     3.times do

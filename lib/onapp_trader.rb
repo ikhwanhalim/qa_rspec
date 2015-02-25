@@ -62,8 +62,20 @@ class OnappTrader < VirtualMachine
         t['image_template']['remote_id'].include?(federation_id) &&
         t['image_template']['label'] == template_label
     end
+    Log.error('Hypervisor does not have resources') unless hypervisors
     hypervisor = hypervisors.first['hypervisor']
     template = templates.first['image_template']
     {'hypervisor' => hypervisor, 'template' => template}
+  end
+
+  def wait_for_publishing(federation_id)
+    zones = []
+    10.times do
+      return zones if zones.any?
+      zones = get("/federation/hypervisor_zones/unsubscribed")
+      zones.select!{|hvz| hvz['hypervisor_zone']['federation_id'] == federation_id}
+      sleep 1
+    end
+    Log.error("Zone has not been published")
   end
 end

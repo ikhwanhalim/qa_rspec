@@ -14,6 +14,7 @@ describe "Market" do
       @supplier.published_zone = @supplier.all_federated.first
     end
     @federation_id = @supplier.published_zone['federation_id']
+    @trader.wait_for_publishing(@federation_id)
     @trader.subscribe(@federation_id)
   end
 
@@ -77,12 +78,19 @@ describe "Market" do
       hv_labels = @trader.get_all('/settings/hypervisors').map {|hv| hv['hypervisor']['label']}
       expect(hv_labels).to include @federation_id
     end
+
+    it "error should appeared if no enough resources on supplier" do
+      @supplier.hypervisors_detach
+      hash = @trader.building_resources(@supplier.template['label'], @federation_id)
+      error = @trader.create(nil,nil,hash).to_s
+      expect(error.include?("aren't enough resources")).to be true
+      @supplier.hypervisors_attach
+    end
   end
 
   describe "Federation Virtual Machine" do
     before :all do
-      template_label = @supplier.template['label']
-      hash = @trader.building_resources(template_label, @federation_id)
+      hash = @trader.building_resources(@supplier.template['label'], @federation_id)
       @vm = @trader.create(nil,nil,hash)
       expect(@vm.is_created?).to be true
     end
@@ -95,6 +103,5 @@ describe "Market" do
     it "should pinged after booting" do
       expect(@vm.pinged?).to be true
     end
-
   end
 end
