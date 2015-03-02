@@ -86,12 +86,33 @@ class VirtualMachine
     @disks = get("#{@route}/disks")
     @network_interfaces = get("#{@route}/network_interfaces")
     @ip_addresses = get("#{@route}/ip_addresses")
+    @template = get("/templates/#{@virtual_machine['template_id']}")
     @virtual_machine
   end
 
-  def edit(**params)
-    put("#{@route}", {'virtual_machine'=>params})
-    info_update
+  def edit_ram(action, value, expect_code='204')
+    case action
+      when 'incr'
+        new_mem = @virtual_machine['memory'].to_i + value.to_i
+      when 'decr'
+        new_mem = @virtual_machine['memory'].to_i - value.to_i
+      when 'set'
+        new_mem = value.to_i
+      else
+        raise("Unknown action #{action}. Please use incr/decr/set actions")
+    end
+    hash = {'virtual_machine' => {'memory' => new_mem.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '0'}}
+    result = put("#{@route}", hash)
+    puts result
+    raise("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} ") if api_responce_code != expect_code
+    wait_for_resize_without_reboot
+
+  end
+  def edit_cpu(value, action)
+
+  end
+  def edit_cpu_priority(value, param)
+
   end
 # OPERATIONS
   def api_responce_code
