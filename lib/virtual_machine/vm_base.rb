@@ -35,7 +35,6 @@ class VirtualMachine
       @template = get_template(manager_id)
       @hypervisor = for_vm_creation(virtualization)
     end
-
     hash ={'virtual_machine' => {
                                   'hypervisor_id' => @hypervisor['id'],
                                   'template_id' => @template['id'],
@@ -49,6 +48,7 @@ class VirtualMachine
                                   'required_ip_address_assignment' => '1',
                                 }
           }
+
 
     hash['virtual_machine']['swap_disk_size'] = '1' if @template['allowed_swap']
     @virtual_machine = post("/virtual_machines", hash)['virtual_machine']
@@ -151,5 +151,40 @@ class VirtualMachine
     end
     return result
   end
+
+  # VM params
+  ######################################################################################################################
+  def cpus
+    @virtual_machine['cpus']
+  end
+
+  def cpu_shares
+    @virtual_machine['cpu_shares']
+  end
+
+  def memory
+    @virtual_machine['memory']
+  end
+
+  def disks
+    @disks
+  end
+
+  def ip_addresses
+    @ip_addresses
+  end
+
+  def network_interfaces
+    @network_interfaces
+  end
+
+  def price_per_hour
+    @virtual_machine['price_per_hour']
+  end
+
+  def price_per_hour_powered_off
+    @virtual_machine['price_per_hour_powered_off']
+  end
+  ######################################################################################################################
 end
 
