@@ -8,22 +8,21 @@ module Transaction
     Log.info("Waiting for #{parent_type} (#{parent_id}) transaction: #{action}")
     auth unless self.conn
     result = []
-    $last_transaction_id = 0 if !defined?($last_transaction_id)        
+    @last_transaction_id = 0 if !defined?(@last_transaction_id)
     10.times do
       result = get("/transactions", {page: 1, per_page: 1000})
-      result = result.select do |t|
+      result.select! do |t|
           t['transaction']['parent_id'] == parent_id &&
             t['transaction']['parent_type'] == parent_type &&
-            t['transaction']['action'] == action
+            t['transaction']['action'] == action &&
+            t['transaction']['id'] > @last_transaction_id
       end
       break if result.any?
       sleep 5
     end
     Log.error("Unable to find transaction according to credentials") if result.empty?
-    result = result.select {|t| t['transaction']['id'] > $last_transaction_id }    
-    Log.error("Unable to find NEW transaction according to credentials") if result.empty?
     transaction = result.last     
-    $last_transaction_id = transaction['transaction']['id']
+    @last_transaction_id = transaction['transaction']['id']
     transaction_id = transaction['transaction']['id']    
     loop do      
       sleep 10 
@@ -39,8 +38,6 @@ module Transaction
     end
     true
   end
-  
-  
 end
   
 

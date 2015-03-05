@@ -4,11 +4,11 @@ require 'helpers/template_manager'
 require 'helpers/hypervisor'
 require 'virtual_machine/vm_base'
 
-class OnappSupplier < VirtualMachine
+class OnappSupplier
   include OnappHTTP
   include TemplateManager
   include Hypervisor
-  attr_accessor :published_zone
+  attr_accessor :published_zone, :vm
 
   def initialize
     data = YAML::load_file('config/conf.yml')
@@ -90,5 +90,13 @@ class OnappSupplier < VirtualMachine
 
   def hypervisors_attach(id=@published_zone['id'])
     post("/settings/hypervisor_zones/#{id}/hypervisors/attach_range", {ids: @hypervisors_ids})
+  end
+
+  # VM operations
+  def find_vm(label)
+    auth_data = {'url' => @url, 'user' => @user, 'pass' => @pass}
+    @vm = VirtualMachine.new(federation: auth_data)
+    @vm.find_by_label(label)
+    @vm.info_update
   end
 end

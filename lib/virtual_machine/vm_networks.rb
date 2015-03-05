@@ -18,9 +18,12 @@ module VmNetwork
   end
 
   def pinged?(network_interface = 1, ip_address_number = 1)
-    ip_address = ip(network_interface, ip_address_number)
-    host = Net::Ping::External.new(ip_address)
-    host.ping?
+    10.times do
+      ip_address = ip(network_interface, ip_address_number)
+      host = Net::Ping::External.new(ip_address)
+      return true if host.ping?
+    end
+    false
   end
 
   private

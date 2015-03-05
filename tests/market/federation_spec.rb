@@ -80,9 +80,9 @@ describe "Market" do
     end
 
     it "error should appeared if no enough resources on supplier" do
+      require 'pry';binding.pry
       @supplier.hypervisors_detach
-      hash = @trader.building_resources(@supplier.template['label'], @federation_id)
-      error = @trader.create(nil,nil,hash).to_s
+      error = @trader.create_vm(@supplier.template['label'], @federation_id).to_s
       expect(error.include?("aren't enough resources")).to be true
       @supplier.hypervisors_attach
     end
@@ -90,18 +90,33 @@ describe "Market" do
 
   describe "Federation Virtual Machine" do
     before :all do
-      hash = @trader.building_resources(@supplier.template['label'], @federation_id)
-      @vm = @trader.create(nil,nil,hash)
-      expect(@vm.is_created?).to be true
+      @trader.create_vm(@supplier.template['label'], @federation_id)
+      @supplier.find_vm(@federation_id)
     end
 
     after :all do
-      @trader.destroy
-      @trader.wait_for_destroy
+      @trader.vm.destroy
+      @trader.vm.wait_for_destroy
     end
 
     it "should pinged after booting" do
-      expect(@vm.pinged?).to be true
+      expect(@trader.vm.pinged? && @trader.vm.ssh_port_opened).to be true
+    end
+
+    it "shoud be created on supplier HV" do
+      expect(@supplier.vm.exist_on_hv?).to be true
+    end
+
+    it "trader reboot vm" do
+      expect(@trader.vm.reboot).to be true
+      @trader.vm.wait_for_reboot
+      expect(@trader.vm.pinged? && @trader.vm.ssh_port_opened).to be true
+    end
+
+    it "supplier reboot vm" do
+      expect(@supplier.vm.reboot).to be true
+      @supplier.vm.wait_for_reboot
+      expect(@supplier.vm.pinged? && @supplier.vm.ssh_port_opened).to be true
     end
   end
 end

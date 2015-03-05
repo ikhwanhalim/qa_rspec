@@ -1,6 +1,8 @@
 require 'mechanize'
 require 'json'
 require 'yaml'
+require 'socket'
+require 'uri'
 require 'active_support/all'
 require_relative 'onapp_log'
 
@@ -12,8 +14,10 @@ module OnappHTTP
     @url = url || data['url']
     @user = user || data['user']
     @pass = pass || data['pass']
-    @ip = data['ip']
+    @ip = IPSocket::getaddress URI(@url).host
     @conn = Mechanize.new
+    cookie = Mechanize::Cookie.new :domain=>@ip, :name => 'hide_market_logs', :value => '1', :path => '/'
+    @conn.cookie_jar << cookie
     @headers = {'Accept' => 'application/json','Content-Type' => 'application/json'}
     @conn.add_auth("#{url || @url}/users/sign_in", user || data['user'], pass || data['pass'])
   end

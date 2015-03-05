@@ -2,19 +2,16 @@ require 'yaml'
 require 'helpers/onapp_http'
 require 'virtual_machine/vm_base'
 
-class OnappTrader < VirtualMachine
+class OnappTrader
   include OnappHTTP
-  attr_accessor :subscribed_zone
+  attr_accessor :subscribed_zone, :vm
 
   def initialize
     data = YAML::load_file('config/conf.yml')
     url = data['trader']['url']
     user = data['trader']['user']
     pass = data['trader']['pass']
-    ip = data['trader']['ip']
     auth url: url, user: user, pass: pass
-    cookie = Mechanize::Cookie.new :domain=>ip, :name => 'hide_market_logs', :value => '1', :path => '/'
-    @conn.cookie_jar << cookie
   end
 
   def subscribe(federation_id)
@@ -54,20 +51,6 @@ class OnappTrader < VirtualMachine
     get(resource)
   end
 
-  # Get resources for building VM
-  def building_resources(template_label, federation_id)
-    hypervisors = get('/settings/hypervisors').select {|h| h['hypervisor']['label'] == federation_id}
-    templates = get('/templates/all').select do |t|
-      t['image_template']['remote_id'] &&
-        t['image_template']['remote_id'].include?(federation_id) &&
-        t['image_template']['label'] == template_label
-    end
-    Log.error('Hypervisor does not have resources') unless hypervisors
-    hypervisor = hypervisors.first['hypervisor']
-    template = templates.first['image_template']
-    {'hypervisor' => hypervisor, 'template' => template}
-  end
-
   def wait_for_publishing(federation_id)
     zones = []
     10.times do
@@ -77,5 +60,21 @@ class OnappTrader < VirtualMachine
       sleep 1
     end
     Log.error("Zone has not been published")
+  end
+
+  # VM operations
+  def create_vm(template_label, federation_id)
+    hypervisors = get('/settings/hypervisors').select {|h| h['hypervisor']['label'] == federation_id}
+    templates = get('/templates/all').select do |t|
+      t['image_template']['remote_id'] &&
+          t['image_template']['remote_id'].include?(federation_id) &&
+          t['image_template']['label'] == template_label
+    end
+    Log.error('Hypervisor does not have resources') unless hypervisors
+    data = {'hypervisor' => hypervisors.first['hypervisor'], 'template' => templates.first['image_template']}
+    auth_data = {'url' => @url, 'user' => @user, 'pass' => @pass}
+    @vm = VirtualMachine.new(federation: auth_data)
+    @vm.create(nil, nil, data)
+    Log.error("VM has not been built") unless @vm.is_created?
   end
 end
