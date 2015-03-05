@@ -4,10 +4,11 @@ require './lib/onapp_billing'
 require './lib/onapp_base_resource'
 require './lib/virtual_machine/vm_base'
 require './lib/onapp_user'
-require './lib/onapp_template'
+require './lib/helpers/template_manager'
 require './lib/helpers/hypervisor'
 
 include Hypervisor
+include TemplateManager
 
 def vm_resources_price_on_usage(vm, hv_br_data, ds_br_data, ntw_br_data)
   #price ON
@@ -56,14 +57,6 @@ describe "Checking Billing Plan functionality" do
     @ds_br = OnappBaseResource.new
     @ntw_br = OnappBaseResource.new
     @user = OnappUser.new
-    @vm = nil
-
-    @template = OnappTemplate.new("ubuntu14.04x64")
-    virtualization = @template.virtualization.split(',')
-    zones_ids = @hv_br.hdn_zones_ids(virtualization)
-    @hvz_id = zones_ids[:hvz_id]
-    @dsz_id = zones_ids[:dsz_id]
-    @netz_id = zones_ids[:netz_id]
 
     #create BP
     bp_data = {:label => 'Test Hourly Price BP',
@@ -71,6 +64,24 @@ describe "Checking Billing Plan functionality" do
                :currency_code => 'USD'
     }
     @bp.create_billing_plan(bp_data)
+
+    # Create User
+    @user_data = {:login => 'hourlypricechecker',
+                  :email => 'hourlypricechecker@user.test',
+                  :password => 'hourlypricecheckerqwaszxsdomino!Q2',
+                  :role_ids => [1],
+                  :billing_plan_id => @bp.bp_id
+    }
+    response = @user.create_user(@user_data)
+    expect(response['login']).to eq(@user_data[:login])
+
+    @template = @user.get_template(ENV['TEMPLATE_MANAGER_ID'])
+    @hypervisor = @user.for_vm_creation(ENV['VIRT_TYPE'])
+    @hvz_id = @hypervisor['hypervisor_group_id']
+    @dsz_id = @user.get_dsz_id(@hvz_id)
+    @netz_id = @user.get_net_zone_id(@hvz_id)
+
+
 
     # Add base resources to BP
     # HV
@@ -81,7 +92,7 @@ describe "Checking Billing Plan functionality" do
                                :limit_cpu => "2",
                                :limit_free_cpu_share => "1",
                                :limit_cpu_share => "",
-                               :limit_free_memory => @template.min_memory_size,
+                               :limit_free_memory => @template['min_memory_size'],
                                :limit_memory => "1024"
                    },
                    :prices => {:price_on_cpu => "10",
@@ -138,27 +149,15 @@ describe "Checking Billing Plan functionality" do
     }
     @ntw_br.create_base_resource(@bp.bp_id, @ntw_br_data)
 
-    # Create User
-    @user_data = {:login => 'hourlypricechecker',
-                  :email => 'hourlypricechecker@user.test',
-                  :password => 'hourlypricecheckerqwaszxsdomino!Q2',
-                  :role_ids => [1],
-                  :billing_plan_id => @bp.bp_id
-    }
-    response = @user.create_user(@user_data)
-    expect(response['login']).to eq(@user_data[:login])
-
     # Create VS
     @vm = VirtualMachine.new(@user)
-    @vm.create(@template.manager_id, 'xen4')
-
+    @vm.create(ENV['TEMPLATE_MANAGER_ID'],ENV['VIRT_TYPE'])
+    @vm.wait_for_start
   end
 
   after(:all) do
-    if !@vm.nil?
-      @vm.destroy
-      @vm.wait_for_destroy
-    end
+    @vm.destroy
+    @vm.wait_for_destroy
     data = {:force => true}
     @user.delete_user(data)
     @bp.delete_billing_plan()

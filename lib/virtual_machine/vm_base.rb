@@ -105,6 +105,31 @@ class VirtualMachine
   def edit(**params)
     put("#{@route}", {'virtual_machine'=>params})
     info_update
+  end 
+  
+  def edit_ram(action, value, expect_code='204')
+    case action
+      when 'incr'
+        new_mem = @virtual_machine['memory'].to_i + value.to_i
+      when 'decr'
+        new_mem = @virtual_machine['memory'].to_i - value.to_i
+      when 'set'
+        new_mem = value.to_i
+      else
+        raise("Unknown action #{action}. Please use incr/decr/set actions")
+    end
+    hash = {'virtual_machine' => {'memory' => new_mem.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '0'}}
+    result = put("#{@route}", hash)
+    puts result
+    raise("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} ") if api_responce_code != expect_code
+    wait_for_resize_without_reboot
+
+  end
+  def edit_cpu(value, action)
+
+  end
+  def edit_cpu_priority(value, param)
+
   end
 # OPERATIONS
   def api_responce_code
@@ -166,5 +191,40 @@ class VirtualMachine
     end
     return result
   end
+
+  # VM params
+  ######################################################################################################################
+  def cpus
+    @virtual_machine['cpus']
+  end
+
+  def cpu_shares
+    @virtual_machine['cpu_shares']
+  end
+
+  def memory
+    @virtual_machine['memory']
+  end
+
+  def disks
+    @disks
+  end
+
+  def ip_addresses
+    @ip_addresses
+  end
+
+  def network_interfaces
+    @network_interfaces
+  end
+
+  def price_per_hour
+    @virtual_machine['price_per_hour']
+  end
+
+  def price_per_hour_powered_off
+    @virtual_machine['price_per_hour_powered_off']
+  end
+  ######################################################################################################################
 end
 

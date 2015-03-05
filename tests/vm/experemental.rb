@@ -3,17 +3,24 @@ require 'virtual_machine/vm_base'
 require 'pry'
 
 describe "VIRTUAL MACHINE REGRESSION AUTOTEST" do
-  before :all do    
-    @vm = VirtualMachine.new('debian-7.0-x64-1.4-xen.kvm.kvm_virtio.tar.gz','kvm6')                 
+  before :all do
+    @vm = VirtualMachine.new
+    @vm.create(ENV['TEMPLATE_MANAGER_ID'],ENV['VIRT_TYPE'])
+    expect(@vm.is_created?).to be true
   end
   after :all do
-    @vm.destroy
+
   end  
-  describe "Network" do
-    it "wait" do
-      @vm.ssh_port_opened.should be_true
-      #binding.pry
+  it 'Resize' do
+    while true do
+      @vm.stop
+      @vm.wait_for_stop
+      @vm.start_up
+      @vm.wait_for_start
+      @vm.reboot
+      @vm.wait_for_reboot
     end
-  end  
+  end
+
     
 end

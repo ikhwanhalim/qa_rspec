@@ -2,10 +2,17 @@ require 'yaml'
 require 'helpers/onapp_http'
 require 'helpers/transaction'
 require 'json'
+require 'helpers/template_manager'
+require 'helpers/hypervisor'
+require 'helpers/base_resources'
 
 class OnappUser
   include OnappHTTP
   include Transaction
+  include TemplateManager
+  include Hypervisor
+  include BaseResources
+
   attr_accessor :user_id, :data
   attr_reader :login, :password, :url
 

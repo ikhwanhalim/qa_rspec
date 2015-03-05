@@ -84,22 +84,11 @@ class OnappBaseResource
   def get_zone_id(type=nil)
     response = get("/#{@zones_data[type][:url]}")
     if @zones_data[type][:tag] == ''
-      id = response.first['id']
+       id = response.first['id']
     else
-      id = response.first[@zones_data[type][:tag]]['id']
+       id = response.first[@zones_data[type][:tag]]['id']
     end
     return id
-  end
-
-  # Return ids for HVZ, DSZ, NTZ (for bp before VS creation)
-  def hdn_zones_ids(virtualization=[])
-    hvz_id = get_hvz_id(virtualization)
-    dsz_id = get_dsz_id(hvz_id)
-    netz_id = get_net_zone_id(hvz_id)
-    return {:hvz_id => hvz_id,
-            :dsz_id => dsz_id,
-            :netz_id => netz_id
-    }
   end
 
   # For min IOPS base resources
@@ -113,42 +102,5 @@ class OnappBaseResource
       end
     end
     return dsz
-  end
-  
-  protected
-  def get_hvz_id(virtualization)
-    hvs = get("/settings/hypervisors")
-    hvs_collector = []
-    hvz_id = nil
-    hvs.each do |hv|
-      if hv['hypervisor']['server_type'] == 'virtual' and
-          hv['hypervisor']['hypervisor_type'].in?(virtualization) and
-          hv['hypervisor']['enabled'] == true and
-          hv['hypervisor']['online'] == true
-        hvs_collector.append([hv['hypervisor']['free_memory'], hv['hypervisor']['hypervisor_group_id']],)
-      end
-    end
-    if !hvs_collector.empty?
-      hvz_id = hvs_collector.sort.last.last
-    end
-    return hvz_id
-  end
-
-  def get_dsz_id(hvz_id)
-    dsz_id = nil
-    ds_joins = get("/settings/hypervisor_zones/#{hvz_id}/data_store_joins")
-    ds_id = ds_joins.first['data_store_join']['data_store_id']
-    ds = get("/settings/data_stores/#{ds_id}")
-    dsz_id = ds['data_store']['data_store_group_id']
-    return dsz_id
-  end
-
-  def get_net_zone_id(hvz_id)
-    net_zone_id = nil
-    network_joins = get("/settings/hypervisor_zones/#{hvz_id}/network_joins")
-    network_id = network_joins.first['network_join']['network_id']
-    network = get("/settings/networks/#{network_id}")
-    net_zone_id = network['network']['network_group_id']
-    return net_zone_id
   end
 end
