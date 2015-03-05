@@ -76,11 +76,10 @@ describe "Market" do
     end
 
     it "error should appeared if no enough resources on supplier" do
-      require 'pry';binding.pry
-      @supplier.hypervisors_detach
+      @supplier.data_stores_detach
       error = @trader.create_vm(@supplier.template['label'], @federation_id).to_s
       expect(error.include?("aren't enough resources")).to be true
-      @supplier.hypervisors_attach
+      @supplier.data_stores_attach
     end
   end
 

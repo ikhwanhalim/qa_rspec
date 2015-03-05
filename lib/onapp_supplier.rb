@@ -38,12 +38,14 @@ class OnappSupplier
   def add_to_federation
     get_template(ENV['TEMPLATE_MANAGER_ID'])
     res = not_federated_resources
+    @data_store_group = res['data_store_group']
+    @network_group = res['network_group']
     hvz_id = res['hypervisor_group']['id']
     stamp = 'federation-autotest' + DateTime.now.strftime('-%d-%m-%y(%H:%M:%S)')
     data = { 'hypervisor_zone' => {'label' => stamp,
-                               'data_store_zone_id' => res['data_store_group']['id'],
+                               'data_store_zone_id' => @data_store_group['id'],
                                'data_store_zone_label' => stamp,
-                               'network_zone_id' => res['network_group']['id'],
+                               'network_zone_id' => @network_group['id'],
                                'network_zone_label' => stamp,
                                'template_group_id' => @template_store['id']}}
     response = post("/federation/hypervisor_zones/#{hvz_id}/add", data)
@@ -86,6 +88,19 @@ class OnappSupplier
 
   def hypervisors_attach(id=@published_zone['id'])
     post("/settings/hypervisor_zones/#{id}/hypervisors/attach_range", {ids: @hypervisors_ids})
+  end
+
+  def data_stores_detach
+    id = @data_store_group['id']
+    @data_stores_ids = get("/settings/data_store_zones/#{id}/data_stores").map do |ds|
+      ds['data_store']['id']
+    end
+    post("/settings/data_store_zones/#{id}/data_stores/detach_range", {ids: @data_stores_ids})
+  end
+
+  def data_stores_attach
+    id = @data_store_group['id']
+    post("/settings/data_store_zones/#{id}/data_stores/attach_range", {ids: @data_stores_ids})
   end
 
   # VM operations
