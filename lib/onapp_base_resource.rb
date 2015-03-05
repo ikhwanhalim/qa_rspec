@@ -81,6 +81,16 @@ class OnappBaseResource
     end
   end
 
+  def get_zone_id(type=nil)
+    response = get("/#{@zones_data[type][:url]}")
+    if @zones_data[type][:tag] == ''
+       id = response.first['id']
+    else
+       id = response.first[@zones_data[type][:tag]]['id']
+    end
+    return id
+  end
+
   # For min IOPS base resources
   def dsz_zone_id_by_type(type=nil)
     dsz = nil
