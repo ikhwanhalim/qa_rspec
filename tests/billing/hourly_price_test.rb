@@ -3,12 +3,14 @@
 require './lib/onapp_billing'
 require './lib/onapp_base_resource'
 require './lib/virtual_machine/vm_base'
+require './lib/virtual_machine/vm_stat'
 require './lib/onapp_user'
 require './lib/helpers/template_manager'
 require './lib/helpers/hypervisor'
 
 include Hypervisor
 include TemplateManager
+include VmStat
 
 def vm_resources_price_on_usage(vm, hv_br_data, ds_br_data, ntw_br_data)
   #price ON
@@ -207,7 +209,7 @@ describe "Checking Billing Plan functionality" do
     @ntw_br.edit_base_resource(@bp.bp_id, @ntw_br.br_id, @ntw_br_data)
   end
 
-  it 'Check hourly price' do
+  it 'Check ON/OFF prices' do
     @vm.info_update
     price_on = vm_resources_price_on_usage(@vm, @hv_br_data, @ds_br_data, @ntw_br_data)
     puts "Billing Price ON - #{price_on}"
@@ -218,8 +220,29 @@ describe "Checking Billing Plan functionality" do
     expect(@vm.price_per_hour.to_i).to eq(price_on) and expect(@vm.price_per_hour_powered_off.to_i).to eq(price_off)
 
   end
+
   # TODO
-  # Shutdown VS from UI, check hourly price and built value - should be 0.
+  it 'Check price when VS is shutdown.' do
+    # Shutdown VS from UI, check hourly price and built value - should be 0.
+    @vm.shut_down
+    @vm.wait_for_stop
+    # Get price_for_last_hour
+    price_off = @vm.price_for_last_hour
+    puts "Billing Price OFF - #{price_off}"
+    puts "VS Price OFF - #{@vm.price_per_hour_powered_off}"
+    expect(@vm.price_per_hour_powered_off.to_i).to eq(price_off)
+  end
+
   # Turn On VS from UI, check hourly price and built value - should be 1.
+  it 'Check price when VS is startup.' do
+    # Shutdown VS from UI, check hourly price and built value - should be 0.
+    @vm.start_up
+    @vm.wait_for_start
+    # Get price_for_last_hour
+    price_on = @vm.price_for_last_hour
+    puts "Billing Price ON - #{price_on}"
+    puts "VS Price ON - #{@vm.price_per_hour}"
+    expect(@vm.price_per_hour.to_i).to eq(price_on)
+  end
   # Shutdown VS from inside, check hourly price and built value - should be 0.
 end

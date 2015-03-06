@@ -5,7 +5,7 @@ module VmNetwork
   #include OnappSSH
   
   def ssh_port_opened(network_interface = 1, ip_address_number = 1)
-    @vm_ip = ip(network_interface, ip_address_number)
+    ip_address = ip(network_interface, ip_address_number)
     attempts = 12
     while `nc -z #{ip_address} 22 -w1 || echo false`.include?('false')
       if attempts < 0
@@ -19,7 +19,7 @@ module VmNetwork
 
   def pinged?(network_interface = 1, ip_address_number = 1)
     10.times do
-      @vm_ip = ip(network_interface, ip_address_number)
+      ip_address = ip(network_interface, ip_address_number)
       host = Net::Ping::External.new(ip_address)
       return true if host.ping?
     end

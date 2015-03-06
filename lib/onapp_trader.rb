@@ -75,6 +75,8 @@ class OnappTrader
     auth_data = {'url' => @url, 'user' => @user, 'pass' => @pass}
     @vm = VirtualMachine.new(federation: auth_data)
     @vm.create(nil, nil, data)
+    errors = @vm.virtual_machine['errors']
+    return errors.to_s if errors
     Log.error("VM has not been built") unless @vm.is_created?
   end
 end
