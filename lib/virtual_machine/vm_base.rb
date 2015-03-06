@@ -104,7 +104,6 @@ class VirtualMachine
     new = new_resource_value(resource,action,value)
     hash = {'virtual_machine' => {resource => new.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '0'}}
     result = put("#{@route}", hash)
-    result = put("#{@route}", hash)
     puts result
     raise("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} ") if api_responce_code != expect_code
     @virtual_machine[resource] = new
@@ -119,35 +118,6 @@ class VirtualMachine
     false
   end
 
-  def edit_ram(action, value, expect_code='204')
-    new_mem = new_resource_value(resource, action, value)
-    puts new_mem
-    hash = {'virtual_machine' => {'memory' => new_mem.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '0'}}
-    result = put("#{@route}", hash)
-    raise("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} ") if api_responce_code != expect_code
-    @virtual_machine['memory'] = new_mem
-    if hot_resize_available?
-      wait_for_resize_without_reboot
-    else
-      wait_for_resize
-    end
-  end
-  def edit_cpu(action, value, expect_code='204')
-    new_cpu = new_resource_value(action, value)
-    puts new_mem
-    hash = {'virtual_machine' => {'cpu' => new_cpu.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '0'}}
-    result = put("#{@route}", hash)
-    raise("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} ") if api_responce_code != expect_code
-    @virtual_machine['cpu'] = new_cpu
-    if hot_resize_available?
-      wait_for_resize_without_reboot
-    else
-      wait_for_resize
-    end
-  end
-  def edit_cpu_priority(value, param)
-
-  end
 # OPERATIONS
   def api_responce_code
     @conn.page.code
@@ -197,6 +167,7 @@ class VirtualMachine
     @ip_addresses = get("#{@route}/ip_addresses")
     @template = get("/templates/#{@virtual_machine['template_id']}")['image_template']
     @hypervisor = get("/hypervisors/#{@virtual_machine['hypervisor_id']}")['hypervisor']
+    @last_transaction_id = get("#{@route}/transactions").first['transaction']['id'] # Required when we use already created VMs
   end
 
   def exist_on_hv?
