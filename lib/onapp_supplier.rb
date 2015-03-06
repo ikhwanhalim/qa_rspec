@@ -4,11 +4,11 @@ require 'helpers/template_manager'
 require 'helpers/hypervisor'
 require 'virtual_machine/vm_base'
 
-class OnappSupplier < VirtualMachine
+class OnappSupplier
   include OnappHTTP
   include TemplateManager
   include Hypervisor
-  attr_accessor :published_zone
+  attr_accessor :published_zone, :vm
 
   def initialize
     data = YAML::load_file('config/conf.yml')
@@ -26,10 +26,11 @@ class OnappSupplier < VirtualMachine
       ntz = get("/settings/location_groups/#{id}/network_groups").first["network_group"] rescue next
       dsz = get("/settings/location_groups/#{id}/data_store_groups").first["data_store_group"] rescue next
       hvz = get("/settings/location_groups/#{id}/hypervisor_groups").first["hypervisor_group"] rescue next
-      if !ntz["federation_id"] && !hvz["federation_id"] && !dsz["federation_id"] && for_vm_creation(ENV['VIRT_TYPE'], hvz['id'])
+      unless ntz["federation_id"] || hvz["federation_id"] || dsz["federation_id"]
+        Log.warn('Hypervisor is not attached') unless for_vm_creation(ENV['VIRT_TYPE'], hvz['id'])
         return {'hypervisor_group' => hvz, 'data_store_group' => dsz,  'network_group' => ntz}
       else
-        Log.error 'HypervisorNotFound'
+        Log.error 'HypervisorGroupNotFound'
       end
     end
   end
@@ -37,12 +38,14 @@ class OnappSupplier < VirtualMachine
   def add_to_federation
     get_template(ENV['TEMPLATE_MANAGER_ID'])
     res = not_federated_resources
+    @data_store_group = res['data_store_group']
+    @network_group = res['network_group']
     hvz_id = res['hypervisor_group']['id']
     stamp = 'federation-autotest' + DateTime.now.strftime('-%d-%m-%y(%H:%M:%S)')
     data = { 'hypervisor_zone' => {'label' => stamp,
-                               'data_store_zone_id' => res['data_store_group']['id'],
+                               'data_store_zone_id' => @data_store_group['id'],
                                'data_store_zone_label' => stamp,
-                               'network_zone_id' => res['network_group']['id'],
+                               'network_zone_id' => @network_group['id'],
                                'network_zone_label' => stamp,
                                'template_group_id' => @template_store['id']}}
     response = post("/federation/hypervisor_zones/#{hvz_id}/add", data)
@@ -74,5 +77,37 @@ class OnappSupplier < VirtualMachine
       disable_zone(z['id'])
       remove_from_federation(z['id'])
     end
+  end
+
+  def hypervisors_detach(id=@published_zone['id'])
+    @hypervisors_ids = get("/settings/hypervisor_zones/#{id}/hypervisors").map do |hv|
+      hv['hypervisor']['id']
+    end
+    post("/settings/hypervisor_zones/#{id}/hypervisors/detach_range", {ids: @hypervisors_ids})
+  end
+
+  def hypervisors_attach(id=@published_zone['id'])
+    post("/settings/hypervisor_zones/#{id}/hypervisors/attach_range", {ids: @hypervisors_ids})
+  end
+
+  def data_stores_detach
+    id = @data_store_group['id']
+    @data_stores_ids = get("/settings/data_store_zones/#{id}/data_stores").map do |ds|
+      ds['data_store']['id']
+    end
+    post("/settings/data_store_zones/#{id}/data_stores/detach_range", {ids: @data_stores_ids})
+  end
+
+  def data_stores_attach
+    id = @data_store_group['id']
+    post("/settings/data_store_zones/#{id}/data_stores/attach_range", {ids: @data_stores_ids})
+  end
+
+  # VM operations
+  def find_vm(label)
+    auth_data = {'url' => @url, 'user' => @user, 'pass' => @pass}
+    @vm = VirtualMachine.new(federation: auth_data)
+    @vm.find_by_label(label)
+    @vm.info_update
   end
 end

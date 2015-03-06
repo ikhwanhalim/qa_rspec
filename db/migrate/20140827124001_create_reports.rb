@@ -1,7 +1,7 @@
 class CreateReports < ActiveRecord::Migration
   def change
     create_table :reports do |t|
-      t.string  :spec_files
+      t.text    :spec_files
       t.string  :template_name
       t.string  :virt
       t.integer :run_id

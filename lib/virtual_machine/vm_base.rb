@@ -17,11 +17,15 @@ class VirtualMachine
   include VmDisks
   include VmOperationsWaiters
   include VmNetwork
+  attr_accessor :virtual_machine
 
-  def initialize(user=nil)
-    auth unless self.conn
-    if user
-      auth url: @url, user: user.login, pass: user.password
+  def initialize(user=nil, federation: nil)
+    if federation
+      auth(url: federation['url'], user: federation['user'], pass: federation['pass'])
+    elsif user
+      auth(url: @url, user: user.login, pass: user.password)
+    elsif !self.conn
+      auth unless self.conn
     end
   end
 
@@ -31,14 +35,16 @@ class VirtualMachine
     if federation.any?
       @template = federation['template']
       @hypervisor = federation['hypervisor']
+      @label = federation['hypervisor']['label']
     else
       @template = get_template(manager_id)
       @hypervisor = for_vm_creation(virtualization)
     end
+
     hash ={'virtual_machine' => {
                                   'hypervisor_id' => @hypervisor['id'],
                                   'template_id' => @template['id'],
-                                  'label' => @template['label'],
+                                  'label' => @label || @template['label'],
                                   'memory' => @template['min_memory_size'],
                                   'cpus' => '1',
                                   'cpu_shares' => '1',
@@ -48,21 +54,20 @@ class VirtualMachine
                                   'required_ip_address_assignment' => '1',
                                 }
           }
-
-
     hash['virtual_machine']['swap_disk_size'] = '1' if @template['allowed_swap']
-    @virtual_machine = post("/virtual_machines", hash)['virtual_machine']
-    @route = "/virtual_machines/#{@virtual_machine['identifier']}"
-
-    3.times do
-      @disks = get("#{@route}/disks")
-      @network_interfaces = get("#{@route}/network_interfaces")
-      @ip_addresses = get("#{@route}/ip_addresses")
-      break if @disks.any? && @network_interfaces.any? && @ip_addresses.any?
-      sleep 10
+    @virtual_machine = post("/virtual_machines", hash)
+    if @virtual_machine.has_key?("errors")
+      return @virtual_machine['errors']
+    else
+      @virtual_machine = @virtual_machine['virtual_machine']
+      3.times do
+        info_update
+        break if @disks.any? && @network_interfaces.any? && @ip_addresses.any?
+        sleep 10
+      end
+      find_by_id
+      return self
     end
-    find_by_id
-    return self
   end
 
   def is_created?
@@ -82,14 +87,24 @@ class VirtualMachine
   def find_by_id(identifier=nil)
     identifier ||= @virtual_machine['identifier']
     @virtual_machine = get("/virtual_machines/#{identifier}")['virtual_machine']
-    @route = "/virtual_machines/#{@virtual_machine['identifier']}"
-    @disks = get("#{@route}/disks")
-    @network_interfaces = get("#{@route}/network_interfaces")
-    @ip_addresses = get("#{@route}/ip_addresses")
-    @template = get("/templates/#{@virtual_machine['template_id']}")
-    @virtual_machine
+    info_update
   end
 
+  def find_by_label(label)
+    get("/virtual_machines").each do |vm|
+      if vm['virtual_machine']['label'] == label
+        @virtual_machine = vm['virtual_machine']
+        break
+      end
+    end
+    self
+  end
+
+  def edit(**params)
+    put("#{@route}", {'virtual_machine'=>params})
+    info_update
+  end 
+  
   def edit_ram(action, value, expect_code='204')
     case action
       when 'incr'
@@ -156,11 +171,13 @@ class VirtualMachine
   end
 
   def info_update
+    @route ||= "/virtual_machines/#{@virtual_machine['identifier']}"
     @virtual_machine = get("#{@route}")['virtual_machine']
     @disks = get("#{@route}/disks")
     @network_interfaces = get("#{@route}/network_interfaces")
     @ip_addresses = get("#{@route}/ip_addresses")
-
+    @template = get("/templates/#{@virtual_machine['template_id']}")['image_template']
+    @hypervisor = get("/hypervisors/#{@virtual_machine['hypervisor_id']}")['hypervisor']
   end
 
   def exist_on_hv?

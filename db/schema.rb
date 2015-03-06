@@ -14,7 +14,7 @@
 ActiveRecord::Schema.define(:version => 20140827124001) do
 
   create_table "reports", :force => true do |t|
-    t.string   "spec_files"
+    t.text     "spec_files"
     t.string   "template_name"
     t.string   "virt"
     t.integer  "run_id"
