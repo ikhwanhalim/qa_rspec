@@ -102,31 +102,50 @@ class VirtualMachine
     self
   end
 
-  def edit(**params)
-    put("#{@route}", {'virtual_machine'=>params})
-    info_update
-  end 
-  
-  def edit_ram(action, value, expect_code='204')
-    case action
-      when 'incr'
-        new_mem = @virtual_machine['memory'].to_i + value.to_i
-      when 'decr'
-        new_mem = @virtual_machine['memory'].to_i - value.to_i
-      when 'set'
-        new_mem = value.to_i
-      else
-        raise("Unknown action #{action}. Please use incr/decr/set actions")
-    end
-    hash = {'virtual_machine' => {'memory' => new_mem.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '0'}}
+  def edit(resource, action, value, expect_code='204')
+    new = new_resource_value(resource,action,value)
+    hash = {'virtual_machine' => {resource => new.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '0'}}
+    result = put("#{@route}", hash)
     result = put("#{@route}", hash)
     puts result
     raise("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} ") if api_responce_code != expect_code
-    wait_for_resize_without_reboot
-
+    @virtual_machine[resource] = new
+    if hot_resize_available?
+      wait_for_resize_without_reboot
+    else
+      wait_for_resize
+    end
   end
-  def edit_cpu(value, action)
 
+  def hot_resize_available?
+    false
+  end
+
+  def edit_ram(action, value, expect_code='204')
+    new_mem = new_resource_value(resource, action, value)
+    puts new_mem
+    hash = {'virtual_machine' => {'memory' => new_mem.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '0'}}
+    result = put("#{@route}", hash)
+    raise("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} ") if api_responce_code != expect_code
+    @virtual_machine['memory'] = new_mem
+    if hot_resize_available?
+      wait_for_resize_without_reboot
+    else
+      wait_for_resize
+    end
+  end
+  def edit_cpu(action, value, expect_code='204')
+    new_cpu = new_resource_value(action, value)
+    puts new_mem
+    hash = {'virtual_machine' => {'cpu' => new_cpu.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '0'}}
+    result = put("#{@route}", hash)
+    raise("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} ") if api_responce_code != expect_code
+    @virtual_machine['cpu'] = new_cpu
+    if hot_resize_available?
+      wait_for_resize_without_reboot
+    else
+      wait_for_resize
+    end
   end
   def edit_cpu_priority(value, param)
 
@@ -226,5 +245,20 @@ class VirtualMachine
     @virtual_machine['price_per_hour_powered_off']
   end
   ######################################################################################################################
+  # Private Methods
+  private
+  def new_resource_value(resource, action, value)
+    case action
+      when 'incr'
+        new_value= @virtual_machine[resource].to_i + value.to_i
+      when 'decr'
+        new_value = @virtual_machine[resource].to_i - value.to_i
+      when 'set'
+        new_value = value.to_i
+      else
+        raise("Unknown action #{action}. Please use incr/decr/set actions")
+    end
+    new_value
+  end
 end
 
