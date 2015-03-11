@@ -1,5 +1,6 @@
 require 'json'
 require 'net/ssh'
+require 'pry'
 
 module OnappSSH
 
@@ -18,7 +19,8 @@ module OnappSSH
 
   #Example for cred - {'vm_user'=>'name', 'vm_host'=>'ip', 'vm_pass'=>'pass'}
   def execute_with_pass(cred={}, command)
-    cred['vm_host'] ||= @vm_ip
+    puts @ip_addresses.first['ip_address_join']['ip_address']['address']
+    cred['vm_host'] ||= @ip_addresses.first['ip_address_join']['ip_address']['address']
     cred['vm_pass'] ||= @virtual_machine['initial_root_password']
     ssh = Net::SSH.start(cred['vm_host'], cred['vm_user'] || 'root', :password => cred['vm_pass'], :paranoid => false)
     ssh.exec!(command).to_s.split("\n")
@@ -43,7 +45,7 @@ module OnappSSH
     end.first
   end
 
-  def memory
+  def memory_on_vm
     if system == 'linux'
       execute_with_pass("free -m |awk '{print $2}'| sed -n 2p")
     elsif system == 'freebsd'
@@ -51,12 +53,21 @@ module OnappSSH
     end.first
   end
 
-  def cpu
+  def cpus_on_vm
     if system == 'linux'
       execute_with_pass("cat /proc/cpuinfo |grep processor |tail -1 |awk '{print $3+1}'")
     elsif system == 'freebsd'
       execute_with_pass("dmesg | grep -oE 'cpu[0-9]*' | awk 'END{printf \"%.0f\n\", (NR+0.1)/2}'")
     end.first
+  end
+  def cpu_shares_on_hv
+    cred = { 'vm_host' => "#{@hypervisor['ip_address']}" }
+    if @hypervisor['hypervisor_type'] == 'kvm'
+      result = tunnel_execute(cred, "virsh schedinfo #{@virtual_machine['identifier']} | grep cpu_shares").first.scan(/\d+/).first
+    elsif @hypervisor['hypervisor_type'] == 'xen'
+      result = tunnel_execute(cred, "xm sched-credit | grep #{@virtual_machine['identifier']} | awk '{print $3}' || echo 'false'").first.to_i/@virtual_machine['cpus'].to_i
+    end
+    return result
   end
 
   def primary_network_interface

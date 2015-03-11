@@ -99,23 +99,40 @@ class VirtualMachine
     end
     self
   end
-
+  def resize_support?
+    @template['resize_without_reboot_policy'].empty?
+  end
   def edit(resource, action, value, expect_code='204')
+    Log.error ("Unknown resize_without_reboot_policy for template: #{@template['manager_id']}") if resize_support?
     new = new_resource_value(resource,action,value)
     hash = {'virtual_machine' => {resource => new.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '0'}}
     result = put("#{@route}", hash)
     puts result
-    raise("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} ") if api_responce_code != expect_code
+    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} ") if api_responce_code != expect_code
+    old = @virtual_machine[resource]
     @virtual_machine[resource] = new
-    if hot_resize_available?
+    if hot_resize_available?(resource, new, old)
       wait_for_resize_without_reboot
     else
       wait_for_resize
     end
   end
 
-  def hot_resize_available?
-    false
+  def cpu_shares_correct?
+    to_compare = cpu_shares_on_hv
+    Log.info ("Comparing CPU shares: On HV: #{to_compare}, on CP: #{cpu_shares}")
+    return true if (cpu_shares.to_i == 1 || cpu_shares.to_i == 2) && (to_compare.to_i == 1 || to_compare.to_i == 2)
+    to_compare.to_i == cpu_shares.to_i
+  end
+  def cpus_correct?
+    to_compare = cpus_on_vm
+    Log.info ("Comparing CPUs: On VM: #{to_compare}, on CP: #{cpus}")
+    to_compare.to_i == cpus.to_i
+  end
+  def memory_correct?
+    to_compare = memory_on_vm
+    Log.info ("Comparing Memory: On VM: #{to_compare}, on CP: #{memory}")
+    to_compare.to_f/memory.to_i > 0.7
   end
 
 # OPERATIONS
@@ -205,6 +222,9 @@ class VirtualMachine
   def network_interfaces
     @network_interfaces
   end
+  def hypervisor
+    @hypervisor
+  end
 
   def price_per_hour
     @virtual_machine['price_per_hour']
@@ -228,6 +248,31 @@ class VirtualMachine
         raise("Unknown action #{action}. Please use incr/decr/set actions")
     end
     new_value
+  end
+
+  def hot_resize_available?(resource, new_value, old_value)
+    policy = @template['resize_without_reboot_policy']["#{@hypervisor['hypervisor_type']}"]["#{@hypervisor['distro']}"]
+    if resource == 'cpus'
+      if new_value > old_value and [1, 3, 5, 7, 9, 11, 13, 15].include? policy
+        return true
+      elsif new_value < old_value and [2, 3, 6, 7, 10, 11, 14, 15].include? policy
+        return true
+      else
+        return false
+      end
+    elsif resource == 'memory'
+      if new_value > old_value and new_value < @maxmem and  [4, 5, 6, 7, 12, 13, 14, 15].include? policy
+        return true
+      elsif new_value < old_value and new_value < @maxmem and [8, 9, 10, 11, 12, 13, 14, 15].include? policy
+        return true
+      else
+        return false
+      end
+    elsif resource == 'cpu_shares'
+      return true
+    else
+      Log.error("Unknown Resource #{resource}, Expected cpus, memory or cpu_shares")
+    end
   end
 end
 
