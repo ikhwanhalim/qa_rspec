@@ -65,7 +65,7 @@ module OnappSSH
     if @hypervisor['hypervisor_type'] == 'kvm'
       result = tunnel_execute(cred, "virsh schedinfo #{@virtual_machine['identifier']} | grep cpu_shares").first.scan(/\d+/).first
     elsif @hypervisor['hypervisor_type'] == 'xen'
-      result = tunnel_execute(cred, "xm sched-credit | grep #{@virtual_machine['identifier']} | awk '{print $3}' || echo 'false'").first.to_i/@virtual_machine['cpus'].to_i
+      result = tunnel_execute(cred, "xm sched-credit | grep #{@virtual_machine['identifier']} || echo 'false'").first.split(' ')[2].to_i/@virtual_machine['cpus'].to_i
     end
     return result
   end

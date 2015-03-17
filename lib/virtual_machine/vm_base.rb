@@ -99,16 +99,19 @@ class VirtualMachine
     end
     self
   end
+  def update_last_transaction
+    @last_transaction_id = get("#{@route}/transactions").first['transaction']['id']
+  end
   def resize_support?
     @template['resize_without_reboot_policy'].empty?
   end
   def edit(resource, action, value, expect_code='204')
     Log.error ("Unknown resize_without_reboot_policy for template: #{@template['manager_id']}") if resize_support?
     new = new_resource_value(resource,action,value)
-    hash = {'virtual_machine' => {resource => new.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '0'}}
+    hash = {'virtual_machine' => {resource => new.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '1'}}
     result = put("#{@route}", hash)
     puts result
-    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} ") if api_responce_code != expect_code
+    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} \n #{result}") if api_responce_code != expect_code
     old = @virtual_machine[resource]
     @virtual_machine[resource] = new
     if hot_resize_available?(resource, new, old)
@@ -184,7 +187,6 @@ class VirtualMachine
     @ip_addresses = get("#{@route}/ip_addresses")
     @template = get("/templates/#{@virtual_machine['template_id']}")['image_template']
     @hypervisor = get("/hypervisors/#{@virtual_machine['hypervisor_id']}")['hypervisor']
-    @last_transaction_id = get("#{@route}/transactions").first['transaction']['id'] # Required when we use already created VMs
   end
 
   def exist_on_hv?
