@@ -244,5 +244,17 @@ describe "Checking Billing Plan functionality" do
     puts "VS Price ON - #{@vm.price_per_hour}"
     expect(@vm.price_per_hour.to_i).to eq(price_on)
   end
+
   # Shutdown VS from inside, check hourly price and built value - should be 0.
+  it 'Check price when VS is startup.' do
+    # Shutdown VS from UI, check hourly price and built value - should be 0.
+    @vm.execute_with_pass("init 0")
+    #@vm.start_up
+    #@vm.wait_for_start
+    # Get price_for_last_hour
+    price_off = @vm.price_for_last_hour
+    puts "Billing Price OFF - #{price_off}"
+    puts "VS Price OFF - #{@vm.price_per_hour_powered_off}"
+    expect(@vm.price_per_hour_powered_off.to_i).to eq(price_off)
+  end
 end
