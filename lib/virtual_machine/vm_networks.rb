@@ -13,6 +13,8 @@ module VmNetwork
           s = TCPSocket.new(ip_address, 22)
           s.close
           return true
+        rescue Errno::ETIMEDOUT
+          retry
         rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
           return false
         end
