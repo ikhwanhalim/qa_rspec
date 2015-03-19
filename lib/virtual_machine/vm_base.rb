@@ -192,9 +192,9 @@ class VirtualMachine
   def exist_on_hv?
     cred = { 'vm_host' => "#{@hypervisor['ip_address']}" }
     if @hypervisor['hypervisor_type'] == 'kvm'
-      result = !tunnel_execute(cred, "virsh list | grep #{@virtual_machine['identifier']} || echo 'false'").first.include?('false')
+      result = tunnel_execute(cred, "virsh list | grep #{@virtual_machine['identifier']} || echo 'false'").first.exclude?('false')
     elsif @hypervisor['hypervisor_type'] == 'xen'
-      result = !tunnel_execute(cred, "xm list | grep #{@virtual_machine['identifier']} || echo 'false'").first.include?('false')
+      result = tunnel_execute(cred, "xm list | grep #{@virtual_machine['identifier']} || echo 'false'").first.exclude?('false')
     end
     return result
   end
