@@ -8,7 +8,7 @@ module VmNetwork
     ip_address = ip(network_interface, ip_address_number)
     Log.info("IP address is: #{ip_address}")
     begin
-      Timeout::timeout(180) do
+      Timeout::timeout(300) do
         begin
           s = TCPSocket.new(ip_address, 22)
           s.close
@@ -26,7 +26,7 @@ module VmNetwork
     ip_address = ip(network_interface, ip_address_number)
     Log.info("IP address is: #{ip_address}")
     host = Net::Ping::External.new(ip_address)
-    10.times { return true if host.ping?; sleep 10 }
+    30.times { return true if host.ping?; sleep 10 }
     false
   end
 
