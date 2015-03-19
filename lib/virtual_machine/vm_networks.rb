@@ -6,6 +6,7 @@ module VmNetwork
   
   def ssh_port_opened(network_interface = 1, ip_address_number = 1)
     ip_address = ip(network_interface, ip_address_number)
+    Log.info("IP address is: #{ip_address}")
     attempts = 12
     while `nc -z #{ip_address} 22 -w1 || echo false`.include?('false')
       if attempts < 0
@@ -13,16 +14,15 @@ module VmNetwork
       end      
       attempts-=1
       sleep 10
-    end        
+    end
     true
   end
 
   def pinged?(network_interface = 1, ip_address_number = 1)
-    10.times do
-      ip_address = ip(network_interface, ip_address_number)
-      host = Net::Ping::External.new(ip_address)
-      return true if host.ping?
-    end
+    ip_address = ip(network_interface, ip_address_number)
+    Log.info("IP address is: #{ip_address}")
+    host = Net::Ping::External.new(ip_address)
+    10.times { return true if host.ping? }
     false
   end
 
