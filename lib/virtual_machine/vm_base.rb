@@ -99,16 +99,19 @@ class VirtualMachine
     end
     self
   end
+  def update_last_transaction
+    @last_transaction_id = get("#{@route}/transactions").first['transaction']['id']
+  end
   def resize_support?
     @template['resize_without_reboot_policy'].empty?
   end
   def edit(resource, action, value, expect_code='204')
     Log.error ("Unknown resize_without_reboot_policy for template: #{@template['manager_id']}") if resize_support?
     new = new_resource_value(resource,action,value)
-    hash = {'virtual_machine' => {resource => new.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '0'}}
+    hash = {'virtual_machine' => {resource => new.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '1'}}
     result = put("#{@route}", hash)
     puts result
-    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} ") if api_responce_code != expect_code
+    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} \n #{result}") if api_responce_code != expect_code
     old = @virtual_machine[resource]
     @virtual_machine[resource] = new
     if hot_resize_available?(resource, new, old)
@@ -184,15 +187,14 @@ class VirtualMachine
     @ip_addresses = get("#{@route}/ip_addresses")
     @template = get("/templates/#{@virtual_machine['template_id']}")['image_template']
     @hypervisor = get("/hypervisors/#{@virtual_machine['hypervisor_id']}")['hypervisor']
-    @last_transaction_id = get("#{@route}/transactions").first['transaction']['id'] # Required when we use already created VMs
   end
 
   def exist_on_hv?
     cred = { 'vm_host' => "#{@hypervisor['ip_address']}" }
     if @hypervisor['hypervisor_type'] == 'kvm'
-      result = !tunnel_execute(cred, "virsh list | grep #{@virtual_machine['identifier']} || echo 'false'").first.include?('false')
+      result = tunnel_execute(cred, "virsh list | grep #{@virtual_machine['identifier']} || echo 'false'").first.exclude?('false')
     elsif @hypervisor['hypervisor_type'] == 'xen'
-      result = !tunnel_execute(cred, "xm list | grep #{@virtual_machine['identifier']} || echo 'false'").first.include?('false')
+      result = tunnel_execute(cred, "xm list | grep #{@virtual_machine['identifier']} || echo 'false'").first.exclude?('false')
     end
     return result
   end
@@ -261,9 +263,9 @@ class VirtualMachine
         return false
       end
     elsif resource == 'memory'
-      if new_value > old_value and new_value < @maxmem and  [4, 5, 6, 7, 12, 13, 14, 15].include? policy
+      if new_value > old_value and new_value <= @maxmem and  [4, 5, 6, 7, 12, 13, 14, 15].include? policy
         return true
-      elsif new_value < old_value and new_value < @maxmem and [8, 9, 10, 11, 12, 13, 14, 15].include? policy
+      elsif new_value < old_value and new_value <= @maxmem and [8, 9, 10, 11, 12, 13, 14, 15].include? policy
         return true
       else
         return false

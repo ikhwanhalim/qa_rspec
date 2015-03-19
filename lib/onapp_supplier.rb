@@ -49,7 +49,7 @@ class OnappSupplier
                                'network_zone_label' => stamp,
                                'template_group_id' => @template_store['id']}}
     response = post("/federation/hypervisor_zones/#{hvz_id}/add", data)
-    Log.error(response.values.join("\n")) if response.has_key? 'errors'
+    Log.error(response.values.join("\n")) if response['errors'].any?
     @published_zone = get("/settings/hypervisor_zones/#{hvz_id}").values.first
   end
 
