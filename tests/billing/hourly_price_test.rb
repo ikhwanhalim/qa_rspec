@@ -246,7 +246,7 @@ describe "Checking Billing Plan functionality" do
   end
 
   # Shutdown VS from inside, check hourly price and built value - should be 0.
-  it 'Check price when VS is startup.' do
+  it 'Check price when VS was shutdowned from inside.' do
     # Shutdown VS from UI, check hourly price and built value - should be 0.
     @vm.execute_with_pass("init 0")
     #@vm.start_up
