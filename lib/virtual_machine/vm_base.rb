@@ -124,18 +124,22 @@ class VirtualMachine
   def cpu_shares_correct?
     to_compare = cpu_shares_on_hv
     Log.info ("Comparing CPU shares: On HV: #{to_compare}, on CP: #{cpu_shares}")
-    return true if (cpu_shares.to_i == 1 || cpu_shares.to_i == 2) && (to_compare.to_i == 1 || to_compare.to_i == 2)
-    to_compare.to_i == cpu_shares.to_i
+    to_compare = 1 if to_compare == 2 && cpu_shares.to_i == 1
+    #return true if (cpu_shares.to_i == 1 || cpu_shares.to_i == 2) && (to_compare.to_i == 1 || to_compare.to_i == 2)
+    Log.error("Comparing CPU shares: On HV: #{to_compare}, on CP: #{cpu_shares}") if to_compare.to_i != cpu_shares.to_i
+    true
   end
   def cpus_correct?
     to_compare = cpus_on_vm
     Log.info ("Comparing CPUs: On VM: #{to_compare}, on CP: #{cpus}")
-    to_compare.to_i == cpus.to_i
+    Log.error("Comparing CPUs: On VM: #{to_compare}, on CP: #{cpus} FAILED") if to_compare.to_i != cpus.to_i
+    true
   end
   def memory_correct?
     to_compare = memory_on_vm
     Log.info ("Comparing Memory: On VM: #{to_compare}, on CP: #{memory}")
-    to_compare.to_f/memory.to_i > 0.7
+    Log.error ("Comparing Memory: On VM: #{to_compare}, on CP: #{memory} FAILED") if to_compare.to_f/memory.to_i < 0.7
+    true
   end
 
 # OPERATIONS
@@ -192,9 +196,9 @@ class VirtualMachine
   def exist_on_hv?
     cred = { 'vm_host' => "#{@hypervisor['ip_address']}" }
     if @hypervisor['hypervisor_type'] == 'kvm'
-      result = !tunnel_execute(cred, "virsh list | grep #{@virtual_machine['identifier']} || echo 'false'").first.include?('false')
+      result = tunnel_execute(cred, "virsh list | grep #{@virtual_machine['identifier']} || echo 'false'").first.exclude?('false')
     elsif @hypervisor['hypervisor_type'] == 'xen'
-      result = !tunnel_execute(cred, "xm list | grep #{@virtual_machine['identifier']} || echo 'false'").first.include?('false')
+      result = tunnel_execute(cred, "xm list | grep #{@virtual_machine['identifier']} || echo 'false'").first.exclude?('false')
     end
     return result
   end
@@ -263,9 +267,9 @@ class VirtualMachine
         return false
       end
     elsif resource == 'memory'
-      if new_value > old_value and new_value < @maxmem and  [4, 5, 6, 7, 12, 13, 14, 15].include? policy
+      if new_value > old_value and new_value <= @maxmem and  [4, 5, 6, 7, 12, 13, 14, 15].include? policy
         return true
-      elsif new_value < old_value and new_value < @maxmem and [8, 9, 10, 11, 12, 13, 14, 15].include? policy
+      elsif new_value < old_value and new_value <= @maxmem and [8, 9, 10, 11, 12, 13, 14, 15].include? policy
         return true
       else
         return false
