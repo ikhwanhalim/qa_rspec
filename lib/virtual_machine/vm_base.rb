@@ -124,18 +124,22 @@ class VirtualMachine
   def cpu_shares_correct?
     to_compare = cpu_shares_on_hv
     Log.info ("Comparing CPU shares: On HV: #{to_compare}, on CP: #{cpu_shares}")
-    return true if (cpu_shares.to_i == 1 || cpu_shares.to_i == 2) && (to_compare.to_i == 1 || to_compare.to_i == 2)
-    to_compare.to_i == cpu_shares.to_i
+    to_compare = 1 if to_compare == 2 && cpu_shares.to_i == 1
+    #return true if (cpu_shares.to_i == 1 || cpu_shares.to_i == 2) && (to_compare.to_i == 1 || to_compare.to_i == 2)
+    Log.error("Comparing CPU shares: On HV: #{to_compare}, on CP: #{cpu_shares}") if to_compare.to_i != cpu_shares.to_i
+    true
   end
   def cpus_correct?
     to_compare = cpus_on_vm
     Log.info ("Comparing CPUs: On VM: #{to_compare}, on CP: #{cpus}")
-    to_compare.to_i == cpus.to_i
+    Log.error("Comparing CPUs: On VM: #{to_compare}, on CP: #{cpus} FAILED") if to_compare.to_i != cpus.to_i
+    true
   end
   def memory_correct?
     to_compare = memory_on_vm
     Log.info ("Comparing Memory: On VM: #{to_compare}, on CP: #{memory}")
-    to_compare.to_f/memory.to_i > 0.7
+    Log.error ("Comparing Memory: On VM: #{to_compare}, on CP: #{memory} FAILED") if to_compare.to_f/memory.to_i < 0.7
+    true
   end
 
 # OPERATIONS

@@ -21,14 +21,16 @@ module VmNetwork
       end
     rescue Timeout::Error
     end
+    Log.error ("No ping responce from #{ip_address}")
     return false
   end
 
   def pinged?(network_interface = 1, ip_address_number = 1)
     ip_address = ip(network_interface, ip_address_number)
-    Log.info("IP address is: #{ip_address}")
+    Log.info("Ping IP address: #{ip_address}")
     host = Net::Ping::External.new(ip_address)
     30.times { return true if host.ping?; sleep 10 }
+    Log.error ("No ping responce from #{ip_address}")
     false
   end
 
