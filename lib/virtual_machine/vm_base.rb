@@ -55,7 +55,7 @@ class VirtualMachine
                                 }
           }
     hash['virtual_machine']['swap_disk_size'] = '1' if @template['allowed_swap']
-    hash['virtual_machine']['recipe_ids'] = ['11']
+    hash['virtual_machine']['recipe_ids'] = ['1']
     @virtual_machine = post("/virtual_machines", hash)
     if @virtual_machine.has_key?("errors")
       return @virtual_machine['errors']
@@ -81,6 +81,7 @@ class VirtualMachine
     wait_for_provision_freebsd if @template['operating_system'] == 'freebsd'
     wait_for_provision_win if @template['operating_system'] == 'windows'
     wait_for_start
+    wait_for_run_recipe_on_vm
     # Build VM process (END)
   end
 
@@ -183,6 +184,7 @@ class VirtualMachine
     wait_for_configure_operating_system
     wait_for_provision_win if @template['operating_system'] == 'windows'
     wait_for_start
+    wait_for_run_recipe_on_vm
   end
 
   def info_update
