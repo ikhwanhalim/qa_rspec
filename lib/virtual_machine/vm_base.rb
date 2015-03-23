@@ -55,6 +55,7 @@ class VirtualMachine
                                 }
           }
     hash['virtual_machine']['swap_disk_size'] = '1' if @template['allowed_swap']
+    hash['virtual_machine']['recipe_ids'] = ['11']
     @virtual_machine = post("/virtual_machines", hash)
     if @virtual_machine.has_key?("errors")
       return @virtual_machine['errors']
@@ -125,6 +126,7 @@ class VirtualMachine
     to_compare = cpu_shares_on_hv
     Log.info ("Comparing CPU shares: On HV: #{to_compare}, on CP: #{cpu_shares}")
     to_compare = 1 if to_compare == 2 && cpu_shares.to_i == 1
+    Log.info ("Comparing CPU shares: On HV: #{to_compare}, on CP: #{cpu_shares}")
     #return true if (cpu_shares.to_i == 1 || cpu_shares.to_i == 2) && (to_compare.to_i == 1 || to_compare.to_i == 2)
     Log.error("Comparing CPU shares: On HV: #{to_compare}, on CP: #{cpu_shares}") if to_compare.to_i != cpu_shares.to_i
     true
