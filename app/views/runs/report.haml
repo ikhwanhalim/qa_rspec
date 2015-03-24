@@ -9,8 +9,8 @@
          var array = $.map($(".modal.fade"), function(e){
            return $(e).attr('aria-hidden');
          });
-         var opened = $.inArray('true', array);
-         if (opened == 0) {
+         var opened = $.inArray('false', array);
+         if (opened == -1) {
            $('.dynamic').load('/runs/refresh_report', { "id":"#{params[:id]}"})
          };
        }, 15000);
