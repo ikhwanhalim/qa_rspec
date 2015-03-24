@@ -26,12 +26,16 @@
               %span.label.label-default= r.status
             - elsif r.status == "Running"
               %span.label.label-warning= r.status
-            - elsif r.status == "Failed"
-              %span.label.label-danger= r.status
             - elsif r.status == "Old"
               %span.label.label-default= r.status
             - else
               %span.label.label-success= r.status
+            - begin
+              - report_page = Nokogiri::HTML(open(Rails.root + @directory + r.report_file))
+              - if report_page.css(".failed").any?
+                %span.label.label-danger= 'Failed'
+            - rescue
+              - r.update_attribute(:status, "Old")
         -if !Dir[@directory + '/*'].empty?
           -if File.exist?("#{@directory}/#{r.report_file}") and r.report_file?
             - file = File.open("#{@directory}/#{r.report_file}", "r")
