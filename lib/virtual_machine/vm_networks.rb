@@ -13,15 +13,13 @@ module VmNetwork
           s = TCPSocket.new(ip_address, 22)
           s.close
           return true
-        rescue Errno::ETIMEDOUT
+        rescue Errno::ETIMEDOUT, Errno::ECONNREFUSED, Errno::EHOSTUNREACH
           retry
-        rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
-          return false
         end
       end
     rescue Timeout::Error
     end
-    Log.error ("No ping responce from #{ip_address}")
+    Log.error ("No SSH responce from #{ip_address}")
     return false
   end
 
@@ -29,7 +27,7 @@ module VmNetwork
     ip_address = ip(network_interface, ip_address_number)
     Log.info("Ping IP address: #{ip_address}")
     host = Net::Ping::External.new(ip_address)
-    20.times { return true if host.ping?; sleep 30 }
+    10.times { return true if host.ping?; sleep 30 }
     Log.error ("No ping responce from #{ip_address}")
     false
   end

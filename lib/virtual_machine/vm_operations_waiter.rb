@@ -33,6 +33,10 @@ module VmOperationsWaiters
     set_max_mem
     wait_for_transaction(@virtual_machine['id'], 'VirtualMachine', 'resize_virtual_machine')
   end
+  def wait_for_run_recipe_on_vm
+    wait_for_transaction(@virtual_machine['id'], 'VirtualMachine', 'run_recipe_on_vm')
+  end
+
   def set_max_mem
     @maxmem = @virtual_machine['memory']*2 if @hypervisor['hypervisor_type'] == 'xen'
     @maxmem = @virtual_machine['memory'] if @hypervisor['hypervisor_type'] == 'kvm'
