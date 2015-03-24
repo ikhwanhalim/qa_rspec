@@ -10,7 +10,7 @@
            return $(e).attr('aria-hidden');
          });
          var opened = $.inArray('true', array);
-         if (opened == "0") {
+         if (opened == 0) {
            $('.dynamic').load('/runs/refresh_report', { "id":"#{params[:id]}"})
          };
        }, 15000);
