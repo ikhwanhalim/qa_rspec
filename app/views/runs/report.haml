@@ -6,8 +6,11 @@
   $(document).ready(
      function() {
        var intervalId = setInterval(function() {
-         var opened = $(".modal.fade").attr("aria-hidden")
-         if (opened == "true") {
+         var array = $.map($(".modal.fade"), function(e){
+           return $(e).attr('aria-hidden');
+         });
+         var opened = $.inArray('true', array);
+         if (opened == "0") {
            $('.dynamic').load('/runs/refresh_report', { "id":"#{params[:id]}"})
          };
        }, 15000);
