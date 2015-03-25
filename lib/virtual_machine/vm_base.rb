@@ -102,6 +102,8 @@ class VirtualMachine
   def update_last_transaction
     @last_transaction_id = get("#{@route}/transactions").first['transaction']['id']
   end
+
+# Edit VM sections
   def resize_support?
     @template['resize_without_reboot_policy'].empty?
   end
@@ -120,7 +122,7 @@ class VirtualMachine
       wait_for_resize
     end
   end
-
+# Resources compare
   def cpu_shares_correct?
     to_compare = cpu_shares_on_hv
     Log.info ("Comparing CPU shares: On HV: #{to_compare}, on CP: #{cpu_shares}")
@@ -140,6 +142,33 @@ class VirtualMachine
     Log.info ("Comparing Memory: On VM: #{to_compare}, on CP: #{memory}")
     Log.error ("Comparing Memory: On VM: #{to_compare}, on CP: #{memory} FAILED") if to_compare.to_f/memory.to_i < 0.7
     true
+  end
+
+# Migrations
+  def hv_to_migrate_exist?
+    !hv_for_vm_migration.nil?
+  end
+  def hot_migrate(expect_code='201')
+    new_hv = hv_for_vm_migration
+    hash = {'virtual_machine' => {'destination' => new_hv['id'], 'cold_migrate_on_rollback' => '0'}}
+    post("#{@route}/migrate", hash)
+    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} \n #{result}") if api_responce_code != expect_code
+    wait_for_hot_migration
+    @hypervisor = new_hv
+  end
+  def cold_migrate(expect_code='201')
+    shut_down
+    wait_for_stop
+
+    new_hv = hv_for_vm_migration
+    hash = {'virtual_machine' => {'destination' => new_hv['id']}}
+    post("#{@route}/migrate", hash)
+    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} \n #{result}") if api_responce_code != expect_code
+    wait_for_cold_migration
+    @hypervisor = new_hv
+
+    start_up
+    wait_for_start
   end
 
 # OPERATIONS

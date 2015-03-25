@@ -2,6 +2,7 @@ require 'yaml'
 require_relative 'onapp_http'
 
 module Hypervisor
+  private
   def for_vm_creation(virt, hvz_id = nil)
     max_free = 0
     hv = nil
@@ -23,5 +24,17 @@ module Hypervisor
       end
     end
     return hv
+  end
+  def hv_for_vm_migration
+    hypervisors = get("/hypervisors").map {|x| x['hypervisor']}
+    hypervisors.select! do |hv|
+      hv['hypervisor_group_id'] == @hypervisor['hypervisor_group_id'] &&
+      hv['hypervisor_type'] == @hypervisor['hypervisor_type'] &&
+      hv['distro'] == @hypervisor['distro'] &&
+      hv['id'] != @hypervisor['id'] &&
+      hv['online'] && hv['enabled'] &&
+      hv['free_memory'] > memory
+    end
+    hypervisors.first
   end
 end

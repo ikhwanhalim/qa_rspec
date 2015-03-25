@@ -49,6 +49,21 @@ describe 'VIRTUAL MACHINE REGRESSION AUTOTEST' do
       @vm.ssh_port_opened.should be_truthy
     end
   end
+  describe 'Migrate Virtual Machine operations' do
+    it 'Hot Migrate VM' do
+      skip ('VM Template do not support Hot migration') unless @vm.template['allowed_hot_migrate']
+      skip ('There is no available HV to migrate to') unless @vm.hv_to_migrate_exist?
+      @vm.hot_migrate
+      @vm.exist_on_hv?.should be_truthy
+      @vm.ssh_port_opened.should be_truthy
+    end
+    it 'Cold migration' do
+      skip ('There is no available HV to migrate to') unless @vm.hv_to_migrate_exist?
+      @vm.cold_migrate
+      @vm.exist_on_hv?.should be_truthy
+      @vm.ssh_port_opened.should be_truthy
+    end
+  end
   describe 'Resize Virtual Server Operations' do
     it 'Resize RAM memory (Increase/Decrease)' do
       skip 'Unable to perform test without Template resize_without_reboot_policy policy' if @vm.resize_support?
