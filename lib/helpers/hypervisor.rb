@@ -2,7 +2,6 @@ require 'yaml'
 require_relative 'onapp_http'
 
 module Hypervisor
-  private
   def for_vm_creation(virt, hvz_id = nil)
     max_free = 0
     hv = nil
