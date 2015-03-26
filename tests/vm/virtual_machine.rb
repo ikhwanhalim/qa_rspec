@@ -133,5 +133,22 @@ describe 'VIRTUAL MACHINE REGRESSION AUTOTEST' do
     it 'Should be possible to do something' do
       true
     end
-  end    
+  end
+  
+  describe 'Reboot in recovery operation' do
+    it 'Reboot in recovery Operations' do
+      @vm.recovery_reboot
+      @vm.wait_for_reboot
+      @vm.exist_on_hv?.should be_truthy
+      @vm.ssh_port_opened.should be_truthy
+      @vm.recovery?.should be_truthy
+
+      # return to normal stance
+      @vm.reboot
+      @vm.wait_for_reboot
+      @vm.exist_on_hv?.should be_truthy
+      @vm.ssh_port_opened.should be_truthy
+      @vm.recovery?.should be_falsey
+    end
+  end
 end

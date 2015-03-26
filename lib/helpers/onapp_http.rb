@@ -32,8 +32,8 @@ module OnappHTTP
       Log.warn("This is HTML page")
   end
 
-  def post(link, data="")
-    request = @conn.post(@url + link + '.json', data.to_json, @headers)
+  def post(link, data="", additional='')
+    request = @conn.post(@url + link + '.json'+additional, data.to_json, @headers)
     Log.info("POST request has been sent to #{link} with params #{data}")
     request
     JSON.parse(request.body) unless request.body.blank?

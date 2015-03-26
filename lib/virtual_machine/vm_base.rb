@@ -155,6 +155,7 @@ class VirtualMachine
     Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} \n #{result}") if api_responce_code != expect_code
     wait_for_hot_migration
     @hypervisor = new_hv
+    @virtual_machine['hypervisor_id'] = @hypervisor['id']
   end
   def cold_migrate(expect_code='201')
     shut_down
@@ -166,11 +167,20 @@ class VirtualMachine
     Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} \n #{result}") if api_responce_code != expect_code
     wait_for_cold_migration
     @hypervisor = new_hv
+    @virtual_machine['hypervisor_id'] = @hypervisor['id']
 
     start_up
     wait_for_start
   end
 
+# Recovery
+  def recovery_reboot
+    post("#{@route}/reboot",'','?mode=recovery')
+    api_responce_code == '201'
+  end
+  def recovery?
+    check_hostname.include?('recovery')
+  end
 # OPERATIONS
   def api_responce_code
     @conn.page.code
@@ -196,7 +206,7 @@ class VirtualMachine
     api_responce_code == '201'
   end
 
-  def reboot(mode=nil)
+  def reboot
     post("#{@route}/reboot")
     api_responce_code == '201'
   end
