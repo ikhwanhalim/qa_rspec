@@ -36,6 +36,10 @@
     width: 20px;
 }
 
+.delete, .report, .download{
+    width: 24px;
+}
+
 .lock {
 	background: url(Lock.png);
 }
@@ -143,11 +147,6 @@ input[type="number"],input[type="text"] {
 #run_title
 {
 	width: 400px;
-}
-
-#run_server
-{
-	width: 150px;
 }
 
 /*Select files*/

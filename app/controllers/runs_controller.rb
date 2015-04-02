@@ -55,7 +55,7 @@ class RunsController < ApplicationController
           if report.status != 'Stopped'
             active_threads = Report.where("status='Running' and run_id='#{run.id}'")
             if active_threads.count < run.threads
-              Run.thread(run.server, report)
+              Run.thread(report)
               reports.shift
             end
           end

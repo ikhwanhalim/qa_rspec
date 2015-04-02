@@ -1,9 +1,6 @@
 .container
   =form_for @run do |r|
     %fieldset
-      %legend Global Settings
-      = render partial: "runs/new/glob", :locals => { :r => r }
-    %fieldset
       %legend Select Suite
       = render partial: "runs/new/files", :locals => { :r => r }
     %fieldset

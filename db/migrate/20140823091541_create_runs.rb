@@ -6,7 +6,6 @@ class CreateRuns < ActiveRecord::Migration
       t.text      :templates
       t.text      :virt
       t.integer   :threads
-      t.string    :server
 
       t.timestamps
     end

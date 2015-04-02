@@ -1,4 +1,4 @@
-.container.container
+.container
   = form_tag '/runs/run_all' do
     .row
       %table.table.table-bordered.table-striped
@@ -9,10 +9,8 @@
             %th Files
             %th Templates
             %th Virtualization
-            %th Server
             %th Threads
             %th Action
-            %th Details
           %tbody
             -@runs.each do |r|
               %tr
@@ -30,13 +28,11 @@
                   %p
                     =simple_format YAML.load(r.virt).join("\n")
                 %th
-                  = r.server
-                %th
                   = r.threads
                 %th
-                  = link_to 'Delete', r, method: :delete, :class => "btn btn-danger space"
-                %th
-                  = link_to "Report", runs_report_path(id: r.id), :class => "btn btn-success space"
+                  = link_to image_tag('Delete.png', :class => "delete", :title => "Delete run"), r, method: :delete
+                  = link_to image_tag('Report.png', :class => "report", :title => "Run report"), runs_report_path(id: r.id)
+                  = link_to image_tag('Download.png', :class => "download", :title => "Download templates for run"), "#"
     = link_to 'Kill all running', runs_kill_path, :class => "btn btn-danger space"
     = submit_tag 'Run', :class => "btn btn-success space"
 

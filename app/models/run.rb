@@ -1,18 +1,17 @@
 class Run < ActiveRecord::Base
-  attr_accessible :files, :templates, :title, :virt, :server, :threads
+  attr_accessible :files, :templates, :title, :virt, :threads
   has_many :reports, dependent: :destroy
   
-  validates :title, :files, :server, :threads, presence: true
+  validates :title, :files, :threads, presence: true
 
-  def self.thread(server, report)
+  def self.thread(report)
   	template = Template.where(manager_id: report.template_name).first
     manager_id = template ? template.manager_id : ""
   	files = YAML.load(report.spec_files)
   	report.report_file ||= Report.file_ident
   	report.save
     full_report_path = "reports/#{Report.today}/#{report.report_file}"
-  	str_run = "SERVER='#{server}' "\
-  	          "LOG_FILE='#{report.report_file}' "\
+  	str_run = "LOG_FILE='#{report.report_file}' "\
               "VIRT_TYPE='#{report.virt}' "\
               "TEMPLATE_MANAGER_ID='#{manager_id}' "\
               "rspec #{files.join ' '} --format h --out #{full_report_path}"

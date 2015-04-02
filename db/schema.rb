@@ -30,7 +30,6 @@ ActiveRecord::Schema.define(:version => 20140827124001) do
     t.text     "templates"
     t.text     "virt"
     t.integer  "threads"
-    t.string   "server"
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
   end
