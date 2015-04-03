@@ -9,7 +9,7 @@ class RunsController < ApplicationController
   def new
     @run = Run.new
     @virt = %w{xen3 xen4 kvm5 kvm6}
-    @files = Array[Run.directory_hash("tests")]#Dir.glob File.join("tests", "**", "*.rb")
+    @files = Array[Run.directory_hash("tests")]
     @templates = Template.all.sort_by {|t| t.label}
   end
  
@@ -36,7 +36,12 @@ class RunsController < ApplicationController
   end
 
   def update_templates
-    Template.new.update
+    Template.new.update_templates
+    redirect_to root_path
+  end
+
+  def download_templates
+    Template.new.download_templates params[:manager_ids]
     redirect_to root_path
   end
 
@@ -79,14 +84,12 @@ class RunsController < ApplicationController
   end
 
   def report
-    @directory = 'reports/' + Report.today
-    Dir.mkdir @directory if !File.directory?(@directory)
+    @directory = Rails.root + 'reports'
     @reports = Run.find(params[:id]).reports
   end
 
   def refresh_report
-    @directory = 'reports/' + Report.today + "/"
-    Dir.mkdir @directory if !File.directory?(@directory)
+    @directory = Rails.root + 'reports'
     @reports = Run.find(params[:id]).reports
     render :partial => "runs/status"
   end

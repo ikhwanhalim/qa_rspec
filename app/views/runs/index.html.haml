@@ -23,7 +23,14 @@
                     =simple_format YAML.load(r.files).join("\n")
                 %th
                   %p
-                    =simple_format YAML.load(r.templates).join("\n")
+                    - templates = ::Template.where(manager_id: YAML.load(r.templates))
+                    - templates.each do |t|
+                      = t.label
+                      - if t.status == "Undefined"
+                        %span.label.label-default= t.status
+                      - elsif t.status == "Downloaded"
+                        %span.label.label-success= t.status
+                      %br
                 %th
                   %p
                     =simple_format YAML.load(r.virt).join("\n")
@@ -32,7 +39,7 @@
                 %th
                   = link_to image_tag('Delete.png', :class => "delete", :title => "Delete run"), r, method: :delete
                   = link_to image_tag('Report.png', :class => "report", :title => "Run report"), runs_report_path(id: r.id)
-                  = link_to image_tag('Download.png', :class => "download", :title => "Download templates for run"), "#"
+                  = link_to image_tag('Download.png', :class => "download", :title => "Download templates for run"), runs_download_templates_path(manager_ids: templates.map(&:manager_id)), method: :post
     = link_to 'Kill all running', runs_kill_path, :class => "btn btn-danger space"
     = submit_tag 'Run', :class => "btn btn-success space"
 

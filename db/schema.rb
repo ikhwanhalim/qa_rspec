@@ -38,8 +38,9 @@ ActiveRecord::Schema.define(:version => 20140827124001) do
     t.string   "label"
     t.string   "manager_id"
     t.string   "virtualization"
-    t.datetime "created_at",     :null => false
-    t.datetime "updated_at",     :null => false
+    t.string   "status",         :default => "Undefined"
+    t.datetime "created_at",                              :null => false
+    t.datetime "updated_at",                              :null => false
   end
 
   create_table "users", :force => true do |t|

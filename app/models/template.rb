@@ -3,9 +3,8 @@ class Template < ActiveRecord::Base
   include TemplateManager
   attr_accessible :label, :manager_id, :virtualization
 
-  def update
-    data = YAML::load_file('config/conf.yml')
-    auth(url: data['url'], user: data['user'], pass: data['pass'])
+  def update_templates
+    onapp_http_auth
     templates = []
     array = []
     templates += installed_templates
@@ -23,5 +22,20 @@ class Template < ActiveRecord::Base
     Template.transaction do
       Template.import array
     end
+  end
+
+  def download_templates(manager_ids)
+    onapp_http_auth
+    manager_ids.each do |id|
+      Spawnling.new do
+        get_template(id)
+        Template.where(manager_id: id).first.update_attribute(:status, 'Downloaded')
+      end
+    end
+  end
+
+  def onapp_http_auth
+    data = YAML::load_file('config/conf.yml')
+    auth(url: data['url'], user: data['user'], pass: data['pass'])
   end
 end

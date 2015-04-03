@@ -10,7 +10,7 @@ class Run < ActiveRecord::Base
   	files = YAML.load(report.spec_files)
   	report.report_file ||= Report.file_ident
   	report.save
-    full_report_path = "reports/#{Report.today}/#{report.report_file}"
+    full_report_path = "reports/#{report.report_file}"
   	str_run = "LOG_FILE='#{report.report_file}' "\
               "VIRT_TYPE='#{report.virt}' "\
               "TEMPLATE_MANAGER_ID='#{manager_id}' "\

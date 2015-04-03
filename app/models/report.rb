@@ -9,8 +9,4 @@ class Report < ActiveRecord::Base
   def self.file_ident
    (0...12).map { (65 + rand(26)).chr }.join
   end
-
-  def self.today
-  	Time.now.strftime("%d-%m-%y")
-  end
 end

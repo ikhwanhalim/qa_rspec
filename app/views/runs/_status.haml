@@ -9,7 +9,7 @@
     %tbody
       -@reports.each do |r|
         %tr{"data-target" => "##{r.id}", "data-toggle" => "modal"}
-          -if !r.report_file? or Dir[@directory + '/*'].empty? or !File.exist?("#{@directory}/#{r.report_file}")
+          -if !r.report_file? || !File.exist?("#{@directory}/#{r.report_file}")
             %th
               = "Suite hasn't been started yet"
           -else
@@ -22,22 +22,20 @@
           %th
             = r.created_at
           %th
-            - if r.status == "Stopped"
-              %span.label.label-default= r.status
-            - elsif r.status == "Running"
+            - if r.status == "Running"
               %span.label.label-warning= r.status
-            - elsif r.status == "Old"
-              %span.label.label-default= r.status
-            - else
+            - elsif r.status == "Finished" || r.status == "Ready"
               %span.label.label-success= r.status
+            - else
+              %span.label.label-danger= r.status
             - begin
-              - report_page = Nokogiri::HTML(open(Rails.root + @directory + r.report_file))
-              - if report_page.css(".failed").any?
-                %span.label.label-danger= 'Failed'
+              - report_page = Nokogiri::HTML(open(@directory + r.report_file))
+              - if report_page.css(".failed").any? && r.status != "Failed"
+                - r.update_attribute(:status, "Failed")
             - rescue
-              - r.update_attribute(:status, "Old")
+              - r.update_attribute(:status, "File does not exist")
         -if !Dir[@directory + '/*'].empty?
-          -if File.exist?("#{@directory}/#{r.report_file}") and r.report_file?
+          -if File.exist?("#{@directory}/#{r.report_file}") && r.report_file?
             - file = File.open("#{@directory}/#{r.report_file}", "r")
             .modal.fade{:id=>r.id, "aria-hidden" => "true", :role => "dialog", :tabindex => "-1"}
               .modal-dialog.modal-lg

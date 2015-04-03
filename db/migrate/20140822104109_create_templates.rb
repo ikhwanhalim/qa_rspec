@@ -4,6 +4,7 @@ class CreateTemplates < ActiveRecord::Migration
       t.string :label
       t.string :manager_id
       t.string :virtualization
+      t.string :status, :default => "Undefined"
       t.timestamps
     end
   end
