@@ -33,6 +33,12 @@ module VmOperationsWaiters
     set_max_mem
     wait_for_transaction(@virtual_machine['id'], 'VirtualMachine', 'resize_virtual_machine')
   end
+  def wait_for_hot_migration
+    wait_for_transaction(@virtual_machine['id'], 'VirtualMachine', 'hot_migrate')
+  end
+  def wait_for_cold_migration
+    wait_for_transaction(@virtual_machine['id'], 'VirtualMachine', 'cold_migrate')
+  end
   def wait_for_run_recipe_on_vm
     wait_for_transaction(@virtual_machine['id'], 'VirtualMachine', 'run_recipe_on_vm')
   end

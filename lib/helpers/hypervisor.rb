@@ -24,4 +24,16 @@ module Hypervisor
     end
     return hv
   end
+  def hv_for_vm_migration
+    hypervisors = get("/hypervisors").map {|x| x['hypervisor']}
+    hypervisors.select! do |hv|
+      hv['hypervisor_group_id'] == @hypervisor['hypervisor_group_id'] &&
+      hv['hypervisor_type'] == @hypervisor['hypervisor_type'] &&
+      hv['distro'] == @hypervisor['distro'] &&
+      hv['id'] != @hypervisor['id'] &&
+      hv['online'] && hv['enabled'] &&
+      hv['free_memory'] > memory
+    end
+    hypervisors.first
+  end
 end

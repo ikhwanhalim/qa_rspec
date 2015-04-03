@@ -69,6 +69,9 @@ module OnappSSH
     end
     return result
   end
+  def check_hostname
+    execute_with_pass('hostname')
+  end
 
   def primary_network_interface
     execute_with_pass("ip route get 8.8.8.8 | awk '{if($1==\"8.8.8.8\") print $5}'").first
