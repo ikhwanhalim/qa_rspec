@@ -46,31 +46,35 @@ class RunsController < ApplicationController
   end
 
   def run_all
-    $hash = Hash[*params[:runs].to_a.map {|k| [k, nil]}.flatten]
-    $hash.each do |k,v|
-      $hash[k] = Report.where(run_id: k)
-      $hash[k].each { |report| report.update_attribute(:status, "Ready") }
-      $hash[k].map!(&:id)
-    end
-    $hash.each do |run,reports|
-      Spawnling.new do
-        run = Run.find(run)
-        while reports.any?
-          report = Report.find(reports.first)
-          if report.status != 'Stopped'
-            active_threads = Report.where("status='Running' and run_id='#{run.id}'")
-            if active_threads.count < run.threads
-              Run.thread(report)
-              reports.shift
+    if !params[:runs]
+      redirect_to(root_path, :flash => { :warning => "nothing to do!" })
+    elsif templates_not_exists?(params[:runs])
+      redirect_to(root_path, :flash => { :warning => "templates have not been loaded yet!" })
+    elsif is_testing_running?(params[:runs])
+      redirect_to(root_path, :flash => { :warning => "some tests are running!" })
+    else
+      $hash = Hash[*params[:runs].to_a.map {|k| [k, nil]}.flatten]
+      $hash.each do |k,v|
+        $hash[k] = Report.where(run_id: k)
+        $hash[k].each { |report| report.update_attribute(:status, "Ready") }
+        $hash[k].map!(&:id)
+      end
+      $hash.each do |run,reports|
+        Spawnling.new do
+          run = Run.find(run)
+          while reports.any?
+            report = Report.find(reports.first)
+            if report.status != 'Stopped'
+              active_threads = Report.where("status='Running' and run_id='#{run.id}'")
+              if active_threads.count < run.threads
+                Run.thread(report)
+                reports.shift
+              end
             end
+            sleep 5
           end
-          sleep 5
         end
       end
-    end
-    if $hash.empty?
-      redirect_to(root_path, :flash => { :error => "nothing to run!" })
-    else
       redirect_to root_path
     end
   end
@@ -85,10 +89,11 @@ class RunsController < ApplicationController
       system "kill -9 `ps -ef | grep rspec | grep -v grep | awk '{print $2}'`"
     end
     if $hash.empty?
-      redirect_to(root_path, :flash => { :error => "nothing to kill!" })
+      redirect_to(root_path, :flash => { :warning => "nothing to do!" })
     else
       redirect_to root_path
     end
+    $hash = {}
   end
 
   def report
@@ -105,5 +110,25 @@ class RunsController < ApplicationController
   def destroy
     Run.find(params[:id]).destroy
     redirect_to root_path
+  end
+
+  private
+
+  def templates_not_exists?(run_ids)
+    statuses = []
+    run_ids.map do |id|
+      run = Run.find id
+      statuses += Template.where(manager_id: YAML.load(run.templates)).map &:status
+    end
+    statuses.include?('Undefined')
+  end
+
+  def is_testing_running?(run_ids)
+    statuses = []
+    run_ids.map do |id|
+      run = Run.find id
+      statuses += run.reports.map &:status
+    end
+    statuses.include?('Running')
   end
 end
