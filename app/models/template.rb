@@ -28,8 +28,10 @@ class Template < ActiveRecord::Base
     onapp_http_auth
     manager_ids.each do |id|
       Spawnling.new do
+        template = Template.where(manager_id: id).first
+        template.update_attribute(:status, 'Undefined')
         get_template(id)
-        Template.where(manager_id: id).first.update_attribute(:status, 'Downloaded')
+        template.update_attribute(:status, 'Downloaded')
       end
     end
   end

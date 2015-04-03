@@ -46,7 +46,7 @@ class RunsController < ApplicationController
   end
 
   def run_all
-    $hash = Hash[*params[:runs].map {|k| [k, nil]}.flatten]
+    $hash = Hash[*params[:runs].to_a.map {|k| [k, nil]}.flatten]
     $hash.each do |k,v|
       $hash[k] = Report.where(run_id: k)
       $hash[k].each { |report| report.update_attribute(:status, "Ready") }
@@ -68,7 +68,11 @@ class RunsController < ApplicationController
         end
       end
     end
-    redirect_to root_path
+    if $hash.empty?
+      redirect_to(root_path, :flash => { :error => "nothing to run!" })
+    else
+      redirect_to root_path
+    end
   end
 
   def kill
@@ -80,7 +84,11 @@ class RunsController < ApplicationController
     Spawnling.new do
       system "kill -9 `ps -ef | grep rspec | grep -v grep | awk '{print $2}'`"
     end
-    redirect_to root_path
+    if $hash.empty?
+      redirect_to(root_path, :flash => { :error => "nothing to kill!" })
+    else
+      redirect_to root_path
+    end
   end
 
   def report
