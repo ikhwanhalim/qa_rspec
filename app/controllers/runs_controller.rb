@@ -49,7 +49,7 @@ class RunsController < ApplicationController
     if !params[:runs]
       redirect_to(root_path, :flash => { :warning => "nothing to do!" })
     elsif templates_not_exists?(params[:runs])
-      redirect_to(root_path, :flash => { :warning => "templates have not been loaded yet!" })
+      redirect_to(root_path, :flash => { :warning => "templates have not been downloaded yet!" })
     elsif is_testing_running?(params[:runs])
       redirect_to(root_path, :flash => { :warning => "some tests are running!" })
     else
@@ -80,20 +80,20 @@ class RunsController < ApplicationController
   end
 
   def kill
-    $hash.each do |run_id, reports_ids|
-      reports = Report.where("run_id = #{run_id} AND status != 'Finished'")
-      reports.each {|r| r.update_attribute(:status, "Stopped")}
-      $hash[run_id].clear
-    end
-    Spawnling.new do
-      system "kill -9 `ps -ef | grep rspec | grep -v grep | awk '{print $2}'`"
-    end
-    if $hash.empty?
-      redirect_to(root_path, :flash => { :warning => "nothing to do!" })
-    else
+    if $hash
+      $hash.each do |run_id, reports_ids|
+        reports = Report.where("run_id = #{run_id} AND status != 'Finished'")
+        reports.each {|r| r.update_attribute(:status, "Stopped")}
+        $hash[run_id].clear
+      end
+      Spawnling.new do
+        system "kill -9 `ps -ef | grep rspec | grep -v grep | awk '{print $2}'`"
+      end
+      $hash = nil
       redirect_to root_path
+    else
+      redirect_to(root_path, :flash => { :warning => "nothing to do!" })
     end
-    $hash = {}
   end
 
   def report
