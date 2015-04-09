@@ -41,8 +41,12 @@ class RunsController < ApplicationController
   end
 
   def download_templates
-    Template.new.download_templates params[:manager_ids]
-    redirect_to root_path
+    if params[:manager_ids]
+      Template.new.download_templates params[:manager_ids]
+      redirect_to root_path
+    else
+      redirect_to(root_path, :flash => { :warning => "nothing to do!" })
+    end
   end
 
   def run_all
