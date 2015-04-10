@@ -19,20 +19,26 @@ class OnappSupplier
   end
 
   def not_federated_resources
-    Log.error('Virtualization type is empty') unless ENV['VIRT_TYPE']
-    location_groups = get("/settings/location_groups")
-    ids = location_groups.map {|z| z['location_group']['id']}
-    ids.each do |id|
-      ntz = get("/settings/location_groups/#{id}/network_groups").first["network_group"] rescue next
-      dsz = get("/settings/location_groups/#{id}/data_store_groups").first["data_store_group"] rescue next
-      hvz = get("/settings/location_groups/#{id}/hypervisor_groups").first["hypervisor_group"] rescue next
-      unless ntz["federation_id"] || hvz["federation_id"] || dsz["federation_id"]
-        Log.warn('Hypervisor is not attached') unless for_vm_creation(ENV['VIRT_TYPE'], hvz['id'])
-        return {'hypervisor_group' => hvz, 'data_store_group' => dsz,  'network_group' => ntz}
-      else
-        Log.error 'HypervisorGroupNotFound'
+    hv_zones = get("/settings/hypervisor_zones").select {|z| z["hypervisor_group"]["location_group_id"]}
+    hv_zones.each do |hv_zone|
+      id = hv_zone["hypervisor_group"]["id"]
+      hv = for_vm_creation(ENV['VIRT_TYPE'], id)
+      if hv
+        nt_joins = get("/settings/hypervisor_zones/#{id}/network_joins")
+        nt_joins += get("/settings/hypervisors/#{hv['id']}/network_joins")
+        ds_joins = get("/settings/hypervisor_zones/#{id}/data_store_joins")
+        ds_joins += get("/settings/hypervisors/#{hv['id']}/data_store_joins")
+        nt = get("/settings/networks/#{nt_joins.first['network_join']['network_id']}")['network']
+        nt_zone = get("/settings/network_zones/#{nt['network_group_id']}")['network_group']
+        ds = get("/settings/data_stores/#{ds_joins.first['data_store_join']['data_store_id']}")['data_store']
+        ds_zone = get("/settings/data_store_zones/#{ds['data_store_group_id']}")['data_store_group']
+        location_id = hv_zone["hypervisor_group"]["location_group_id"]
+        Log.error("Data store group not in location group") if ds_zone['location_group_id'] != location_id
+        Log.error("Network group not in location group") if nt_zone['location_group_id'] != location_id
+        return {'hypervisor_group' => hv_zone["hypervisor_group"], 'data_store_group' => ds_zone,  'network_group' => nt_zone}
       end
     end
+    Log.error "HypervisorGroupNotFound"
   end
 
   def add_to_federation
@@ -49,7 +55,7 @@ class OnappSupplier
                                'network_zone_label' => stamp,
                                'template_group_id' => @template_store['id']}}
     response = post("/federation/hypervisor_zones/#{hvz_id}/add", data)
-    Log.error(response.values.join("\n")) if response['errors'].any?
+    Log.error(response.values.join("\n")) if response['errors']
     @published_zone = get("/settings/hypervisor_zones/#{hvz_id}").values.first
   end
 
@@ -68,7 +74,7 @@ class OnappSupplier
 
   def all_federated
     zones = get "/settings/hypervisor_zones"
-    zones.map! { |z| z["hypervisor_group"]}
+    zones.map! { |z| z["hypervisor_group"] }
     zones.delete_if { |z| z['federation_id'] == nil }
   end
 

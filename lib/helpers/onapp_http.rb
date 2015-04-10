@@ -19,6 +19,7 @@ module OnappHTTP
     cookie = Mechanize::Cookie.new :domain=>@ip, :name => 'hide_market_logs', :value => '1', :path => '/'
     @conn.cookie_jar << cookie
     @headers = {'Accept' => 'application/json','Content-Type' => 'application/json'}
+    Log.error("Password is nil") unless @pass
     @conn.add_auth("#{@url}/users/sign_in", @user, @pass)
   end
 
