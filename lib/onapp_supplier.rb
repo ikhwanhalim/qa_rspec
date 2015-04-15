@@ -8,7 +8,7 @@ class OnappSupplier
   include OnappHTTP
   include TemplateManager
   include Hypervisor
-  attr_accessor :published_zone, :vm
+  attr_accessor :published_zone, :vm, :publishing_resource
 
   def initialize
     data = YAML::load_file('config/conf.yml')
@@ -18,7 +18,7 @@ class OnappSupplier
     auth url: url, user: user, pass: pass
   end
 
-  def not_federated_resources
+  def get_publishing_resources
     hv_zones = get("/settings/hypervisor_zones").select {|z| z["hypervisor_group"]["location_group_id"]}
     hv_zones.each do |hv_zone|
       id = hv_zone["hypervisor_group"]["id"]
@@ -29,9 +29,9 @@ class OnappSupplier
         ds_joins = get("/settings/hypervisor_zones/#{id}/data_store_joins")
         ds_joins += get("/settings/hypervisors/#{hv['id']}/data_store_joins")
         nt = get("/settings/networks/#{nt_joins.first['network_join']['network_id']}")['network']
-        nt_zone = get("/settings/network_zones/#{nt['network_group_id']}")['network_group']
+        nt_zone = get("/settings/network_zones/#{nt['network_group_id']}")['network_group'] || Log.error("Network not attached")
         ds = get("/settings/data_stores/#{ds_joins.first['data_store_join']['data_store_id']}")['data_store']
-        ds_zone = get("/settings/data_store_zones/#{ds['data_store_group_id']}")['data_store_group']
+        ds_zone = get("/settings/data_store_zones/#{ds['data_store_group_id']}")['data_store_group'] || Log.error("Data store not attached")
         location_id = hv_zone["hypervisor_group"]["location_group_id"]
         Log.error("Data store group not in location group") if ds_zone['location_group_id'] != location_id
         Log.error("Network group not in location group") if nt_zone['location_group_id'] != location_id
@@ -41,22 +41,21 @@ class OnappSupplier
     Log.error "HypervisorGroupNotFound"
   end
 
-  def add_to_federation
+  def add_to_federation(private=0)
     get_template(ENV['TEMPLATE_MANAGER_ID'])
-    res = not_federated_resources
-    @data_store_group = res['data_store_group']
-    @network_group = res['network_group']
-    hvz_id = res['hypervisor_group']['id']
+    @resources ||= get_publishing_resources
+    @data_store_group = @resources['data_store_group']
+    @network_group = @resources['network_group']
+    @hvz_id = @resources['hypervisor_group']['id']
     stamp = 'federation-autotest' + DateTime.now.strftime('-%d-%m-%y(%H:%M:%S)')
     data = { 'hypervisor_zone' => {'label' => stamp,
+                               'private' => private,
                                'data_store_zone_id' => @data_store_group['id'],
-                               'data_store_zone_label' => stamp,
                                'network_zone_id' => @network_group['id'],
-                               'network_zone_label' => stamp,
                                'template_group_id' => @template_store['id']}}
-    response = post("/federation/hypervisor_zones/#{hvz_id}/add", data)
-    Log.error(response.values.join("\n")) if response['errors']
-    @published_zone = get("/settings/hypervisor_zones/#{hvz_id}").values.first
+    response = post("/federation/hypervisor_zones/#{@hvz_id}/add", data)
+    Log.error(response.values.join("\n")) if response['errors'].any?
+    @published_zone = get("/settings/hypervisor_zones/#{@hvz_id}").values.first
   end
 
   def disable_zone(id=@published_zone['id'])
