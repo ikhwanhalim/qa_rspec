@@ -134,7 +134,6 @@ describe 'VIRTUAL MACHINE REGRESSION AUTOTEST' do
       true
     end
   end
-  
   describe 'Reboot in recovery operation' do
     it 'Reboot in recovery Operations' do
       @vm.recovery_reboot
