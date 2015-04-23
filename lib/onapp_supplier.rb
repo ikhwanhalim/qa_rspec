@@ -8,7 +8,7 @@ class OnappSupplier
   include OnappHTTP
   include TemplateManager
   include Hypervisor
-  attr_accessor :published_zone, :vm, :publishing_resource
+  attr_accessor :published_zone, :vm, :resources
 
   def initialize
     data = YAML::load_file('config/conf.yml')
@@ -114,5 +114,22 @@ class OnappSupplier
     @vm = VirtualMachine.new(federation: auth_data)
     @vm.find_by_label(label)
     @vm.info_update
+  end
+
+  #Tokens
+  def generate_token(receiver)
+    data = {token: {receiver: receiver}}
+    post("/federation/hypervisor_zones/#{@hvz_id}/supplier_tokens", data)
+  end
+
+  def get_token(receiver)
+    10.times do
+      token = get("/federation/hypervisor_zones/#{@hvz_id}/supplier_tokens").select do |t|
+        t['token']['receiver'] == receiver
+      end.first
+      return token if token
+      sleep 1
+    end
+    Log.error('Token not found')
   end
 end

@@ -9,16 +9,45 @@ describe "Market" do
     @trader = OnappTrader.new
   end
 
-###########################
-##Tests during publishing##
-###########################
+###############################################
+##Tests if zone has been published as private##
+###############################################
 
-  context "Publishing process" do
-    it "should not be able subscribe to private zone" do
+  context "Zone has been published as private" do
+    before :all do
       @supplier.add_to_federation(private=1)
-      federation_id = @supplier.published_zone['federation_id']
-      expect(@trader.subscribe(federation_id).keys.first).to eq 'errors'
+    end
+
+    after :all do
       @supplier.remove_all_from_federation
+    end
+
+    let(:federation_id) { @supplier.published_zone['federation_id'] }
+
+    describe "Supplier" do
+      it "should be able generate tokens" do
+        @supplier.generate_token(:receiver)
+        token = @supplier.get_token('receiver')['token']
+        expect(token).not_to be nil
+      end
+    end
+
+    describe "Trader" do
+      it "should not be able subscribe to private zone" do
+        expect(@trader.subscribe(federation_id).keys.first).to eq 'errors'
+      end
+
+      it "should be able subscribe with token and zone should be able after unsubscribing" do
+        @supplier.generate_token(:receiver)
+        token = @supplier.get_token('receiver')['token']
+        @trader.use_token(:sender, token['token'])
+        @trader.wait_for_publishing(federation_id)
+        @trader.subscribe(federation_id)
+        expect(@trader.subscribed_zone).not_to be nil
+        @trader.unsubscribe_all
+        ids = @trader.all_unsubscribed.map {|z| z['federation_id']}
+        expect(ids.include?(federation_id)).to be true
+      end
     end
   end
 
@@ -42,6 +71,10 @@ describe "Market" do
       it "should be able add to federation" do
         expect(@supplier.published_zone['federation_enabled']).to be true
         expect(federation_id).to be_present
+      end
+
+      it "should not be able generate tokens if zone public" do
+        expect(@supplier.generate_token(:receiver).keys.first).to eq 'error'
       end
     end
 
@@ -158,6 +191,10 @@ describe "Market" do
         expect(@supplier.vm.reboot).to be true
         @supplier.vm.wait_for_reboot
         expect(@supplier.vm.pinged? && @supplier.vm.ssh_port_opened).to be true
+      end
+
+      it "add DROP firewall rule to 22 port" do
+        require 'pry';binding.pry
       end
     end
   end

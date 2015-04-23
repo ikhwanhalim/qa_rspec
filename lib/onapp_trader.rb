@@ -79,4 +79,10 @@ class OnappTrader
     return errors.to_s if errors
     Log.error("VM has not been built") unless @vm.is_created?
   end
+
+  #Tokens
+  def use_token(sender, token)
+    data = {token: {token: token, sender: sender}}
+    post("/federation/trader_tokens", data)
+  end
 end
