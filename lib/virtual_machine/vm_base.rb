@@ -95,7 +95,7 @@ class VirtualMachine
     self
   end
   def update_last_transaction
-    @last_transaction_id = get("#{@route}/transactions").first['transaction']['id']
+    @last_transaction_id = get('/transactions', {page: 1, per_page: 10}).first['transaction']['id']
   end
 
 # Edit VM sections
