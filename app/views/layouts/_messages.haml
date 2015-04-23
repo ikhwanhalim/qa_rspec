@@ -1,5 +1,11 @@
 - flash.each do |name, msg|
-	- if msg.is_a?(String)
-		.alert.alert-dismissable{class: "#{name == :notice ? "alert-success" : "alert-danger"}"}
-			%button.close{"data-dismiss" => "alert", :type => "button"} ×
-			%strong #{name.capitalize} #{msg}
+  - if msg.is_a?(String)
+    - if name == :notice
+      - class_name = "alert-success"
+    - elsif name == :warning
+      - class_name = "alert-warning"
+    - else
+      - class_name = "alert-danger"
+    .alert.alert-dismissable{class: class_name}
+      %button.close{"data-dismiss" => "alert", :type => "button"} ×
+      %strong #{name.capitalize} #{msg}
