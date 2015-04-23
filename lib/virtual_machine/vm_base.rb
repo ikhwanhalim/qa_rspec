@@ -6,17 +6,13 @@ require 'virtual_machine/vm_operations_waiter'
 require 'virtual_machine/vm_networks'
 require 'helpers/onapp_ssh'
 require 'helpers/template_manager'
+require 'virtual_machine/vm_firewall'
 
 require 'yaml'
 
 class VirtualMachine  
-  include OnappHTTP
-  include OnappSSH
-  include Hypervisor
-  include TemplateManager
-  include VmDisks
-  include VmOperationsWaiters
-  include VmNetwork
+  include OnappHTTP, OnappSSH, Hypervisor, TemplateManager, VmDisks, VmOperationsWaiters, VmNetwork, VmFirewall
+
   attr_accessor :virtual_machine
 
   def initialize(user=nil, federation: nil)
@@ -65,7 +61,7 @@ class VirtualMachine
         break if @disks.any? && @network_interfaces.any? && @ip_addresses.any?
         sleep 10
       end
-      find_by_id
+      find_by_id(identifier)
       return self
     end
   end
@@ -84,8 +80,7 @@ class VirtualMachine
   end
 
 # Get an existing VM
-  def find_by_id(identifier=nil)
-    identifier ||= @virtual_machine['identifier']
+  def find_by_id(identifier)
     @virtual_machine = get("/virtual_machines/#{identifier}")['virtual_machine']
     info_update
   end
@@ -235,15 +230,19 @@ class VirtualMachine
   def exist_on_hv?
     cred = { 'vm_host' => "#{@hypervisor['ip_address']}" }
     if @hypervisor['hypervisor_type'] == 'kvm'
-      result = tunnel_execute(cred, "virsh list | grep #{@virtual_machine['identifier']} || echo 'false'").first.exclude?('false')
+      result = tunnel_execute(cred, "virsh list | grep #{identifier} || echo 'false'").first.exclude?('false')
     elsif @hypervisor['hypervisor_type'] == 'xen'
-      result = tunnel_execute(cred, "xm list | grep #{@virtual_machine['identifier']} || echo 'false'").first.exclude?('false')
+      result = tunnel_execute(cred, "xm list | grep #{identifier} || echo 'false'").first.exclude?('false')
     end
     return result
   end
 
   # VM params
   ######################################################################################################################
+  def identifier
+    @virtual_machine['identifier']
+  end
+
   def cpus
     @virtual_machine['cpus']
   end
