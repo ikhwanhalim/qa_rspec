@@ -26,20 +26,13 @@ module Transaction
     transaction_id = transaction['transaction']['id']    
     loop do      
       sleep 10 
-      transaction = get("/transactions/#{transaction_id}")
-      break if transaction['transaction']['status'] == 'complete' ||
-        transaction['transaction']['status'] == 'failed' ||
-        transaction['transaction']['status'] == 'canceled'
+      status = get("/transactions/#{transaction_id}")['transaction']['status']
+      break if status != 'running' || status != 'pending'
     end
-    if transaction['transaction']['status'] == 'failed'
-      Log.error("Transaction #{@url}/transactions/#{transaction_id}.json FAILED")
-    elsif transaction['transaction']['status'] == 'canceled'
-      Log.error("Transaction #{@url}/transactions/#{transaction_id}.json CANCELED")
-    end
+    last_transaction_status = transaction['transaction']['status']
+    log_text = "Transaction #{@url}/transactions/#{transaction_id}.json"
+    Log.error("#{log_text} FAILED") if last_transaction_status == 'failed'
+    Log.error("#{log_text} CANCELLED") if last_transaction_status == 'cancelled'
     true
   end
 end
-  
-
-
-# db_cp.mysql("select id from transactions where parent_id = #{id} and parent_type = '#{parent_type}' and action = '#{action}' and id > '#{$last_transaction_id}' ORDER BY id DESC LIMIT 1;")

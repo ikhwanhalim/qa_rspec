@@ -19,6 +19,11 @@ describe 'VIRTUAL MACHINE REGRESSION AUTOTEST' do
   describe "Firewall rules" do
 
     describe "Default firewall rules" do
+      it "should be ACCEPT" do
+        rule = @vm.network_interfaces.first['network_interface']['default_firewall_rule']
+        expect(rule).to eq 'ACCEPT'
+      end
+
       it "set default firewall rule" do
         @vm.set_default_firewall_rule(command: 'DROP')
         @vm.update_firewall_rules
