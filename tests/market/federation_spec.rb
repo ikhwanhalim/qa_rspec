@@ -15,7 +15,7 @@ describe "Market" do
 
   context "Zone has been published as private" do
     before :all do
-      @supplier.add_to_federation(private=1)
+      @supplier.add_to_federation(private: 1)
     end
 
     after :all do
@@ -57,7 +57,7 @@ describe "Market" do
 
   context "Zone has been published" do
     before :all do
-      @supplier.add_to_federation
+      @supplier.add_to_federation(label: "Simple Zone Label")
       @trader.wait_for_publishing @supplier.published_zone['federation_id']
     end
 
@@ -83,7 +83,29 @@ describe "Market" do
         @supplier.disable_zone
         expect(@trader.subscribe(federation_id).keys.first).to eq 'errors'
         @supplier.enable_zone
-        expect(@supplier.published_zone['federation_enabled']).to be true
+        @trader.wait_for_publishing federation_id
+        federation_ids = @trader.all_unsubscribed.map {|z| z['federation_id']}
+        expect(federation_ids).to include(federation_id)
+      end
+
+      it "should be able search zone by part of label" do
+        federation_ids = @trader.search('zone').map {|z| z['federation_id']}
+        expect(federation_ids).to include(federation_id)
+      end
+
+      it "should be able search zone by whole label" do
+        federation_ids = @trader.search('simple zone label').map {|z| z['federation_id']}
+        expect(federation_ids).to include(federation_id)
+      end
+
+      it "search zone by wrong label" do
+        federation_ids = @trader.search('wrong label').map {|z| z['federation_id']}
+        expect(federation_ids).not_to include(federation_id)
+      end
+
+      it "search zone by mix label parts" do
+        federation_ids = @trader.search('label simple').map {|z| z['federation_id']}
+        expect(federation_ids).to include(federation_id)
       end
     end
   end
@@ -148,7 +170,7 @@ describe "Market" do
         expect(nt_labels).to include federation_id
       end
 
-      it "should has virtual virtual hypervisor" do
+      it "should has virtual hypervisor" do
         hv_labels = @trader.get_all('/settings/hypervisors').map {|hv| hv['hypervisor']['label']}
         expect(hv_labels).to include federation_id
       end
@@ -158,43 +180,6 @@ describe "Market" do
         error = @trader.create_vm(@supplier.template['label'], federation_id).to_s
         expect(error.include?("aren't enough resources")).to be true
         @supplier.data_stores_attach
-      end
-    end
-
-    describe "Federation Virtual Machine" do
-      before :all do
-        federation_id = @trader.subscribed_zone['federation_id']
-        @trader.create_vm(@supplier.template['label'], federation_id)
-        @supplier.find_vm(federation_id)
-      end
-
-      after :all do
-        @trader.vm.destroy
-        @trader.vm.wait_for_destroy
-      end
-
-      it "should pinged after booting" do
-        expect(@trader.vm.pinged? && @trader.vm.ssh_port_opened).to be true
-      end
-
-      it "shoud be created on supplier HV" do
-        expect(@supplier.vm.exist_on_hv?).to be true
-      end
-
-      it "trader should be able reboot" do
-        expect(@trader.vm.reboot).to be true
-        @trader.vm.wait_for_reboot
-        expect(@trader.vm.pinged? && @trader.vm.ssh_port_opened).to be true
-      end
-
-      it "supplier should be able reboot" do
-        expect(@supplier.vm.reboot).to be true
-        @supplier.vm.wait_for_reboot
-        expect(@supplier.vm.pinged? && @supplier.vm.ssh_port_opened).to be true
-      end
-
-      it "add DROP firewall rule to 22 port" do
-        require 'pry';binding.pry
       end
     end
   end

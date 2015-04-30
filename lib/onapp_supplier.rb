@@ -41,14 +41,14 @@ class OnappSupplier
     Log.error "HypervisorGroupNotFound"
   end
 
-  def add_to_federation(private=0)
+  def add_to_federation(private: 0, label: nil)
     get_template(ENV['TEMPLATE_MANAGER_ID'])
     @resources ||= get_publishing_resources
     @data_store_group = @resources['data_store_group']
     @network_group = @resources['network_group']
     @hvz_id = @resources['hypervisor_group']['id']
     stamp = 'federation-autotest' + DateTime.now.strftime('-%d-%m-%y(%H:%M:%S)')
-    data = { 'hypervisor_zone' => {'label' => stamp,
+    data = { 'hypervisor_zone' => {'label' => label || stamp,
                                'private' => private,
                                'data_store_zone_id' => @data_store_group['id'],
                                'network_zone_id' => @network_group['id'],

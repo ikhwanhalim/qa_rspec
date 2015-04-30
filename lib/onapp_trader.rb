@@ -30,6 +30,11 @@ class OnappTrader
     @subscribed_zone = all_subscribed.select {|z| z['federation_id'] == federation_id}.first
   end
 
+  def search(label)
+    zones = get("/federation/hypervisor_zones/unsubscribed", data={q: label})
+    zones.map! { |z| z["hypervisor_zone"]}
+  end
+
   def all_unsubscribed
     zones = get "/federation/hypervisor_zones/unsubscribed"
     zones.map! { |z| z["hypervisor_zone"]}
@@ -42,8 +47,14 @@ class OnappTrader
   end
 
   def unsubscribe_all
+    response = nil
     all_subscribed.each do |z|
-      delete("/federation/hypervisor_zones/#{z['id']}/unsubscribe")
+      3.times do
+        response = delete("/federation/hypervisor_zones/#{z['id']}/unsubscribe")
+        break unless response['errors']
+        sleep 3
+      end
+      Log.error(response.to_s) if response['errors']
     end
   end
 
@@ -78,6 +89,14 @@ class OnappTrader
     errors = @vm.virtual_machine['errors']
     return errors.to_s if errors
     Log.error("VM has not been built") unless @vm.is_created?
+  end
+
+  def find_vm(identifier)
+    @subscribed_zone = all_subscribed.first
+    auth_data = {'url' => @url, 'user' => @user, 'pass' => @pass}
+    @vm = VirtualMachine.new(federation: auth_data)
+    @vm.find_by_id(identifier)
+    @vm.info_update
   end
 
   #Tokens
