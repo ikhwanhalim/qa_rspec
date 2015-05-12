@@ -109,7 +109,7 @@ module VmDisks
     return false if to_compare.first.nil?
     to_compare = to_compare.first[:size].to_i
     Log.info("On VM: #{to_compare} MB and on CP:#{find_disk_by_id(id)['disk_size'].to_i * 1024} MB")
-    Log.error("Swap space compare error! On VM: #{to_compare} MB and on CP:#{find_disk_by_id(id)['disk_size']} MB") if to_compare/(1024*find_disk_by_id(id)['disk_size'].to_i).to_f  < 0.9
+    Log.error("Space compare error! On VM: #{to_compare} MB and on CP:#{find_disk_by_id(id)['disk_size']} MB") if to_compare/(1024*find_disk_by_id(id)['disk_size'].to_i).to_f  < 0.9
     true
   end
 
