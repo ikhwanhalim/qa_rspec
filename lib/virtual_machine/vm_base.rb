@@ -158,7 +158,7 @@ class VirtualMachine
 
     new_hv = hv_for_vm_migration
     hash = {'virtual_machine' => {'destination' => new_hv['id']}}
-    post("#{@route}/migrate", hash)
+    result = post("#{@route}/migrate", hash)
     Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} \n #{result}") if api_responce_code != expect_code
     wait_for_cold_migration
     @hypervisor = new_hv
