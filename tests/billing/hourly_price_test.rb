@@ -222,35 +222,50 @@ describe "Checking Billing Plan functionality" do
   end
 
   # TODO
+  # Turn Off VS from UI, check hourly price and booted value - should be 0.
   it 'Check price when VS is shutdown.' do
-    # Shutdown VS from UI, check hourly price and built value - should be 0.
     @vm.shut_down
     @vm.wait_for_stop
-    # Get price_for_last_hour
-    price_off = @vm.price_for_last_hour
-    puts "Billing Price OFF - #{price_off}"
-    puts "VS Price OFF - #{@vm.price_per_hour_powered_off}"
-    expect(@vm.price_per_hour_powered_off.to_i).to eq(price_off)
+    @vm.info_update
+    if !@vm.booted?
+      # Get price_for_last_hour
+      price_off = @vm.price_for_last_hour
+      puts "Billing Price OFF - #{price_off}"
+      puts "VS Price OFF - #{@vm.price_per_hour_powered_off}"
+      expect(@vm.price_per_hour_powered_off.to_i).to eq(price_off)
+    else
+      puts "VS is booted!!!"
+    end
   end
 
-  # Turn On VS from UI, check hourly price and built value - should be 1.
+  # Turn On VS from UI, check hourly price and booted value - should be 1.
   it 'Check price when VS is startup.' do
-    # Shutdown VS from UI, check hourly price and built value - should be 0.
     @vm.start_up
     @vm.wait_for_start
-    # Get price_for_last_hour
-    price_on = @vm.price_for_last_hour
-    puts "Billing Price ON - #{price_on}"
-    puts "VS Price ON - #{@vm.price_per_hour}"
-    expect(@vm.price_per_hour.to_i).to eq(price_on)
+    @vm.info_update
+    if @vm.booted?
+      # Get price_for_last_hour
+      price_on = @vm.price_for_last_hour
+      puts "Billing Price ON - #{price_on}"
+      puts "VS Price ON - #{@vm.price_per_hour}"
+      expect(@vm.price_per_hour.to_i).to eq(price_on)
+    else
+      puts "VS not booted!!!"
+    end
   end
 
-  # Shutdown VS from inside, check hourly price and built value - should be 0.
-  it 'Check price when VS was shutdowned from inside.' do
-    # Shutdown VS from UI, check hourly price and built value - should be 0.
+  # Shutdown VS from inside, check hourly price and booted value - should be 0.
+  it 'Check price when VS was shut downed from inside.' do
+    attempts = 5
     @vm.execute_with_pass("init 0")
-    #@vm.start_up
-    #@vm.wait_for_start
+    while attempts != 0 do
+      @vm.info_update
+      if !@vm.booted?
+        break
+      end
+      attempts -= 1
+      sleep(5)
+    end
     # Get price_for_last_hour
     price_off = @vm.price_for_last_hour
     puts "Billing Price OFF - #{price_off}"

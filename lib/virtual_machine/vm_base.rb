@@ -277,6 +277,10 @@ class VirtualMachine
   def price_per_hour_powered_off
     @virtual_machine['price_per_hour_powered_off']
   end
+
+  def booted?
+    @virtual_machine['booted']
+  end
   ######################################################################################################################
   # Private Methods
   private
