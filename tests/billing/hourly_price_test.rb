@@ -165,7 +165,7 @@ describe "Checking Billing Plan functionality" do
     @bp.delete_billing_plan()
   end
 
-  it 'Check hourly price' do
+  it 'Check hourly price (On/Off) for free VS (Price should be 0.0)' do
     price_on = vm_resources_price_on_usage(@vm, @hv_br_data, @ds_br_data, @ntw_br_data)
     puts "Billing Price ON - #{price_on}"
     puts "VS Price ON - #{@vm.price_per_hour}"
@@ -209,7 +209,7 @@ describe "Checking Billing Plan functionality" do
     @ntw_br.edit_base_resource(@bp.bp_id, @ntw_br.br_id, @ntw_br_data)
   end
 
-  it 'Check ON/OFF prices' do
+  it 'Check hourly price (On/Off) for not free VS.' do
     @vm.info_update
     price_on = vm_resources_price_on_usage(@vm, @hv_br_data, @ds_br_data, @ntw_br_data)
     puts "Billing Price ON - #{price_on}"
@@ -221,15 +221,15 @@ describe "Checking Billing Plan functionality" do
 
   end
 
-  # TODO
   # Turn Off VS from UI, check hourly price and booted value - should be 0.
-  it 'Check price when VS is shutdown.' do
+  it 'Check hourly price for shut downed VS.' do
     @vm.shut_down
     @vm.wait_for_stop
     @vm.info_update
     if !@vm.booted?
       # Get price_for_last_hour
-      price_off = @vm.price_for_last_hour
+      hprices = @vm.price_for_last_hour
+      price_off = hprices[:vm_resources_cost]
       puts "Billing Price OFF - #{price_off}"
       puts "VS Price OFF - #{@vm.price_per_hour_powered_off}"
       expect(@vm.price_per_hour_powered_off.to_i).to eq(price_off)
@@ -239,13 +239,14 @@ describe "Checking Billing Plan functionality" do
   end
 
   # Turn On VS from UI, check hourly price and booted value - should be 1.
-  it 'Check price when VS is startup.' do
+  it 'Check hourly price for booted VS.' do
     @vm.start_up
     @vm.wait_for_start
     @vm.info_update
     if @vm.booted?
       # Get price_for_last_hour
-      price_on = @vm.price_for_last_hour
+      hprices = @vm.price_for_last_hour
+      price_on = hprices[:vm_resources_cost]
       puts "Billing Price ON - #{price_on}"
       puts "VS Price ON - #{@vm.price_per_hour}"
       expect(@vm.price_per_hour.to_i).to eq(price_on)
@@ -255,7 +256,7 @@ describe "Checking Billing Plan functionality" do
   end
 
   # Shutdown VS from inside, check hourly price and booted value - should be 0.
-  it 'Check price when VS was shut downed from inside.' do
+  it 'Check hourly price for shut downed VS from inside.' do
     attempts = 5
     @vm.execute_with_pass("init 0")
     while attempts != 0 do
@@ -267,9 +268,28 @@ describe "Checking Billing Plan functionality" do
       sleep(5)
     end
     # Get price_for_last_hour
-    price_off = @vm.price_for_last_hour
+    hprices = @vm.price_for_last_hour
+    price_off = hprices[:vm_resources_cost]
     puts "Billing Price OFF - #{price_off}"
     puts "VS Price OFF - #{@vm.price_per_hour_powered_off}"
     expect(@vm.price_per_hour_powered_off.to_i).to eq(price_off)
   end
+
+
+  # TODO
+  # Edit base resources
+  # Create File
+  it "Generate 1GB file on the VS" do
+    @vm.info_update
+    if !@vm.booted?
+      @vm.start_up
+      @vm.wait_for_start
+    end
+    @vm.execute_with_pass("dd if=/dev/random of=./1GB bs=1024k count=1000")
+
+  end
+  # Download file
+  # Create Backup
+  # Convert to template
+  # Check prices
 end
