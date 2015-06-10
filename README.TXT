@@ -4,7 +4,6 @@ sudo apt-get update
 source ~/.rvm/scripts/rvm
 rvm requirements
 
-
 To install ruby using rvm:
 rvm install ruby-2.0.0
 rvm use 2.0 --default
@@ -19,6 +18,7 @@ rake db:create
 rake db:migrate
 rake db:seed  - credentials should be generated
 rails s
+
 
 Do not forget to add your own conf.yml and database.yml files according to the provided examples in the config folder.
 
