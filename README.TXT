@@ -4,6 +4,7 @@ sudo apt-get update
 source ~/.rvm/scripts/rvm
 rvm requirements
 
+
 To install ruby using rvm:
 rvm install ruby-2.0.0
 rvm use 2.0 --default
