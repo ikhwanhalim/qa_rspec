@@ -1,0 +1,12 @@
+development:
+  adapter: mysql2
+  database: onapp_runner_dev
+  username: root
+  password: onapp
+
+production:
+  adapter: mysql2
+  database: onapp_runner_dev
+  username: root
+  password: onapp
+
