@@ -134,9 +134,9 @@ describe "Checking Billing Plan functionality" do
                     :target_id => @netz_id,
                     :target_type => "Pack",
                     :limits => {:limit_ip => "2",
-                                :limit_rate => "500",
+                                :limit_rate => nil,
                                 :limit_data_sent_free => "1",
-                                :limit_rate_free => "1",
+                                :limit_rate_free => nil,
                                 :limit_ip_free => "1",
                                 :limit_data_received_free =>"1"
                     },
@@ -278,18 +278,33 @@ describe "Checking Billing Plan functionality" do
 
   # TODO
   # Edit base resources
-  # Create File
-  it "Generate 1GB file on the VS" do
+  # Download file
+  it "Download 1GB file." do
     @vm.info_update
     if !@vm.booted?
       @vm.start_up
       @vm.wait_for_start
+      @vm.ssh_port_opened
     end
-    @vm.execute_with_pass("dd if=/dev/random of=./1GB bs=1024k count=1000")
+    @vm.execute_with_pass("wget http://mirror.internode.on.net/pub/test/1000meg.test")
+    # TODO
+    # Check if file present on VS with appropriate size
 
   end
-  # Download file
+  # Create File
+  it "Write 1GB file on disk." do
+    @vm.info_update
+    if !@vm.booted?
+      @vm.start_up
+      @vm.wait_for_start
+      @vm.ssh_port_opened
+    end
+    @vm.execute_with_pass("cp ./1000meg.test ./one_more1000meg.test")
+    # TODO
+    # Check if file present on VS with appropriate size
+  end
   # Create Backup
   # Convert to template
   # Check prices
+  hprices = @vm.price_for_last_hour
 end

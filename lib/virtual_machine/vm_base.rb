@@ -48,6 +48,7 @@ class VirtualMachine
                                   'hostname' => 'auto.test',
                                   'required_virtual_machine_build' => '1',
                                   'required_ip_address_assignment' => '1',
+                                  'rate_limit' => '0'
                                 }
           }
     hash['virtual_machine']['swap_disk_size'] = '1' if @template['allowed_swap']

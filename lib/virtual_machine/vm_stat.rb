@@ -19,29 +19,28 @@ module VmStat
     stats = vm_stats
     hstats = {}
 
-    hstats = {:disk_cost => disks_cost(stats),
-             :ip_address_cost => ip_address_cost(stats),
-             :rate_cost => rate_cost(stats),
-             :template_cost => template_cost(stats),
-             :total_cost => total_cost(stats),
-             :vm_resources_cost => vm_resources_cost(stats),
-             :usage_cost => usage_cost(stats)
+    hstats = {:disks_size_cost => disks_size_cost(stats),
+              :data_read_cost => data_read_cost(stats),
+              :data_written_cost => data_written_cost(stats),
+              :reads_completed_cost => reads_completed_cost(stats),
+              :writes_completed_cost => writes_completed_cost(stats),
+              :ip_address_cost => ip_address_cost(stats),
+              :rate_cost => rate_cost(stats),
+              :data_received_cost => data_received_cost(stats),
+              :data_sent_cost => data_sent_cost(stats),
+              :cpu_shares_cost => cpu_shares_cost(stats),
+              :cpus_cost => cpus_cost(stats),
+              :memory_cost => memory_cost(stats),
+              :template_cost => template_cost(stats),
+              :total_cost => total_cost(stats),
+              :vm_resources_cost => vm_resources_cost(stats),
+              :usage_cost => usage_cost(stats)
     }
 
-    puts "Disk cost - #{hstats[:disks_cost]}"
-    Log.info("Disk cost - #{hstats[:disks_cost]}")
-    puts "IP address cost - #{hstats[:ip_address_cost]}"
-    Log.info("IP address cost - #{hstats[:ip_address_cost]}")
-    puts "Rate cost - #{hstats[:rate_cost]}"
-    Log.info("Rate cost - #{hstats[:rate_cost]}")
-    puts "Template cost = #{hstats[:template_cost]}"
-    Log.info("Template cost = #{hstats[:template_cost]}")
-    puts "Total cost - #{hstats[:total_cost]}"
-    Log.info("Total cost - #{hstats[:total_cost]}")
-    puts "VS resources cost - #{hstats[:vm_resources_cost]}"
-    Log.info("VS resources cost - #{hstats[:vm_resources_cost]}")
-    puts "Usage cost - #{hstats[:usage_cost]}"
-    Log.info("Usage cost - #{hstats[:usage_cost]}")
+    hstats.keys.each do |key|
+      puts "#{key.to_s.capitalize.sub! '_', ' '} - #{hstats[key]}"
+      Log.info("#{key.to_s.capitalize.sub! '_', ' '} - #{hstats[key]}")
+    end
     return hstats
   end
 
@@ -50,101 +49,93 @@ module VmStat
   end
 
   private
+  # Helpers
+  def disk_resources_cost(stats, resource_name)
+    cost = 0
+    stats.last['vm_hourly_stat']['billing_stats']['disks'].each do |disk|
+      disk['costs'].each {|elem| cost += elem['cost'] if elem['resource_name'] == resource_name}
+    end
+    return cost
+  end
+
+  def network_resources_cost(stats, resource_name)
+    cost = 0
+    stats.last['vm_hourly_stat']['billing_stats']['network_interfaces'].each do |nic|
+      nic['costs'].each {|elem| cost = elem['cost'] if elem['resource_name'] == resource_name}
+    end
+    return cost
+  end
+
+  def virtual_machine_resources_cost(stats, resource_name)
+    cost = 0
+    stats.last['vm_hourly_stat']['billing_stats']['virtual_machines'].each do |vm|
+      vm['costs'].each {|elem| cost = elem['cost'] if elem['resource_name'] == resource_name}
+    end
+    return cost
+  end
   ######################################################################################################################
   # DISK
   ######################################################################################################################
   def disks_size_cost(stats)
-    cost = 0
-    stats.last['vm_hourly_stat']['billing_stats']['disks'].each do |disk|
-      disk['costs'].each {|elem| cost += elem['cost'] if elem['resource_name'] == 'disk_size'}
-    end
-    return cost
+    return disk_resources_cost(stats, 'disk_size')
   end
 
   def data_read_cost(stats)
-    cost = 0
-    stats.last['vm_hourly_stat']['billing_stats']['disks'].each do |disk|
-      disk['costs'].each {|elem| cost += elem['cost'] if elem['resource_name'] == 'data_read'}
-    end
-    return cost
+    return disk_resources_cost(stats, 'data_read')
   end
 
   def data_written_cost(stats)
-    cost = 0
-    stats.last['vm_hourly_stat']['billing_stats']['disks'].each do |disk|
-      disk['costs'].each {|elem| cost += elem['cost'] if elem['resource_name'] == 'data_written'}
-    end
-    return cost
+    return disk_resources_cost(stats, 'data_written')
   end
 
-  def reads_completed(stats)
-    cost = 0
-    stats.last['vm_hourly_stat']['billing_stats']['disks'].each do |disk|
-      disk['costs'].each {|elem| cost += elem['cost'] if elem['resource_name'] == 'reads_completed'}
-    end
-    return cost
+  def reads_completed_cost(stats)
+    return disk_resources_cost(stats, 'reads_completed')
   end
 
   def writes_completed_cost(stats)
-    cost = 0
-    stats.last['vm_hourly_stat']['billing_stats']['disks'].each do |disk|
-      disk['costs'].each {|elem| cost += elem['cost'] if elem['resource_name'] == 'writes_completed'}
-    end
-    return cost
+    return disk_resources_cost(stats, 'writes_completed')
   end
 
   ######################################################################################################################
   # Network
   ######################################################################################################################
   def ip_address_cost(stats)
-    cost = 0
-    stats.last['vm_hourly_stat']['billing_stats']['network_interfaces'].each do |nic|
-      nic['costs'].each {|elem| cost = elem['cost'] if elem['resource_name'] == 'ip_addresses'}
-    end
-    return cost
+    return network_resources_cost(stats, 'ip_addresses')
   end
 
   def rate_cost(stats)
-    cost = 0
-    stats.last['vm_hourly_stat']['billing_stats']['network_interfaces'].each do |nic|
-      nic['costs'].each {|elem| cost = elem['cost'] if elem['resource_name'] == 'rate'}
-    end
-    return cost
+    return network_resources_cost(stats, 'rate')
   end
 
   def data_received_cost(stats)
-    cost = 0
-    stats.last['vm_hourly_stat']['billing_stats']['network_interfaces'].each do |nic|
-      nic['costs'].each {|elem| cost = elem['cost'] if elem['resource_name'] == 'data_received'}
-    end
-    return cost
+    return network_resources_cost(stats, 'data_received')
   end
 
   def data_sent_cost(stats)
-    cost = 0
-    stats.last['vm_hourly_stat']['billing_stats']['network_interfaces'].each do |nic|
-      nic['costs'].each {|elem| cost = elem['cost'] if elem['resource_name'] == 'data_sent'}
-    end
-    return cost
+    return network_resources_cost(stats, 'data_sent')
   end
 
   ######################################################################################################################
   # Virtual Server
   ######################################################################################################################
+  def cpu_shares_cost(stats)
+    return virtual_machine_resources_cost(stats, 'cpu_shares')
+  end
+
+  def cpus_cost(stats)
+    return virtual_machine_resources_cost(stats, 'cpus')
+  end
+
+  def memory_cost(stats)
+    return virtual_machine_resources_cost(stats, 'memory')
+  end
+
   def template_cost(stats)
-    cost = 0
-    stats.last['vm_hourly_stat']['billing_stats']['virtual_machines'].each do |vm|
-      vm['costs'].each {|elem| cost = elem['cost'] if elem['resource_name'] == 'template'}
-    end
-    return cost
+    return virtual_machine_resources_cost(stats, 'template')
   end
 
   def cpu_usage_cost(stats)
-    cost = 0
-    stats.last['vm_hourly_stat']['billing_stats']['virtual_machines'].each do |vm|
-      vm['costs'].each {|elem| cost = elem['cost'] if elem['resource_name'] == 'cpu_usage'}
-    end
-    return cost
+    return virtual_machine_resources_cost(stats, 'cpu_usage')
   end
 
   def total_cost(stats)
