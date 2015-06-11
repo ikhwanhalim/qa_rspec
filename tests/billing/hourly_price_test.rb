@@ -7,6 +7,9 @@ require './lib/virtual_machine/vm_stat'
 require './lib/onapp_user'
 require './lib/helpers/template_manager'
 require './lib/helpers/hypervisor'
+require './lib/onapp_settings/settings'
+require './lib/backups/incremental'
+require './lib/backups/normal'
 
 include Hypervisor
 include TemplateManager
@@ -306,5 +309,26 @@ describe "Checking Billing Plan functionality" do
   # Create Backup
   # Convert to template
   # Check prices
-  hprices = @vm.price_for_last_hour
+  #hprices = @vm.price_for_last_hour
+
+  it "Check settings" do
+    settings = Settings.new
+    cfg = settings.get_config
+    if !cfg['allow_incremental_backups']
+      cfg['allow_incremental_backups'] = true
+      Log.info("Settings will be changed to 'allow_incremental_backups' - true.")
+      settings.edit_config(data=cfg)
+      Log.info("Settings has been successfully saved.")
+    end
+    Log.info("'allow_incremental_backups' already true.")
+  end
+
+  it "Check incremental backups functionality." do
+    ib = Incremental.new
+    ib.create(@vm.identifier)
+    ib.restore(backup_id=ib.id, type=ib.type)
+    ib.convert_to_template(backup_id=ib.id, data={:label => "Autotest - #{Time.now}"})
+    ib.delete(backup_id=ib.id)
+  end
+
 end
