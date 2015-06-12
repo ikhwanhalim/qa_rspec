@@ -25,10 +25,26 @@ describe "Market" do
     let(:federation_id) { @supplier.published_zone['federation_id'] }
 
     describe "Supplier" do
+      def zone_search
+        sleep 5
+        @trader.all_unsubscribed.select { |z| z['federation_id'] == federation_id }.first
+      end
+
       it "should be able generate tokens" do
         @supplier.generate_token(:receiver)
         token = @supplier.get_token('receiver')['token']
         expect(token).not_to be nil
+      end
+
+      it 'private zone should not be visible for trader' do
+        expect(zone_search).to be_nil
+      end
+
+      it 'sould be able switch zone to public' do
+        @supplier.make_public
+        expect(zone_search['federation_id']).to eq federation_id
+        @supplier.make_private
+        expect(zone_search).to be_nil
       end
     end
 
@@ -99,7 +115,7 @@ describe "Market" do
       end
 
       it "search zone by wrong label" do
-        federation_ids = @trader.search('wrong label').map {|z| z['federation_id']}
+        federation_ids = @trader.search('wrong data').map {|z| z['federation_id']}
         expect(federation_ids).not_to include(federation_id)
       end
 
@@ -179,7 +195,7 @@ describe "Market" do
         @supplier.data_stores_detach
         error = @trader.create_vm(@supplier.template['label'], federation_id).to_s
         expect(error.include?("aren't enough resources")).to be true
-        @supplier.data_stores_attach
+        expect(@supplier.data_stores_attach).to be true
       end
     end
   end
