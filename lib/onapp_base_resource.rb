@@ -45,6 +45,7 @@ class OnappBaseResource
   def create_base_resource(bp_id, data)
     params = {}
     params[:base_resource] = data
+    Log.info("Creating base resource: \n #{params}")
     response = post("/billing_plans/#{bp_id}/base_resources", params)
 
     if response.has_key?('base_resource')

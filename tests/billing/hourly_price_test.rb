@@ -20,15 +20,23 @@ def vm_resources_price_on_usage(vm, hv_br_data, ds_br_data, ntw_br_data)
   cpu_price = (vm.cpus - hv_br_data[:limits][:limit_free_cpu].to_i) * hv_br_data[:prices][:price_on_cpu].to_i
   cpu_shares_price = (vm.cpu_shares - hv_br_data[:limits][:limit_free_cpu_share].to_i) * hv_br_data[:prices][:price_on_cpu_share].to_i
   memory_price = (vm.memory - hv_br_data[:limits][:limit_free_memory].to_i) * hv_br_data[:prices][:price_on_memory].to_i
+
   total_disks_size = 0
   vm.disks.each do |disk|
     total_disks_size += disk['disk']['disk_size']
   end
-  disks_price = (total_disks_size - ds_br_data[:limits][:limit_free].to_i) * ds_br_data[:prices][:price_on].to_i
 
+  disks_price = (total_disks_size - ds_br_data[:limits][:limit_free].to_i) * ds_br_data[:prices][:price_on].to_i
   total_ips = vm.ip_addresses.length
   ip_price = (total_ips - ntw_br_data[:limits][:limit_ip_free].to_i) * ntw_br_data[:prices][:price_ip_on].to_i
-  rate_limit_price = (vm.network_interfaces.first['network_interface']['rate_limit'] - ntw_br_data[:limits][:limit_rate_free].to_i) * ntw_br_data[:prices][:price_rate_on].to_i
+  # Checking for unlimited value #######################################################################################
+  vm_rate_limit = vm.network_interfaces.first['network_interface']['rate_limit']
+  vm_network_interface_port_speed = vm_rate_limit == 0 ? @onapp_yml.cfg['ip_range_limit'].to_i : vm_rate_limit
+  br_rate_limit = ntw_br_data[:limits][:limit_rate_free]
+  free_rate_limit = br_rate_limit == '' ? @onapp_yml.cfg['ip_range_limit'].to_i : br_rate_limit.to_i
+  ######################################################################################################################
+  rate_limit_price = (vm_network_interface_port_speed - free_rate_limit) * ntw_br_data[:prices][:price_rate_on].to_i
+  puts "Rate limit price - #{rate_limit_price}"
 
   price_on = cpu_price + cpu_shares_price + memory_price + disks_price + ip_price + rate_limit_price
   return price_on
@@ -40,15 +48,22 @@ def vm_resources_price_off_usage(vm, hv_br_data, ds_br_data, ntw_br_data)
   cpu_price = (vm.cpus - hv_br_data[:limits][:limit_free_cpu].to_i)  * hv_br_data[:prices][:price_off_cpu].to_i
   cpu_shares_price = (vm.cpu_shares - hv_br_data[:limits][:limit_free_cpu_share].to_i) * hv_br_data[:prices][:price_off_cpu_share].to_i
   memory_price = (vm.memory - hv_br_data[:limits][:limit_free_memory].to_i) * hv_br_data[:prices][:price_off_memory].to_i
+
   total_disks_size = 0
   vm.disks.each do |disk|
     total_disks_size += disk['disk']['disk_size']
   end
-  disks_price = (total_disks_size - ds_br_data[:limits][:limit_free].to_i) * ds_br_data[:prices][:price_off].to_i
 
+  disks_price = (total_disks_size - ds_br_data[:limits][:limit_free].to_i) * ds_br_data[:prices][:price_off].to_i
   total_ips = vm.ip_addresses.length
   ip_price = (total_ips - ntw_br_data[:limits][:limit_ip_free].to_i) * ntw_br_data[:prices][:price_ip_off].to_i
-  rate_limit_price = (vm.network_interfaces.first['network_interface']['rate_limit'] - ntw_br_data[:limits][:limit_rate_free].to_i) * ntw_br_data[:prices][:price_rate_off].to_i
+  # Checking for unlimited value #######################################################################################
+  vm_rate_limit = vm.network_interfaces.first['network_interface']['rate_limit']
+  vm_network_interface_port_speed = vm_rate_limit == 0 ? @onapp_yml.cfg['ip_range_limit'].to_i : vm_rate_limit
+  br_rate_limit = ntw_br_data[:limits][:limit_rate_free]
+  free_rate_limit = br_rate_limit == '' ? @onapp_yml.cfg['ip_range_limit'].to_i : br_rate_limit.to_i
+  ######################################################################################################################
+  rate_limit_price = (vm_network_interface_port_speed - free_rate_limit) * ntw_br_data[:prices][:price_rate_off].to_i
 
   price_off = cpu_price + cpu_shares_price + memory_price + disks_price + ip_price + rate_limit_price
   return price_off
@@ -61,7 +76,11 @@ describe "Checking Billing Plan functionality" do
     @hv_br = OnappBaseResource.new
     @ds_br = OnappBaseResource.new
     @ntw_br = OnappBaseResource.new
+    @bs_br = OnappBaseResource.new
     @user = OnappUser.new
+    @backup = Incremental.new
+    @onapp_yml = Settings.new
+    @onapp_yml.get_config
 
     #create BP
     bp_data = {:label => 'Test Hourly Price BP',
@@ -85,8 +104,7 @@ describe "Checking Billing Plan functionality" do
     @hvz_id = @hypervisor['hypervisor_group_id']
     @dsz_id = @user.get_dsz_id(@hvz_id)
     @netz_id = @user.get_net_zone_id(@hvz_id)
-
-
+    @bsz_id = @bs_br.get_zone_id(type=:backup)
 
     # Add base resources to BP
     # HV
@@ -137,9 +155,9 @@ describe "Checking Billing Plan functionality" do
                     :target_id => @netz_id,
                     :target_type => "Pack",
                     :limits => {:limit_ip => "2",
-                                :limit_rate => nil,
+                                :limit_rate => "",
                                 :limit_data_sent_free => "1",
-                                :limit_rate_free => nil,
+                                :limit_rate_free => "",
                                 :limit_ip_free => "1",
                                 :limit_data_received_free =>"1"
                     },
@@ -154,6 +172,26 @@ describe "Checking Billing Plan functionality" do
     }
     @ntw_br.create_base_resource(@bp.bp_id, @ntw_br_data)
 
+    # BS
+    @bsz_br_data = {:resource_class => "Resource::BackupServerGroup",
+                    :target_id => @bsz_id,
+                    :target_type => "Pack",
+                    :limits => {:limit_backup_free => '1',
+                                :limit_backup => '2',
+                                :limit_backup_disk_size_free => '0',
+                                :limit_backup_disk_size => nil,
+                                :limit_template_disk_size_free => '0',
+                                :limit_template_disk_size => nil,
+                                :limit_template_free => '1',
+                                :limit_template => '2'
+                    },
+                    :prices => {:price_backup => '10',
+                                :price_backup_disk_size => '100',
+                                :price_template => '10',
+                                :price_template_disk_size => '100'
+                    }
+    }
+    @bs_br.create_base_resource(@bp.bp_id, @bsz_br_data)
     # Create VS
     @vm = VirtualMachine.new(@user)
     @vm.create(ENV['TEMPLATE_MANAGER_ID'],ENV['VIRT_TYPE'])
@@ -167,7 +205,7 @@ describe "Checking Billing Plan functionality" do
     @user.delete_user(data)
     @bp.delete_billing_plan()
   end
-
+#=begin
   it 'Check hourly price (On/Off) for free VS (Price should be 0.0)' do
     price_on = vm_resources_price_on_usage(@vm, @hv_br_data, @ds_br_data, @ntw_br_data)
     puts "Billing Price ON - #{price_on}"
@@ -178,7 +216,7 @@ describe "Checking Billing Plan functionality" do
     expect(@vm.price_per_hour.to_i).to eq(price_on) and expect(@vm.price_per_hour_powered_off.to_i).to eq(price_off)
 
   end
-
+#=end
   # Change BP
   it "Change BP to get Price for resources" do
   # HV
@@ -203,13 +241,57 @@ describe "Checking Billing Plan functionality" do
 
     # NW
     @ntw_br_data[:limits] = {:limit_ip => "2",
-                             :limit_rate => "500",
+                             :limit_rate => nil,
                              :limit_data_sent_free => "0",
                              :limit_rate_free => "0",
                              :limit_ip_free => "0",
                              :limit_data_received_free =>"0"
     }
     @ntw_br.edit_base_resource(@bp.bp_id, @ntw_br.br_id, @ntw_br_data)
+    puts "BSZ ID - #{@bsz_id}"
+  end
+#=begin
+  # TODO
+  # Edit base resources
+  # Download file
+  it "Download 1GB file." do
+    @vm.info_update
+    if !@vm.booted?
+      @vm.start_up
+      @vm.wait_for_start
+      @vm.ssh_port_opened
+    end
+    @vm.execute_with_pass("wget http://mirror.internode.on.net/pub/test/1000meg.test")
+    # TODO
+    # Check if file present on VS with appropriate size
+
+  end
+  # Create File
+  it "Write 1GB file on disk." do
+    @vm.info_update
+    if !@vm.booted?
+      @vm.start_up
+      @vm.wait_for_start
+      @vm.ssh_port_opened
+    end
+    @vm.execute_with_pass("cp ./1000meg.test ./one_more1000meg.test")
+    # TODO
+    # Check if file present on VS with appropriate size
+  end
+  # Create Backup
+  it "Create Backup to check free limit" do
+    if !@onapp_yml.cfg['allow_incremental_backups']
+      @onapp_yml.cfg['allow_incremental_backups'] = true
+      Log.info("Settings will be changed to 'allow_incremental_backups' - true.")
+      settings.edit_config(data=@onapp_yml.cfg)
+      Log.info("Settings has been successfully saved.")
+    end
+    Log.info("'allow_incremental_backups' already true.")
+    @backup.create(@vm.identifier)
+  end
+  # Convert to template
+  it "Convert to template. (To check free template limit)" do
+    @backup.convert_to_template(backup_id=@backup.id, data={:label => "Autotest - #{Time.now}"})
   end
 
   it 'Check hourly price (On/Off) for not free VS.' do
@@ -278,57 +360,7 @@ describe "Checking Billing Plan functionality" do
     expect(@vm.price_per_hour_powered_off.to_i).to eq(price_off)
   end
 
-
-  # TODO
-  # Edit base resources
-  # Download file
-  it "Download 1GB file." do
-    @vm.info_update
-    if !@vm.booted?
-      @vm.start_up
-      @vm.wait_for_start
-      @vm.ssh_port_opened
-    end
-    @vm.execute_with_pass("wget http://mirror.internode.on.net/pub/test/1000meg.test")
-    # TODO
-    # Check if file present on VS with appropriate size
-
-  end
-  # Create File
-  it "Write 1GB file on disk." do
-    @vm.info_update
-    if !@vm.booted?
-      @vm.start_up
-      @vm.wait_for_start
-      @vm.ssh_port_opened
-    end
-    @vm.execute_with_pass("cp ./1000meg.test ./one_more1000meg.test")
-    # TODO
-    # Check if file present on VS with appropriate size
-  end
-  # Create Backup
-  # Convert to template
   # Check prices
   #hprices = @vm.price_for_last_hour
-
-  it "Check settings" do
-    settings = Settings.new
-    cfg = settings.get_config
-    if !cfg['allow_incremental_backups']
-      cfg['allow_incremental_backups'] = true
-      Log.info("Settings will be changed to 'allow_incremental_backups' - true.")
-      settings.edit_config(data=cfg)
-      Log.info("Settings has been successfully saved.")
-    end
-    Log.info("'allow_incremental_backups' already true.")
-  end
-
-  it "Check incremental backups functionality." do
-    ib = Incremental.new
-    ib.create(@vm.identifier)
-    ib.restore(backup_id=ib.id, type=ib.type)
-    ib.convert_to_template(backup_id=ib.id, data={:label => "Autotest - #{Time.now}"})
-    ib.delete(backup_id=ib.id)
-  end
-
+#=end
 end
