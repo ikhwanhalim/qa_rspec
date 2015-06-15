@@ -62,12 +62,21 @@ GEM
     erb2haml (0.1.5)
       html2haml
     erubis (2.7.0)
+<<<<<<< HEAD
     eventmachine (1.0.7)
     execjs (2.3.0)
     faker (1.4.3)
       i18n (~> 0.5)
     ffi (1.9.8)
     haml (4.0.6)
+=======
+    eventmachine (1.0.3)
+    execjs (2.2.2)
+    faker (1.4.3)
+      i18n (~> 0.5)
+    ffi (1.9.8)
+    haml (4.1.0.beta.1)
+>>>>>>> 7baa06504bc0ce1de290773fa61074d1058d11b6
       tilt
     haml-rails (0.4)
       actionpack (>= 3.1, < 4.1)
@@ -170,7 +179,11 @@ GEM
     ruby_parser (3.6.4)
       sexp_processor (~> 4.1)
     rubyzip (1.1.7)
+<<<<<<< HEAD
     sass (3.4.13)
+=======
+    sass (3.4.8)
+>>>>>>> 7baa06504bc0ce1de290773fa61074d1058d11b6
     sass-rails (3.2.6)
       railties (~> 3.2.0)
       sass (>= 3.1.10)
@@ -180,7 +193,11 @@ GEM
       multi_json (~> 1.0)
       rubyzip (~> 1.0)
       websocket (~> 1.0)
+<<<<<<< HEAD
     sexp_processor (4.4.5)
+=======
+    sexp_processor (4.4.4)
+>>>>>>> 7baa06504bc0ce1de290773fa61074d1058d11b6
     slop (3.6.0)
     spawnling (2.1.1)
     sprockets (2.2.3)
