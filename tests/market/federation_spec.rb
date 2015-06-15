@@ -25,9 +25,17 @@ describe "Market" do
     let(:federation_id) { @supplier.published_zone['federation_id'] }
 
     describe "Supplier" do
-      def zone_search
-        sleep 5
-        @trader.all_unsubscribed.select { |z| z['federation_id'] == federation_id }.first
+      def zone_search(action)
+        5.times do
+          zone = @trader.all_unsubscribed.select { |z| z['federation_id'] == federation_id }.first
+          if action == :empty
+            return zone unless zone
+          elsif action == :any
+            return zone if zone
+          end
+          sleep 1
+        end
+        false
       end
 
       it "should be able generate tokens" do
@@ -37,14 +45,14 @@ describe "Market" do
       end
 
       it 'private zone should not be visible for trader' do
-        expect(zone_search).to be_nil
+        expect(zone_search(:empty)).to be_nil
       end
 
       it 'sould be able switch zone to public' do
         @supplier.make_public
-        expect(zone_search['federation_id']).to eq federation_id
+        expect(zone_search(:any)['federation_id']).to eq federation_id
         @supplier.make_private
-        expect(zone_search).to be_nil
+        expect(zone_search(:empty)).to be_nil
       end
     end
 
