@@ -1,9 +1,12 @@
 require 'yaml'
 require 'page-object'
 require 'selenium-webdriver'
+require 'helpers/ui_helpers'
 
 class AddCdnResourcePage
   include PageObject
+  include UiHelpers
+
   PageObject.javascript_framework = :jquery
 
 
@@ -11,34 +14,75 @@ class AddCdnResourcePage
 
   checkbox(:http, :id => 'cdn_resource_resource_type_http_pull')
   checkbox(:vod, :id => 'cdn_resource_resource_type_stream_vod_pull')
-  checkbox(:live_streaming, :id => 'cdn_resource_resource_type_stream_vod_pull')
+  checkbox(:live_streaming, :id => 'cdn_resource_resource_type_stream_live')
 
   text_field(:cdn_hostname, :id => 'cdn_resource_cdn_hostname')
-
-  # checkbox(:enable_ssl, :id => 'enable_ssl_checkbox')
-  checkbox(:enable_ssl, :name => 'cdn_resource[enable_ssl]')
-  checkbox(:shared_ssl, :id => 'cdn_resource_ssl_type_ssl_on')
-  checkbox(:custom_sni_ssl, :id => 'cdn_resource_ssl_type_ssl')
-  select_list(:custom_sni_ssl_list, :id => 'cdn_resource_cdn_ssl_certificate_id')
-
-  select_list(:content_origin, :id => 'cdn_resource_content_origin')
-
-  select_list(:storage_server_location, :id => 'cdn_resource_storage_server_location')
-
   text_field(:ftp_password, :id => 'cdn_resource_ftp_password')
   text_field(:ftp_password_confirmation, :id => 'cdn_resource_ftp_password_confirmation')
 
+  text_field(:origin1, :xpath => '//ul[@id = "origins-multiply-field"]/li[1]//input[@name="cdn_resource[origins][]"]')
+  text_field(:origin2, :xpath => '//ul[@id = "origins-multiply-field"]/li[2]//input[@name="cdn_resource[origins][]"]')
+  text_field(:origin3, :xpath => '//ul[@id = "origins-multiply-field"]/li[3]//input[@name="cdn_resource[origins][]"]')
+  button(:remove_origin1, :xpath => '//ul[@id = "origins-multiply-field"]/li[1]//input[@name="cdn_resource[origins][]"]/../a')
+  button(:remove_origin2, :xpath => '//ul[@id = "origins-multiply-field"]/li[2]//input[@name="cdn_resource[origins][]"]/../a')
+  button(:remove_origin3, :xpath => '//ul[@id = "origins-multiply-field"]/li[3]//input[@name="cdn_resource[origins][]"]/../a')
+  button(:add_origin2, :xpath => '//ul[@id = "origins-multiply-field"]/li[1]//span[@class="icon add"]')
+  button(:add_origin3, :xpath => '//ul[@id = "origins-multiply-field"]/li[2]//span[@class="icon add"]')
+
+
+  checkbox(:shared_ssl, :id => 'cdn_resource_ssl_type_ssl_on')
+  checkbox(:custom_sni_ssl, :id => 'cdn_resource_ssl_type_ssl')
+
   button(:next_button, :xpath => "//button[@class = 'round-button next']")
-  @page = 1
-  def unlock_drop_down
-    browser.execute_script("document.getElementById('cdn_resource_cdn_ssl_certificate_id').style = 'display: block';")
-    browser.execute_script("document.getElementById('cdn_resource_content_origin').style = 'display: block';")
-    browser.execute_script("document.getElementById('cdn_resource_storage_server_location').style = 'display: block';")
-    browser.execute_script("document.getElementsByName('cdn_resource[enable_ssl]')[0].type = '';")
-    wait_until { custom_sni_ssl_list?}
-    wait_until { content_origin?}
-    wait_until { storage_server_location?}
+
+  define_method ("cdn_resource_type=") do |value|
+    case value
+      when 'http'
+        check_http
+      when 'vod'
+        check_vod
+      when 'live_streaming'
+        check_live_streaming
+      else
+        raise "Unknown CDN resource type: #{value}"
+    end
   end
+
+  define_method ("enable_ssl=") do |value|
+    slide_check_box('enable_ssl_checkbox', value)
+  end
+  define_method ("ssl_type=") do |value|
+    case value
+      when 'shared'
+        check_shared_ssl
+      when 'custom'
+        check_custom_sni_ssl
+      else
+        raise "Unknown SSL type: #{value}"
+    end
+  end
+  define_method ("custom_sni_ssl=") do |value|
+    select_box('cdn_resource_content_origin_chzn', value)
+  end
+
+  define_method ("content_origin=") do |value|
+    select_box('cdn_resource_content_origin_chzn', value)
+  end
+
+  define_method ("edge_groups=") do |value|
+    value.each do |edge_group|
+      box_check_box(edge_group)
+    end
+  end
+  define_method ("internal_publishing_location=") do |value|
+    select_box('cdn_resource_internal_publishing_location_chzn', value)
+  end
+  define_method ("failover_internal_publishing_location=") do |value|
+    select_box('cdn_resource_failover_internal_publishing_location_chzn', value)
+  end
+
+
+
 
   def next_page
     self.next_button
