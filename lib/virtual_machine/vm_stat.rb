@@ -15,7 +15,6 @@ module VmStat
   end
 
   def vs_hstats
-    vm_stats_waiter
     stats = vm_stats
     hstats = {}
 
@@ -32,6 +31,7 @@ module VmStat
               :cpus_cost => cpus_cost(stats),
               :memory_cost => memory_cost(stats),
               :template_cost => template_cost(stats),
+              :cpu_usage_cost => cpu_usage_cost(stats),
               :total_cost => total_cost(stats),
               :vm_resources_cost => vm_resources_cost(stats),
               :usage_cost => usage_cost(stats)

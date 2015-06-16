@@ -10,10 +10,12 @@ require './lib/helpers/hypervisor'
 require './lib/onapp_settings/settings'
 require './lib/backups/incremental'
 require './lib/backups/normal'
+require './lib/helpers/onapp_http'
 
 include Hypervisor
 include TemplateManager
 include VmStat
+include OnappHTTP
 
 def vm_resources_price_on_usage(vm, hv_br_data, ds_br_data, ntw_br_data)
   #price ON
@@ -73,12 +75,14 @@ end
 describe "Checking Billing Plan functionality" do
   before(:all) do
     @bp = OnappBilling.new
+    @template_br = OnappBaseResource.new
+    @storage_disk_size_br = OnappBaseResource.new
+    @backup_br = OnappBaseResource.new
     @hv_br = OnappBaseResource.new
     @ds_br = OnappBaseResource.new
     @ntw_br = OnappBaseResource.new
     @bs_br = OnappBaseResource.new
     @user = OnappUser.new
-    @backup = Incremental.new
     @onapp_yml = Settings.new
     @onapp_yml.get_config
 
@@ -98,6 +102,7 @@ describe "Checking Billing Plan functionality" do
     }
     response = @user.create_user(@user_data)
     expect(response['login']).to eq(@user_data[:login])
+    @user_stat = @user.get_user_stat
 
     @template = @user.get_template(ENV['TEMPLATE_MANAGER_ID'])
     @hypervisor = @user.for_vm_creation(ENV['VIRT_TYPE'])
@@ -107,6 +112,34 @@ describe "Checking Billing Plan functionality" do
     @bsz_id = @bs_br.get_zone_id(type=:backup)
 
     # Add base resources to BP
+    # Add Limits for User VSs
+    # Template
+    @template_br_data = {:resource_class => "Resource::Template",
+                         :limits => {:limit => "1",
+                                     :limit_free => "0"
+                         },
+                         :prices => {:price => "10"
+                         }
+    }
+    @template_br.create_base_resource(@bp.bp_id, @template_br_data)
+    # Storage Disk Size
+    @storage_disk_size_br_data = {:resource_class => "Resource::StorageDiskSize",
+                         :limits => {:limit => "1",
+                                     :limit_free => "0"
+                         },
+                         :prices => {:price => "10"
+                         }
+    }
+    @storage_disk_size_br.create_base_resource(@bp.bp_id, @storage_disk_size_br_data)
+    # Backup
+    @backup_br_data = {:resource_class => "Resource::Backup",
+                         :limits => {:limit => "1",
+                                     :limit_free => "0"
+                         },
+                         :prices => {:price => "10"
+                         }
+    }
+    @backup_br.create_base_resource(@bp.bp_id, @backup_br_data)
     # HV
     @hv_br_data = {:resource_class => "Resource::HypervisorGroup",
                    :target_id => @hvz_id,
@@ -176,14 +209,14 @@ describe "Checking Billing Plan functionality" do
     @bsz_br_data = {:resource_class => "Resource::BackupServerGroup",
                     :target_id => @bsz_id,
                     :target_type => "Pack",
-                    :limits => {:limit_backup_free => '1',
-                                :limit_backup => '2',
+                    :limits => {:limit_backup_free => '0',
+                                :limit_backup => '1',
                                 :limit_backup_disk_size_free => '0',
                                 :limit_backup_disk_size => nil,
                                 :limit_template_disk_size_free => '0',
                                 :limit_template_disk_size => nil,
-                                :limit_template_free => '1',
-                                :limit_template => '2'
+                                :limit_template_free => '0',
+                                :limit_template => '1'
                     },
                     :prices => {:price_backup => '10',
                                 :price_backup_disk_size => '100',
@@ -192,6 +225,8 @@ describe "Checking Billing Plan functionality" do
                     }
     }
     @bs_br.create_base_resource(@bp.bp_id, @bsz_br_data)
+    # Create connection for backups
+    @backup = Incremental.new(@user)
     # Create VS
     @vm = VirtualMachine.new(@user)
     @vm.create(ENV['TEMPLATE_MANAGER_ID'],ENV['VIRT_TYPE'])
@@ -199,6 +234,8 @@ describe "Checking Billing Plan functionality" do
   end
 
   after(:all) do
+    # 'Login' under admin
+    auth
     @vm.destroy
     @vm.wait_for_destroy
     data = {:force => true}
@@ -267,7 +304,7 @@ describe "Checking Billing Plan functionality" do
 
   end
   # Create File
-  it "Write 1GB file on disk." do
+  it "'Write' 1GB file on disk." do
     @vm.info_update
     if !@vm.booted?
       @vm.start_up
@@ -278,8 +315,9 @@ describe "Checking Billing Plan functionality" do
     # TODO
     # Check if file present on VS with appropriate size
   end
+
   # Create Backup
-  it "Create Backup to check free limit" do
+  it "Create Backup to check price" do
     if !@onapp_yml.cfg['allow_incremental_backups']
       @onapp_yml.cfg['allow_incremental_backups'] = true
       Log.info("Settings will be changed to 'allow_incremental_backups' - true.")
@@ -290,22 +328,63 @@ describe "Checking Billing Plan functionality" do
     @backup.create(@vm.identifier)
   end
   # Convert to template
-  it "Convert to template. (To check free template limit)" do
+  it "Convert to template. (To check price)" do
+    puts @backup.size
     @backup.convert_to_template(backup_id=@backup.id, data={:label => "Autotest - #{Time.now}"})
   end
 
-  it 'Check hourly price (On/Off) for not free VS.' do
-    @vm.info_update
-    price_on = vm_resources_price_on_usage(@vm, @hv_br_data, @ds_br_data, @ntw_br_data)
-    puts "Billing Price ON - #{price_on}"
-    puts "VS Price ON - #{@vm.price_per_hour}"
-    price_off = vm_resources_price_off_usage(@vm, @hv_br_data, @ds_br_data, @ntw_br_data)
-    puts "Billing Price OFF - #{price_off}"
-    puts "VS Price OFF - #{@vm.price_per_hour_powered_off}"
-    expect(@vm.price_per_hour.to_i).to eq(price_on) and expect(@vm.price_per_hour_powered_off.to_i).to eq(price_off)
+  # Check Usage Statistics
+  it "Get Usage Statistics" do
+    vm_stats_waiter
+    @user.get_user_stat
+    puts @user.user_stats
+    @user.user_stats.each do |key, value|
+      puts "#{key} - #{value}"
+    end
+  end
+
+  it "Check template cost" do
+    puts @user.user_stats
+    # if template is located on HV
+    #expect(@user.user_stats['template_cost']).to eq(@template_br_data[:prices][:price].to_i)
 
   end
 
+  it "Check template count cost" do
+    # if template is located on BS
+    expect(@user.user_stats['template_count_cost']).to eq(@bsz_br_data[:prices][:price_template].to_f)
+  end
+
+  it "Check template disk size cost" do
+    # if template is located on BS
+    expect(@user.user_stats['template_disk_size_cost']).to eq(((@backup.size / 1024.0 / 1024.0) * @bsz_br_data[:prices][:price_template_disk_size].to_i).round(2))
+  end
+
+  it "Check backup cost" do
+    # if backup is located on HV
+    #expect(@user.user_stats['backup_cost']).to eq(@backup_br_data[:prices][:price].to_f)
+  end
+
+  it "Check backup count cost" do
+    # if backup is located on BS
+    expect(@user.user_stats['backup_count_cost']).to eq(@bsz_br_data[:prices][:price_backup].to_f)
+  end
+
+  it "Check backup disk size cost" do
+    # if backup is located on BS
+    expect(@user.user_stats['template_disk_size_cost'].round(2)).to eq(((@backup.size / 1024.0 / 1024.0) * @bsz_br_data[:prices][:price_backup_disk_size].to_i).round(2))
+  end
+
+  it "Check Storage Disk Size cost" do
+    expect(@user.user_stats['storage_disk_size_cost']).to eq(@storage_disk_size_br_data[:prices][:price].to_f)
+  end
+
+  # Check Usage Statistics
+  it "Check Usage Statistics" do
+    # TODO extend tests
+    @vm.vs_hstats
+  end
+=begin
   # Turn Off VS from UI, check hourly price and booted value - should be 0.
   it 'Check hourly price for shut downed VS.' do
     @vm.shut_down
@@ -362,5 +441,7 @@ describe "Checking Billing Plan functionality" do
 
   # Check prices
   #hprices = @vm.price_for_last_hour
-#=end
+=end
+  # Check prices for user_statistics on /users/:id/user_statistics page
+  # Create payment, check that "Billing Details" has changed.
 end

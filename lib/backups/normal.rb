@@ -5,10 +5,6 @@ class Normal < BackupBase
   include OnappHTTP
   attr_accessor :id, :type
 
-  def initialize
-    auth unless self.conn
-  end
-
   def get_normal
     response = get("/settings/configuration")
     return response['settings']

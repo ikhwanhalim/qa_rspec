@@ -5,10 +5,6 @@ class Incremental < BackupBase
   include OnappHTTP
   attr_accessor :id, :type
 
-  def initialize
-    auth unless self.conn
-  end
-
   def get_incremental
     response = get("/virtual_machines/#{vm_id}/backups")
     return response['backups']

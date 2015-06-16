@@ -1,7 +1,16 @@
 require './lib/helpers/transaction'
+require 'helpers/onapp_ssh'
 
 class BackupBase
-  include Transaction
+  include Transaction, OnappHTTP
+  def initialize(user=nil)
+    if user
+      auth(url: @url, user: user.login, pass: user.password)
+    elsif !self.conn
+      auth unless self.conn
+    end
+  end
+
   def get_all_vs_backups(vm_id=nil)
     response = get("/virtual_machines/#{vm_id}/backups")
     return response['backups']
@@ -10,8 +19,9 @@ class BackupBase
   def convert_to_template(backup_id=nil, data={})
     params = {}
     params[:backup] = data
-    post("/backups/#{backup_id}/convert", params)
+    response = post("/backups/#{backup_id}/convert", params)
     wait_for_transaction(backup_id, 'Backup', 'convert_backup')
+    return response[:image_template]
   end
 
   def restore(backup_id=nil, type=nil)
@@ -28,5 +38,11 @@ class BackupBase
   def delete(backup_id=nil)
     delete("backups/#{backup_id}")
     wait_for_transaction(backup_id, 'Backup', 'destroy_backup')
+  end
+
+
+  def size(backup_id=nil)
+    response = get("/backups/#{backup_id}")
+    return response['backup']['backup_size']
   end
 end

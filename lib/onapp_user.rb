@@ -13,7 +13,7 @@ class OnappUser
   include Hypervisor
   include BaseResources
 
-  attr_accessor :user_id, :data
+  attr_accessor :user_id, :data, :billing_details, :user_stats
   attr_reader :login, :password, :url
 
   def initialize(user: nil, pass: nil)
@@ -44,10 +44,27 @@ class OnappUser
     put("/users/#{@user_id}", params)
   end
 
-  def get_user_by_id(user_id)
+  def get_user_by_id(user_id=@user_id)
     response = get("/users/#{user_id}")
     if response['user']
       return response['user']
+    else
+      return response['errors']
+    end
+  end
+
+  def get_user_billing_details(user_id=@user_id)
+    data = get_user_by_id(user_id)
+    @billing_details = {:total_amount => data['total_amount'].to_i,
+                        :outstanding_amount => data['outstanding_amount'].to_i,
+                        :payment_amount => data['payment_amount']
+    }
+  end
+
+  def get_user_stat(user_id=@user_id)
+    response = get("/users/#{user_id}/user_statistics")
+    if response['user_stat']
+      @user_stats = response['user_stat']
     else
       return response['errors']
     end
