@@ -3,6 +3,7 @@ require 'headless'
 require 'rspec'
 require 'ui_lib/login_page'
 require 'ui_lib/add_cdn_resource_page'
+require 'ui_lib/edit_cdn_resource_page'
 
 
 
@@ -64,9 +65,13 @@ describe 'CDN Resource Test Plan' do
       it 'Check creation' do
 
       end
-
+      
       it 'Edit CDN Resources' do
-
+        edit_cdn_resource_page = EditCdnResourcePage.new(@browser, true)
+        edit_cdn_resource_page.goto_edit
+        edit_cdn_resource_page.advanced_settings = true
+        edit_cdn_resource_page.access_policity = 'Allow by default'
+        edit_cdn_resource_page.countries = 'Albania'
       end
 
       it 'Check After edit' do
@@ -85,62 +90,10 @@ describe 'CDN Resource Test Plan' do
       end
     end
   end
-=begin
-  describe  do
-    before :all do
-      # @headless = Headless.new
-      # @headless.start
-      @browser = Selenium::WebDriver.for :ff
-      @base_url = YAML::load_file('config/conf.yml')['url']
-      @login_page = LoginPage.new(@browser, true)
-      @home_page = @login_page.login
-      @home_page.current_url.should eq("#{@base_url}/")
-      @home_page.alert.should eq('Signed in successfully.')
-      fail 'CDN is not enabled' unless @home_page.cdn_status?
-    end
+  
 
-    it 'Create CDN Resource' do
-      add_cdn_resource_page = AddCdnResourcePage.new(@browser, true)
-      add_cdn_resource_page.cdn_resource_type = 'http'
-      add_cdn_resource_page.next_page
-      add_cdn_resource_page.cdn_hostname = 'vovka.the.best'
-      add_cdn_resource_page.content_origin = 'PULL'
-      add_cdn_resource_page.origin1 = '10.10.10.10'
-      add_cdn_resource_page.add_origin2
-      add_cdn_resource_page.origin1 = 'vovka.the.best'
-      add_cdn_resource_page.add_origin3
-      add_cdn_resource_page.origin3 = '10.10.10.12'
-      add_cdn_resource_page.remove_origin3
-      add_cdn_resource_page.remove_origin2    #
-      add_cdn_resource_page.add_origin2
-      add_cdn_resource_page.origin2 = '10.10.10.11'
-      add_cdn_resource_page.add_origin3
-      add_cdn_resource_page.origin3 = '10.10.10.12'
-      add_cdn_resource_page.next_page
-      add_cdn_resource_page.edge_groups = 'iraEG1', 'iraEG3'
-    end
-    it 'Check creation' do
-
-    end
-
-    it 'Edit CDN Resources' do
-
-    end
-
-    it 'Check After edit' do
-
-    end
-
-    it 'Delete CDN resource' do
-
-    end
-
-
-
-    after :all do
-      @browser.close
-      # @headless.destroy
-    end
+  after :all do
+    @browser.close
+    # @headless.destroy
   end
-=end
 end

@@ -20,9 +20,21 @@ module UiHelpers
     end
     wait_for_ajax
   end
+
   def box_check_box(value)
     browser.find_elements(:xpath => "//h3[@title='#{value}']/..//input").first.click()
     wait_for_ajax
   end
 
+  def multi_select_box(id, value)
+    list = value.kind_of?(Array) ? value : [value]  
+    list.each do |el|
+      browser.find_elements(:xpath => "//div[@id = '#{id}']/ul").first.click
+      wait_for_ajax
+      browser.find_elements(:xpath => "//div[@id = '#{id}']//input").first.send_keys(value)
+      wait_for_ajax
+      browser.find_elements(:xpath => "//div[@id = '#{id}']//*[contains(text(),'#{el}')]").first.click()
+      wait_for_ajax
+    end
+  end
 end

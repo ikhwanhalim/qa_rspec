@@ -90,9 +90,6 @@ class AddCdnResourcePage
     select_box('cdn_resource_publishing_point_chzn', value)
   end
 
-
-
-
   def next_page
     self.next_button
     wait_for_ajax
