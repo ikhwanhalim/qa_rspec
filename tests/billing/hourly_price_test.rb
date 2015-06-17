@@ -17,6 +17,12 @@ include TemplateManager
 include VmStat
 include OnappHTTP
 
+def vm_port_speed(vm)
+  vm_rate_limit = vm.network_interfaces.first['network_interface']['rate_limit']
+  vm_network_interface_port_speed = vm_rate_limit == 0 ? @onapp_yml.cfg['ip_range_limit'].to_i : vm_rate_limit
+  return vm_network_interface_port_speed
+end
+
 def vm_resources_price_on_usage(vm, hv_br_data, ds_br_data, ntw_br_data)
   #price ON
   cpu_price = (vm.cpus - hv_br_data[:limits][:limit_free_cpu].to_i) * hv_br_data[:prices][:price_on_cpu].to_i
@@ -32,12 +38,10 @@ def vm_resources_price_on_usage(vm, hv_br_data, ds_br_data, ntw_br_data)
   total_ips = vm.ip_addresses.length
   ip_price = (total_ips - ntw_br_data[:limits][:limit_ip_free].to_i) * ntw_br_data[:prices][:price_ip_on].to_i
   # Checking for unlimited value #######################################################################################
-  vm_rate_limit = vm.network_interfaces.first['network_interface']['rate_limit']
-  vm_network_interface_port_speed = vm_rate_limit == 0 ? @onapp_yml.cfg['ip_range_limit'].to_i : vm_rate_limit
   br_rate_limit = ntw_br_data[:limits][:limit_rate_free]
   free_rate_limit = br_rate_limit == '' ? @onapp_yml.cfg['ip_range_limit'].to_i : br_rate_limit.to_i
   ######################################################################################################################
-  rate_limit_price = (vm_network_interface_port_speed - free_rate_limit) * ntw_br_data[:prices][:price_rate_on].to_i
+  rate_limit_price = (vm_port_speed(vm) - free_rate_limit) * ntw_br_data[:prices][:price_rate_on].to_i
   puts "Rate limit price - #{rate_limit_price}"
 
   price_on = cpu_price + cpu_shares_price + memory_price + disks_price + ip_price + rate_limit_price
@@ -60,12 +64,10 @@ def vm_resources_price_off_usage(vm, hv_br_data, ds_br_data, ntw_br_data)
   total_ips = vm.ip_addresses.length
   ip_price = (total_ips - ntw_br_data[:limits][:limit_ip_free].to_i) * ntw_br_data[:prices][:price_ip_off].to_i
   # Checking for unlimited value #######################################################################################
-  vm_rate_limit = vm.network_interfaces.first['network_interface']['rate_limit']
-  vm_network_interface_port_speed = vm_rate_limit == 0 ? @onapp_yml.cfg['ip_range_limit'].to_i : vm_rate_limit
   br_rate_limit = ntw_br_data[:limits][:limit_rate_free]
   free_rate_limit = br_rate_limit == '' ? @onapp_yml.cfg['ip_range_limit'].to_i : br_rate_limit.to_i
   ######################################################################################################################
-  rate_limit_price = (vm_network_interface_port_speed - free_rate_limit) * ntw_br_data[:prices][:price_rate_off].to_i
+  rate_limit_price = (vm_port_speed(vm) - free_rate_limit) * ntw_br_data[:prices][:price_rate_off].to_i
 
   price_off = cpu_price + cpu_shares_price + memory_price + disks_price + ip_price + rate_limit_price
   return price_off
@@ -227,6 +229,7 @@ describe "Checking Billing Plan functionality" do
     @bs_br.create_base_resource(@bp.bp_id, @bsz_br_data)
     # Create connection for backups
     @backup = Incremental.new(@user)
+    #@template_from_backup = {}
     # Create VS
     @vm = VirtualMachine.new(@user)
     @vm.create(ENV['TEMPLATE_MANAGER_ID'],ENV['VIRT_TYPE'])
@@ -287,7 +290,7 @@ describe "Checking Billing Plan functionality" do
     @ntw_br.edit_base_resource(@bp.bp_id, @ntw_br.br_id, @ntw_br_data)
     puts "BSZ ID - #{@bsz_id}"
   end
-#=begin
+=begin
   # TODO
   # Edit base resources
   # Download file
@@ -315,7 +318,7 @@ describe "Checking Billing Plan functionality" do
     # TODO
     # Check if file present on VS with appropriate size
   end
-
+=end
   # Create Backup
   it "Create Backup to check price" do
     if !@onapp_yml.cfg['allow_incremental_backups']
@@ -329,7 +332,6 @@ describe "Checking Billing Plan functionality" do
   end
   # Convert to template
   it "Convert to template. (To check price)" do
-    puts @backup.size
     @backup.convert_to_template(backup_id=@backup.id, data={:label => "Autotest - #{Time.now}"})
   end
 
@@ -344,39 +346,68 @@ describe "Checking Billing Plan functionality" do
   end
 
   it "Check template cost" do
-    puts @user.user_stats
-    # if template is located on HV
-    #expect(@user.user_stats['template_cost']).to eq(@template_br_data[:prices][:price].to_i)
-
+    template_on_bs = true ? @backup.template_from_backup['backup_server_id'].class == Fixnum : false
+    if !template_on_bs
+      expect(@user.user_stats['template_cost']).to eq(@template_br_data[:prices][:price].to_f)
+    else
+      expect(@user.user_stats['template_cost']).to eq(0.0)
+    end
   end
 
   it "Check template count cost" do
-    # if template is located on BS
-    expect(@user.user_stats['template_count_cost']).to eq(@bsz_br_data[:prices][:price_template].to_f)
+    template_on_bs = true ? @backup.template_from_backup['backup_server_id'].class == Fixnum : false
+    if template_on_bs
+      expect(@user.user_stats['template_count_cost']).to eq(@bsz_br_data[:prices][:price_template].to_f)
+    else
+      expect(@user.user_stats['template_count_cost']).to eq(0.0)
+    end
   end
 
   it "Check template disk size cost" do
-    # if template is located on BS
-    expect(@user.user_stats['template_disk_size_cost']).to eq(((@backup.size / 1024.0 / 1024.0) * @bsz_br_data[:prices][:price_template_disk_size].to_i).round(2))
+    template_on_bs = true ? @backup.template_from_backup['backup_server_id'].class == Fixnum : false
+    if template_on_bs
+      expect(@user.user_stats['template_disk_size_cost'].round(2)).to eq(((@backup.size(backup_id=@backup.id) / 1024.0 / 1024.0) * @bsz_br_data[:prices][:price_template_disk_size].to_i).round(2))
+    else
+      expect(@user.user_stats['template_disk_size_cost'].round(2)).to eq(0.0)
+    end
   end
 
   it "Check backup cost" do
-    # if backup is located on HV
-    #expect(@user.user_stats['backup_cost']).to eq(@backup_br_data[:prices][:price].to_f)
+    if !@backup.on_backup_server?(backup_id=@backup.id)
+      expect(@user.user_stats['backup_cost']).to eq(@backup_br_data[:prices][:price].to_f)
+    else
+      expect(@user.user_stats['backup_cost']).to eq(0.0)
+    end
   end
 
   it "Check backup count cost" do
-    # if backup is located on BS
-    expect(@user.user_stats['backup_count_cost']).to eq(@bsz_br_data[:prices][:price_backup].to_f)
+    if @backup.on_backup_server?(backup_id=@backup.id)
+      expect(@user.user_stats['backup_count_cost']).to eq(@bsz_br_data[:prices][:price_backup].to_f)
+    else
+      expect(@user.user_stats['backup_count_cost']).to eq(0.0)
+    end
   end
 
   it "Check backup disk size cost" do
-    # if backup is located on BS
-    expect(@user.user_stats['template_disk_size_cost'].round(2)).to eq(((@backup.size / 1024.0 / 1024.0) * @bsz_br_data[:prices][:price_backup_disk_size].to_i).round(2))
+    if @backup.on_backup_server?(backup_id=@backup.id)
+      expect(@user.user_stats['backup_disk_size_cost'].round(2)).to eq(((@backup.size(backup_id=@backup.id) / 1024.0 / 1024.0) * @bsz_br_data[:prices][:price_backup_disk_size].to_i).round(2))
+    else
+      expect(@user.user_stats['backup_disk_size_cost'].round(2)).to eq(0.0)
+    end
   end
 
   it "Check Storage Disk Size cost" do
-    expect(@user.user_stats['storage_disk_size_cost']).to eq(@storage_disk_size_br_data[:prices][:price].to_f)
+    # if template/backup is located on HV
+    total_size = 0
+    template_on_bs = true ? @backup.template_from_backup['backup_server_id'].class == Fixnum : false
+    if !@backup.on_backup_server?(backup_id=@backup.id)
+      total_size += @backup.size(backup_id=@backup.id)
+    elsif !template_on_bs
+      total_size += @backup.template_from_backup['template_size']
+    else
+      puts "Storage Disk Size cost - 0.0"
+    end
+    expect(@user.user_stats['storage_disk_size_cost'].round(2)).to eq((total_size * @storage_disk_size_br_data[:prices][:price].to_f).round(2))
   end
 
   # Check Usage Statistics
@@ -384,6 +415,85 @@ describe "Checking Billing Plan functionality" do
     # TODO extend tests
     @vm.vs_hstats
   end
+
+  it "Check Disk size cost" do
+    total_disk_size = 0
+    @vm.disks.each do |disk|
+      total_disk_size += disk['disk']['disk_size']
+    end
+    expect(@vm.vs_hstats[:disks_size_cost]).to eq(@ds_br_data[:prices][:price_on].to_f * total_disk_size)
+  end
+
+  it "Check Data Read cost" do
+    expected_price = @ds_br_data[:prices][:price_data_read].to_f * 1
+    expect(@vm.vs_hstats[:data_read_cost]).to be_within(expected_price/10.0).of(expected_price)
+  end
+
+  it "Check Data Written cost" do
+    expected_price = @ds_br_data[:prices][:price_data_written].to_f * 2
+    expect(@vm.vs_hstats[:data_written_cost]).to be_within(expected_price/10.0).of(expected_price)
+  end
+
+  it "Check Reads Completed cost" do
+
+  end
+
+  it "Check Writes Completed cost" do
+
+  end
+
+  it "Check IP Address cost" do
+    expect(@vm.vs_hstats[:ip_address_cost]).to eq(@vm.ip_addresses.length * @ntw_br_data[:prices][:price_ip_on])
+  end
+
+  it "Check Rate cost" do
+    expect(@vm.vs_hstats[:ip_address_cost]).to eq(vm_port_speed(@vm) * @ntw_br_data[:prices][:price_rate_on])
+  end
+
+  it "Check Data Received cost" do
+    expected_price = @ntw_br_data[:prices][:price_data_received].to_f * 1
+    expect(@vm.vs_hstats[:data_received_cost]).to be_within(expected_price/10.0).of(expected_price)
+  end
+
+  it "Check Data Sent cost" do
+
+  end
+
+  it "Check CPU Shares cost" do
+
+  end
+
+  it "Check CPUs cost" do
+
+  end
+
+  it "Check Memory cost" do
+
+  end
+
+  it "Check Template cost" do
+
+  end
+
+  it "Check CPU Usage cost" do
+
+  end
+
+  it "Check Total cost" do
+
+  end
+
+  it "Check VM Resources cost" do
+
+  end
+
+  it "Check Usage cost" do
+
+  end
+
+
+
+
 =begin
   # Turn Off VS from UI, check hourly price and booted value - should be 0.
   it 'Check hourly price for shut downed VS.' do
