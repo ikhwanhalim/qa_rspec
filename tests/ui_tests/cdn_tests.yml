@@ -1,0 +1,36 @@
+HTTP CDN resource test:
+  new:
+    base:
+      type: http
+      hostname: vovka.best
+      enable_ssl: false
+      content_origin: PULL
+      origin1: 10.10.10.10
+      origin2: 10.10.10.11
+      edge_groups: ['iraEG1', 'iraEG2']
+#  edit:
+#    base:
+#    advance:
+
+VOD CDN resource test:
+  new:
+    base:
+      type: vod
+      hostname: vovka.best
+      content_origin: PULL
+      origin: 10.10.11.100
+      edge_groups: ['iraEG3']
+    advanced:
+      some_stuf: 'just to open page'
+
+Live Streaming CDN resource test:
+  new:
+    base:
+      type: live_streaming
+      hostname: vovka.best
+      publishing_point: External
+      external_publishing_location: 10.10.10.12
+      failover_external_publishing_location: 10.10.10.13
+      edge_groups: ['iraEG1', 'iraEG3']
+
+
