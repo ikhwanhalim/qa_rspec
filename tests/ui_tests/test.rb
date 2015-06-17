@@ -5,8 +5,6 @@ require 'ui_lib/login_page'
 require 'ui_lib/add_cdn_resource_page'
 require 'ui_lib/edit_cdn_resource_page'
 
-
-
 describe 'CDN Resource Test Plan' do
   YAML::load_file('tests/ui_tests/cdn_tests.yml').each do |key, value|
     new_base = value['new']['base']
@@ -90,6 +88,7 @@ describe 'CDN Resource Test Plan' do
       end
     end
   end
+end
 =begin
   describe  do
     before :all do
