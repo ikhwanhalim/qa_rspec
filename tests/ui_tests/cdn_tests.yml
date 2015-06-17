@@ -13,7 +13,6 @@ HTTP CDN resource test:
 #    advance:
 
 VOD CDN resource test:
-  title:
   new:
     base:
       type: vod
@@ -25,7 +24,6 @@ VOD CDN resource test:
       some_stuf: 'just to open page'
 
 Live Streaming CDN resource test:
-  title:
   new:
     base:
       type: live_streaming
