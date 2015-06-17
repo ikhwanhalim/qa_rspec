@@ -3,6 +3,7 @@ require 'headless'
 require 'rspec'
 require 'ui_lib/login_page'
 require 'ui_lib/add_cdn_resource_page'
+require 'ui_lib/edit_cdn_resource_page'
 
 describe 'basic test' do
   before :all do
@@ -25,7 +26,7 @@ describe 'basic test' do
     add_cdn_resource_page.content_origin = 'PULL'
     add_cdn_resource_page.origin1 = '10.10.10.10'
     add_cdn_resource_page.add_origin2
-    add_cdn_resource_page.origin1 = 'vovka.the.best'
+    add_cdn_resource_page.origin1 = '10.10.10.13'
     add_cdn_resource_page.add_origin3
     add_cdn_resource_page.origin3 = '10.10.10.12'
     add_cdn_resource_page.remove_origin3
@@ -39,7 +40,11 @@ describe 'basic test' do
   end
 
   it 'Edit CDN Resources' do
-    add_cdn_resource_page = AddCdnResourcePage.new(@browser, true)
+    edit_cdn_resource_page = EditCdnResourcePage.new(@browser, true)
+    edit_cdn_resource_page.goto_edit
+    edit_cdn_resource_page.advanced_settings = true
+    edit_cdn_resource_page.access_policity = 'Allow by default'
+    edit_cdn_resource_page.countries = 'Albania'
   end
 
   after :all do

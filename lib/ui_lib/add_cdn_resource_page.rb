@@ -81,9 +81,6 @@ class AddCdnResourcePage
     select_box('cdn_resource_failover_internal_publishing_location_chzn', value)
   end
 
-
-
-
   def next_page
     self.next_button
     wait_for_ajax
