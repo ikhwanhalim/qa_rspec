@@ -10,6 +10,11 @@ class EditCdnResourcePage
 
   PageObject.javascript_framework = :jquery
 
+  def initialize(browser, visit=true)
+    self.class.page_url(browser.current_url + '/edit')
+    super
+  end
+
   def advanced_settings=(value)
     slide_check_box('advanced_checkbox', value)
   end
@@ -20,10 +25,5 @@ class EditCdnResourcePage
 
   def countries=(value)
     multi_select_box('cdn_resource_countries_chzn', value)
-  end
-
-  def goto_edit
-    self.class.page_url(browser.current_url + '/edit')
-    goto
   end
 end

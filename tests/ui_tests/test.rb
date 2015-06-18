@@ -65,8 +65,7 @@ describe 'CDN Resource Test Plan' do
       end
       
       it 'Edit CDN Resources' do
-        edit_cdn_resource_page = EditCdnResourcePage.new(@browser, true)
-        edit_cdn_resource_page.goto_edit
+        edit_cdn_resource_page = EditCdnResourcePage.new(@browser)
         edit_cdn_resource_page.advanced_settings = true
         edit_cdn_resource_page.access_policity = 'Allow by default'
         edit_cdn_resource_page.countries = 'Albania'
