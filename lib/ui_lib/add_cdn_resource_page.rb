@@ -6,6 +6,9 @@ require 'helpers/ui_helpers'
 class AddCdnResourcePage
   include PageObject
   include UiHelpers
+  attr_accessor :cdn_resource_type, :enable_ssl, :ssl_type, :custom_sni_ssl, :content_origin,
+                :storage_server_origin, :edge_groups, :internal_publishing_location,
+                :failover_internal_publishing_location, :publishing_point
 
   PageObject.javascript_framework = :jquery
 
@@ -39,7 +42,7 @@ class AddCdnResourcePage
   button(:next_button, :xpath => "//button[@class = 'round-button next']")
   button(:create_cdn_resource, :xpath => "//button[@type = 'submit']")
 
-  define_method ("cdn_resource_type=") do |value|
+  def cdn_resource_type=(value)
     case value
       when 'http'
         check_http
@@ -52,10 +55,11 @@ class AddCdnResourcePage
     end
   end
 
-  define_method ("enable_ssl=") do |value|
+  def enable_ssl=(value)
     slide_check_box('enable_ssl_checkbox', value)
   end
-  define_method ("ssl_type=") do |value|
+
+  def ssl_type=(value)
     case value
       when 'shared'
         check_shared_ssl
@@ -65,28 +69,34 @@ class AddCdnResourcePage
         raise "Unknown SSL type: #{value}"
     end
   end
-  define_method ("custom_sni_ssl=") do |value|
+
+  def custom_sni_ssl=(value)
     select_box('cdn_resource_content_origin_chzn', value)
   end
 
-  define_method ("content_origin=") do |value|
+  def content_origin=(value)
     select_box('cdn_resource_content_origin_chzn', value)
   end
-  define_method ("storage_server_origin=") do |value|
+
+  def storage_server_origin=(value)
     select_box('cdn_resource_storage_server_location_chzn', value)
   end
-  define_method ("edge_groups=") do |value|
+
+  def edge_groups=(value)
     value.each do |edge_group|
       box_check_box(edge_group)
     end
   end
-  define_method ("internal_publishing_location=") do |value|
+
+  def internal_publishing_location=(value)
     select_box('cdn_resource_internal_publishing_location_chzn', value)
   end
-  define_method ("failover_internal_publishing_location=") do |value|
+
+  def failover_internal_publishing_location=(value)
     select_box('cdn_resource_failover_internal_publishing_location_chzn', value)
   end
-  define_method ("publishing_point=") do |value|
+
+  def publishing_point=(value)
     select_box('cdn_resource_publishing_point_chzn', value)
   end
 
@@ -94,10 +104,10 @@ class AddCdnResourcePage
     self.next_button
     wait_for_ajax
   end
+
   def create_cdn_resource_button
     self.create_cdn_resource
     wait_for_ajax
     # return CdnResourceDetailsPage.new(browser, false)
   end
-
 end
