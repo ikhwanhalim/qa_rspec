@@ -52,11 +52,11 @@ class AddCdnResourcePage
         check_live_streaming
       else
         raise "Unknown CDN resource type: #{value}"
-    end
+    end if value
   end
 
   def enable_ssl=(value)
-    slide_check_box('enable_ssl_checkbox', value)
+    slide_check_box('enable_ssl_checkbox', value) if value
   end
 
   def ssl_type=(value)
@@ -67,37 +67,38 @@ class AddCdnResourcePage
         check_custom_sni_ssl
       else
         raise "Unknown SSL type: #{value}"
-    end
+    end if value
   end
 
   def custom_sni_ssl=(value)
-    select_box('cdn_resource_content_origin_chzn', value)
+    select_box('cdn_resource_content_origin_chzn', value) if value
   end
 
   def content_origin=(value)
-    select_box('cdn_resource_content_origin_chzn', value)
+    select_box('cdn_resource_content_origin_chzn', value) if value
   end
 
   def storage_server_origin=(value)
-    select_box('cdn_resource_storage_server_location_chzn', value)
+    select_box('cdn_resource_storage_server_location_chzn', value) if value
   end
 
   def edge_groups=(value)
+    list = value.kind_of?(Array) ? value : [value]
     value.each do |edge_group|
       box_check_box(edge_group)
-    end
+    end if list.any?
   end
 
   def internal_publishing_location=(value)
-    select_box('cdn_resource_internal_publishing_location_chzn', value)
+    select_box('cdn_resource_internal_publishing_location_chzn', value) if value
   end
 
   def failover_internal_publishing_location=(value)
-    select_box('cdn_resource_failover_internal_publishing_location_chzn', value)
+    select_box('cdn_resource_failover_internal_publishing_location_chzn', value) if value
   end
 
   def publishing_point=(value)
-    select_box('cdn_resource_publishing_point_chzn', value)
+    select_box('cdn_resource_publishing_point_chzn', value) if value
   end
 
   def next_page
