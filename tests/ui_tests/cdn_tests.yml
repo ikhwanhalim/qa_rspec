@@ -5,8 +5,7 @@ HTTP CDN resource test:
       hostname: vovka.best
       enable_ssl: false
       content_origin: PULL
-      origin1: 10.10.10.10
-      origin2: 10.10.10.11
+      origin: ['10.10.10.10', '10.10.10.11']
       edge_groups: ['iraEG1', 'iraEG2']
 #  edit:
 #    base:
@@ -18,7 +17,7 @@ VOD CDN resource test:
       type: vod
       hostname: vovka.best
       content_origin: PULL
-      origin: 10.10.11.100
+      origin: '10.10.11.100'
       edge_groups: ['iraEG3']
     advanced:
       some_stuf: 'just to open page'

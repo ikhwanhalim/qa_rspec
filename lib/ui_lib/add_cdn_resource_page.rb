@@ -6,8 +6,9 @@ require 'helpers/ui_helpers'
 class AddCdnResourcePage
   include PageObject
   include UiHelpers
-  attr_accessor :cdn_resource_type, :enable_ssl, :ssl_type, :custom_sni_ssl, :content_origin,
-                :storage_server_origin, :edge_groups, :internal_publishing_location,
+  attr_accessor :cdn_resource_type, :cdn_hostname, :enable_ssl, :ssl_type, :custom_sni_ssl, :content_origin,
+                :storage_server_origin, :ftp_password, :ftp_password_confirmation, :resource_origin, :external_publishing_location, :failover_external_publishing_location,
+                :edge_groups, :internal_publishing_location,
                 :failover_internal_publishing_location, :publishing_point
 
   PageObject.javascript_framework = :jquery
@@ -19,12 +20,12 @@ class AddCdnResourcePage
   checkbox(:vod, :id => 'cdn_resource_resource_type_stream_vod_pull')
   checkbox(:live_streaming, :id => 'cdn_resource_resource_type_stream_live')
 
-  text_field(:cdn_hostname, :id => 'cdn_resource_cdn_hostname')
-  text_field(:ftp_password, :id => 'cdn_resource_ftp_password')
-  text_field(:ftp_password_confirmation, :id => 'cdn_resource_ftp_password_confirmation')
+  text_field(:cdn_host, :id => 'cdn_resource_cdn_hostname')
+  text_field(:ftp_pass, :id => 'cdn_resource_ftp_password')
+  text_field(:ftp_pass_confirmation, :id => 'cdn_resource_ftp_password_confirmation')
 
+=begin
   text_field(:origin, :id => 'cdn_resource_origin')
-
   text_field(:origin1, :xpath => '//ul[@id = "origins-multiply-field"]/li[1]//input[@name="cdn_resource[origins][]"]')
   text_field(:origin2, :xpath => '//ul[@id = "origins-multiply-field"]/li[2]//input[@name="cdn_resource[origins][]"]')
   text_field(:origin3, :xpath => '//ul[@id = "origins-multiply-field"]/li[3]//input[@name="cdn_resource[origins][]"]')
@@ -33,9 +34,10 @@ class AddCdnResourcePage
   button(:remove_origin3, :xpath => '//ul[@id = "origins-multiply-field"]/li[3]//input[@name="cdn_resource[origins][]"]/../a')
   button(:add_origin2, :xpath => '//ul[@id = "origins-multiply-field"]/li[1]//span[@class="icon add"]')
   button(:add_origin3, :xpath => '//ul[@id = "origins-multiply-field"]/li[2]//span[@class="icon add"]')
+=end
 
-  text_field(:external_publishing_location, :id => 'cdn_resource_external_publishing_location')
-  text_field(:failover_external_publishing_location, :id => 'cdn_resource_failover_external_publishing_location')
+  text_field(:external_publishing_loc, :id => 'cdn_resource_external_publishing_location')
+  text_field(:failover_external_publishing_loc, :id => 'cdn_resource_failover_external_publishing_location')
   checkbox(:shared_ssl, :id => 'cdn_resource_ssl_type_ssl_on')
   checkbox(:custom_sni_ssl, :id => 'cdn_resource_ssl_type_ssl')
 
@@ -45,14 +47,20 @@ class AddCdnResourcePage
   def cdn_resource_type=(value)
     case value
       when 'http'
+        @resource_type ='http'
         check_http
       when 'vod'
+        @resource_type ='vod'
         check_vod
       when 'live_streaming'
         check_live_streaming
       else
         raise "Unknown CDN resource type: #{value}"
     end if value
+  end
+
+  def cdn_hostname=(value)
+    self.cdn_host = value if value
   end
 
   def enable_ssl=(value)
@@ -80,6 +88,34 @@ class AddCdnResourcePage
 
   def storage_server_origin=(value)
     select_box('cdn_resource_storage_server_location_chzn', value) if value
+  end
+  def ftp_password=(value)
+    self.ftp_pass = value if value
+  end
+  def ftp_password_confirmation=(value)
+    self.ftp_pass_confirmation = value if value
+  end
+  def resource_origin=(value)
+    if @resource_type == 'http' then
+        list = value.kind_of?(Array) ? value : [value]
+        puts list
+        i = 0
+        while i <= list.count - 1
+          puts i
+          browser.find_elements(:xpath => "//ul[@id = 'origins-multiply-field']/li[#{i}]//span[@class='icon add']").first.click() if i != 0
+          browser.find_elements(:xpath => "//ul[@id = 'origins-multiply-field']/li[#{i+1}]//input[@name='cdn_resource[origins][]']").first.send_keys(list[i])
+          i+=1
+        end
+
+    elsif @resource_type == 'vod'
+      browser.find_elements(:id => 'cdn_resource_origin').first.send_keys(value)
+    end if value
+  end
+  def external_publishing_location=(value)
+    self.external_publishing_loc = value if value
+  end
+  def failover_external_publishing_location=(value)
+    self.failover_external_publishing_loc = value if value
   end
 
   def edge_groups=(value)
