@@ -30,29 +30,24 @@ describe 'CDN Resource Test Plan' do
         add_cdn_resource_page.next_page
 
         # PROPERTIES TAB
-        add_cdn_resource_page.cdn_hostname = new_base['hostname'] unless new_base['hostname'].nil?
-        add_cdn_resource_page.enable_ssl= new_base['enable_ssl'] unless new_base['enable_ssl'].nil?
-        add_cdn_resource_page.ssl_type = new_base['ssl_type'] unless new_base['ssl_type'].nil?
-        add_cdn_resource_page.content_origin = new_base['content_origin'] unless new_base['content_origin'].nil?
-        add_cdn_resource_page.storage_server_origin = new_base['storage_server_origin'] unless new_base['storage_server_origin'].nil?
-        add_cdn_resource_page.ftp_password = new_base['ftp_password'] unless new_base['ftp_password'].nil?
-        add_cdn_resource_page.ftp_password_confirmation = new_base['ftp_password'] unless new_base['ftp_password'].nil?
-        add_cdn_resource_page.origin = new_base['origin'] unless new_base['origin'].nil?
-        add_cdn_resource_page.origin1 = new_base['origin1'] unless new_base['origin1'].nil?
-        add_cdn_resource_page.add_origin2 unless new_base['origin2'].nil?
-        add_cdn_resource_page.origin2 = new_base['origin2'] unless new_base['origin2'].nil?
-        add_cdn_resource_page.add_origin3 unless new_base['origin3'].nil?
-        add_cdn_resource_page.origin3 = new_base['origin3'] unless new_base['origin3'].nil?
-        add_cdn_resource_page.publishing_point = new_base['publishing_point'] unless new_base['publishing_point'].nil?
-        add_cdn_resource_page.external_publishing_location = new_base['external_publishing_location'] unless new_base['external_publishing_location'].nil?
-        add_cdn_resource_page.failover_external_publishing_location = new_base['external_publishing_location'] unless new_base['external_publishing_location'].nil?
+        add_cdn_resource_page.cdn_hostname = new_base['hostname']
+        add_cdn_resource_page.enable_ssl= new_base['enable_ssl']
+        add_cdn_resource_page.ssl_type = new_base['ssl_type']
+        add_cdn_resource_page.content_origin = new_base['content_origin']
+        add_cdn_resource_page.storage_server_origin = new_base['storage_server_origin']
+        add_cdn_resource_page.ftp_password = new_base['ftp_password']
+        add_cdn_resource_page.ftp_password_confirmation = new_base['ftp_password']
+        add_cdn_resource_page.resource_origin = new_base['origin']
+        add_cdn_resource_page.publishing_point = new_base['publishing_point']
+        add_cdn_resource_page.external_publishing_location = new_base['external_publishing_location']
+        add_cdn_resource_page.failover_external_publishing_location = new_base['external_publishing_location']
         add_cdn_resource_page.next_page
 
         # EDGE LOCATION TAB
 
-        add_cdn_resource_page.edge_groups = new_base['edge_groups'] unless new_base['edge_groups'].nil?
-        add_cdn_resource_page.internal_publishing_location = new_base['internal_publishing_location'] unless new_base['internal_publishing_location'].nil?
-        add_cdn_resource_page.failover_internal_publishing_location = new_base['failover_internal_publishing_location'] unless new_base['failover_internal_publishing_location'].nil?
+        add_cdn_resource_page.edge_groups = new_base['edge_groups']
+        add_cdn_resource_page.internal_publishing_location = new_base['internal_publishing_location']
+        add_cdn_resource_page.failover_internal_publishing_location = new_base['failover_internal_publishing_location']
 
         # ADVANCED SETTINGS
         unless new_advanced.nil?
@@ -65,6 +60,7 @@ describe 'CDN Resource Test Plan' do
       end
       
       it 'Edit CDN Resources' do
+        skip unless value['edit']
         edit_cdn_resource_page = EditCdnResourcePage.new(@browser)
         edit_cdn_resource_page.advanced_settings = true
         edit_cdn_resource_page.access_policity = 'Allow by default'
@@ -72,7 +68,7 @@ describe 'CDN Resource Test Plan' do
       end
       
       it 'Check After edit' do
-
+        skip unless value['edit']
       end
 
       it 'Delete CDN resource' do
