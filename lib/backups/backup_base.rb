@@ -50,6 +50,10 @@ class BackupBase
 
   def on_backup_server?(backup_id=nil)
     response = get("/backups/#{backup_id}")
-    return true ? response['backup']['backup_server_id'].class == Fixnum : false
+    return response['backup']['backup_server_id'].class == Fixnum ? true : false
+  end
+
+  def template_on_bs?
+    return @template_from_backup['backup_server_id'].class == Fixnum ? true : false
   end
 end

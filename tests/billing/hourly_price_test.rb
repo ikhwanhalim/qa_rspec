@@ -238,7 +238,6 @@ describe "Checking Billing Plan functionality" do
 
   after(:all) do
     # 'Login' under admin
-    auth
     @vm.destroy
     @vm.wait_for_destroy
     data = {:force => true}
@@ -290,7 +289,7 @@ describe "Checking Billing Plan functionality" do
     @ntw_br.edit_base_resource(@bp.bp_id, @ntw_br.br_id, @ntw_br_data)
     puts "BSZ ID - #{@bsz_id}"
   end
-=begin
+#=begin
   # TODO
   # Edit base resources
   # Download file
@@ -318,7 +317,7 @@ describe "Checking Billing Plan functionality" do
     # TODO
     # Check if file present on VS with appropriate size
   end
-=end
+#=end
   # Create Backup
   it "Create Backup to check price" do
     if !@onapp_yml.cfg['allow_incremental_backups']
@@ -346,8 +345,7 @@ describe "Checking Billing Plan functionality" do
   end
 
   it "Check template cost" do
-    template_on_bs = true ? @backup.template_from_backup['backup_server_id'].class == Fixnum : false
-    if !template_on_bs
+    if !@backup.template_on_bs?
       expect(@user.user_stats['template_cost']).to eq(@template_br_data[:prices][:price].to_f)
     else
       expect(@user.user_stats['template_cost']).to eq(0.0)
@@ -355,8 +353,7 @@ describe "Checking Billing Plan functionality" do
   end
 
   it "Check template count cost" do
-    template_on_bs = true ? @backup.template_from_backup['backup_server_id'].class == Fixnum : false
-    if template_on_bs
+    if @backup.template_on_bs?
       expect(@user.user_stats['template_count_cost']).to eq(@bsz_br_data[:prices][:price_template].to_f)
     else
       expect(@user.user_stats['template_count_cost']).to eq(0.0)
@@ -364,8 +361,7 @@ describe "Checking Billing Plan functionality" do
   end
 
   it "Check template disk size cost" do
-    template_on_bs = true ? @backup.template_from_backup['backup_server_id'].class == Fixnum : false
-    if template_on_bs
+    if @backup.template_on_bs?
       expect(@user.user_stats['template_disk_size_cost'].round(2)).to eq(((@backup.size(backup_id=@backup.id) / 1024.0 / 1024.0) * @bsz_br_data[:prices][:price_template_disk_size].to_i).round(2))
     else
       expect(@user.user_stats['template_disk_size_cost'].round(2)).to eq(0.0)
@@ -434,20 +430,20 @@ describe "Checking Billing Plan functionality" do
     expect(@vm.vs_hstats[:data_written_cost]).to be_within(expected_price/10.0).of(expected_price)
   end
 
-  it "Check Reads Completed cost" do
+  #it "Check Reads Completed cost" do
 
-  end
+  #end
 
-  it "Check Writes Completed cost" do
+  #it "Check Writes Completed cost" do
 
-  end
+  #end
 
   it "Check IP Address cost" do
-    expect(@vm.vs_hstats[:ip_address_cost]).to eq(@vm.ip_addresses.length * @ntw_br_data[:prices][:price_ip_on])
+    expect(@vm.vs_hstats[:ip_address_cost]).to eq(@vm.ip_addresses.length * @ntw_br_data[:prices][:price_ip_on].to_f)
   end
 
   it "Check Rate cost" do
-    expect(@vm.vs_hstats[:ip_address_cost]).to eq(vm_port_speed(@vm) * @ntw_br_data[:prices][:price_rate_on])
+    expect(@vm.vs_hstats[:rate_cost]).to eq(vm_port_speed(@vm) * @ntw_br_data[:prices][:price_rate_on].to_f)
   end
 
   it "Check Data Received cost" do
@@ -456,45 +452,46 @@ describe "Checking Billing Plan functionality" do
   end
 
   it "Check Data Sent cost" do
-
+    expected_price = @ntw_br_data[:prices][:price_data_sent].to_f * 0.2
+    expect(@vm.vs_hstats[:data_sent_cost]).to be_within(expected_price/1.0).of(expected_price)
   end
 
   it "Check CPU Shares cost" do
-
+    expect(@vm.vs_hstats[:cpu_shares_cost]).to eq(@vm.cpu_shares * @hv_br_data[:prices][:price_on_cpu_share].to_f )
   end
 
   it "Check CPUs cost" do
-
+    expect(@vm.vs_hstats[:cpus_cost]).to eq(@vm.cpus * @hv_br_data[:prices][:price_on_cpu].to_f )
   end
 
   it "Check Memory cost" do
-
+    expect(@vm.vs_hstats[:memory_cost]).to eq(@vm.memory * @hv_br_data[:prices][:price_on_memory].to_f )
   end
 
-  it "Check Template cost" do
+  #it "Check Template cost" do
 
-  end
+  #end
 
-  it "Check CPU Usage cost" do
+  #it "Check CPU Usage cost" do
 
-  end
+  #end
 
-  it "Check Total cost" do
+  #it "Check Total cost" do
 
-  end
+  #end
 
-  it "Check VM Resources cost" do
+  #it "Check VM Resources cost" do
 
-  end
+  #end
 
-  it "Check Usage cost" do
+  #it "Check Usage cost" do
 
-  end
-
-
+  #end
 
 
-=begin
+
+
+#=begin
   # Turn Off VS from UI, check hourly price and booted value - should be 0.
   it 'Check hourly price for shut downed VS.' do
     @vm.shut_down
@@ -502,6 +499,7 @@ describe "Checking Billing Plan functionality" do
     @vm.info_update
     if !@vm.booted?
       # Get price_for_last_hour
+      @vm.vm_stats_waiter
       hprices = @vm.price_for_last_hour
       price_off = hprices[:vm_resources_cost]
       puts "Billing Price OFF - #{price_off}"
@@ -519,6 +517,7 @@ describe "Checking Billing Plan functionality" do
     @vm.info_update
     if @vm.booted?
       # Get price_for_last_hour
+      @vm.vm_stats_waiter
       hprices = @vm.price_for_last_hour
       price_on = hprices[:vm_resources_cost]
       puts "Billing Price ON - #{price_on}"
@@ -542,6 +541,7 @@ describe "Checking Billing Plan functionality" do
       sleep(5)
     end
     # Get price_for_last_hour
+    @vm.vm_stats_waiter
     hprices = @vm.price_for_last_hour
     price_off = hprices[:vm_resources_cost]
     puts "Billing Price OFF - #{price_off}"
@@ -551,7 +551,7 @@ describe "Checking Billing Plan functionality" do
 
   # Check prices
   #hprices = @vm.price_for_last_hour
-=end
+#=end
   # Check prices for user_statistics on /users/:id/user_statistics page
   # Create payment, check that "Billing Details" has changed.
 end
