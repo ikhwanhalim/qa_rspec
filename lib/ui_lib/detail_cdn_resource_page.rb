@@ -23,7 +23,8 @@ module DetailCdnResourcePage
     table(:edge_groups, xpath: "//legend[contains(text(), 'Edge Groups')]/..")
 
     def initialize(browser, visit=true)
-      fail 'Wrong page URL' unless browser.current_url.include?('/cdn_resources/')
+      url_status = browser.current_url =~ /http(s)?:\/\/\S+\/cdn_resources\/\d+$/
+      fail 'Wrong page URL' if url_status != 0
       self.class.page_url(browser.current_url)
       super
     end
@@ -53,7 +54,8 @@ module DetailCdnResourcePage
     label(:proxy_connect_time_out, xpath: "//*[contains(text(), 'Proxy connect time out ')]/../*[2]")
 
     def initialize(browser, visit=true)
-      fail 'Wrong page URL' unless browser.current_url.include?('/cdn_resources/')
+      url_status = browser.current_url =~ /http(s)?:\/\/\S+\/cdn_resources\/\d+$/
+      fail 'Wrong page URL' if url_status != 0
       self.class.page_url(browser.current_url + '/advanced')
       super
     end

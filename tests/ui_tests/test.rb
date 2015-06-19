@@ -19,10 +19,16 @@ describe 'CDN Resource Test Plan' do
         @base_url = YAML::load_file('config/conf.yml')['url']
         @login_page = LoginPage.new(@browser, true)
         @home_page = @login_page.login
-        @home_page.current_url.should eq("#{@base_url}/")
-        @home_page.alert.should eq('Signed in successfully.')
+        expect(@home_page.current_url).to eq("#{@base_url}/")
+        expect(@home_page.alert).to eq('Signed in successfully.')
         fail 'CDN is not enabled' unless @home_page.cdn_status?
       end
+
+      after :all do
+        @browser.close
+        # @headless.destroy
+      end
+
       it 'Create CDN Resource' do
         # TYPE SELECT TAB
         add_cdn_resource_page = AddCdnResourcePage.new(@browser, true)
@@ -55,6 +61,7 @@ describe 'CDN Resource Test Plan' do
         end
         # add_cdn_resource_page.create_cdn_resource
       end
+
       it 'Check creation' do
 
       end
@@ -75,13 +82,8 @@ describe 'CDN Resource Test Plan' do
 
       end
     end
-
-      after :all do
-        @browser.close
-        # @headless.destroy
-      end
-    end
   end
+end
 =begin
   describe  do
     before :all do

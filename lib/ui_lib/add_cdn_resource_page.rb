@@ -89,31 +89,32 @@ class AddCdnResourcePage
   def storage_server_origin=(value)
     select_box('cdn_resource_storage_server_location_chzn', value) if value
   end
+
   def ftp_password=(value)
     self.ftp_pass = value if value
   end
+
   def ftp_password_confirmation=(value)
     self.ftp_pass_confirmation = value if value
   end
+
   def resource_origin=(value)
     if @resource_type == 'http' then
         list = value.kind_of?(Array) ? value : [value]
-        puts list
-        i = 0
-        while i <= list.count - 1
-          puts i
-          browser.find_elements(:xpath => "//ul[@id = 'origins-multiply-field']/li[#{i}]//span[@class='icon add']").first.click() if i != 0
-          browser.find_elements(:xpath => "//ul[@id = 'origins-multiply-field']/li[#{i+1}]//input[@name='cdn_resource[origins][]']").first.send_keys(list[i])
-          i+=1
+        list.each_with_index do |origin, index|
+          break if index == list.count - 1
+          browser.find_elements(:xpath => "//ul[@id = 'origins-multiply-field']/li[#{index}]//span[@class='icon add']").first.click() if index > 0
+          browser.find_elements(:xpath => "//ul[@id = 'origins-multiply-field']/li[#{index+1}]//input[@name='cdn_resource[origins][]']").first.send_keys(origin)
         end
-
     elsif @resource_type == 'vod'
       browser.find_elements(:id => 'cdn_resource_origin').first.send_keys(value)
     end if value
   end
+
   def external_publishing_location=(value)
     self.external_publishing_loc = value if value
   end
+
   def failover_external_publishing_location=(value)
     self.failover_external_publishing_loc = value if value
   end
