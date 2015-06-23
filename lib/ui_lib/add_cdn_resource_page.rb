@@ -2,10 +2,13 @@ require 'yaml'
 require 'page-object'
 require 'selenium-webdriver'
 require 'helpers/ui_helpers'
+require 'helpers/ui/page_helpers/cdn_resource_advanced_settings'
 
 class AddCdnResourcePage
   include PageObject
   include UiHelpers
+  include CdnResourceAdvancedSettings
+
   attr_accessor :cdn_resource_type, :cdn_hostname, :enable_ssl, :ssl_type, :custom_sni_ssl, :content_origin,
                 :storage_server_origin, :ftp_password, :ftp_password_confirmation, :resource_origin, :external_publishing_location, :failover_external_publishing_location,
                 :edge_groups, :internal_publishing_location,
@@ -64,7 +67,7 @@ class AddCdnResourcePage
   end
 
   def enable_ssl=(value)
-    slide_check_box('enable_ssl_checkbox', value) if value
+    slide_check_box('enable_ssl_checkbox', value) unless value.nil?
   end
 
   def ssl_type=(value)
@@ -102,7 +105,7 @@ class AddCdnResourcePage
     if @resource_type == 'http' then
         list = value.kind_of?(Array) ? value : [value]
         list.each_with_index do |origin, index|
-          break if index == list.count - 1
+          break if index == list.count
           browser.find_elements(:xpath => "//ul[@id = 'origins-multiply-field']/li[#{index}]//span[@class='icon add']").first.click() if index > 0
           browser.find_elements(:xpath => "//ul[@id = 'origins-multiply-field']/li[#{index+1}]//input[@name='cdn_resource[origins][]']").first.send_keys(origin)
         end
@@ -148,4 +151,5 @@ class AddCdnResourcePage
     wait_for_ajax
     # return CdnResourceDetailsPage.new(browser, false)
   end
+
 end

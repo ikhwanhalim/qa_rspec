@@ -58,7 +58,31 @@ describe 'CDN Resource Test Plan' do
         # ADVANCED SETTINGS
         unless new_advanced.nil?
           add_cdn_resource_page.next_page
+          add_cdn_resource_page.origin_policy= new_advanced['origin_policy']
+          add_cdn_resource_page.country_access_policy= new_advanced['country_access_policy']
+          add_cdn_resource_page.except_for_countries=new_advanced['except_for_countries']
+          add_cdn_resource_page.hotlink_policy= new_advanced['hotlink_policy']
+          add_cdn_resource_page.except_for_domains= new_advanced['except_for_domains']
+          add_cdn_resource_page.ip_access_policy= new_advanced['ip_access_policy']
+          add_cdn_resource_page.except_for_ip= new_advanced['except_for_ip']
+          add_cdn_resource_page.secondary_cdn_hostnames= new_advanced['secondary_cdn_hostnames']
+          add_cdn_resource_page.enable_url_signing= new_advanced['enable_url_signing']
+          add_cdn_resource_page.url_signing_key= new_advanced['url_signing']
+          add_cdn_resource_page.cache_expiry= new_advanced['cache_expiry']
+          add_cdn_resource_page.enable_password= new_advanced['enable_password']
+          add_cdn_resource_page.unauthorized_html= new_advanced['unauthorized_html']
+          add_cdn_resource_page.credentials= new_advanced['credentials']
+          add_cdn_resource_page.enable_mp4_pseudo_streaming= new_advanced['enable_mp4_pseudo_streaming']
+          add_cdn_resource_page.enable_flv_pseudo_streaming= new_advanced['enable_flv_pseudo_streaming']
+          add_cdn_resource_page.ignore_set_cookie= new_advanced['ignore_set_cookie']
+          add_cdn_resource_page.limit_rate= new_advanced['limit_rate']
+          add_cdn_resource_page.limit_rate_after=new_advanced['limit_rate_after']
+          add_cdn_resource_page.proxy_read_time_out= new_advanced['proxy_read_time_out']
+          add_cdn_resource_page.proxy_connect_time_out= new_advanced['proxy_connect_time_out']
+          add_cdn_resource_page.proxy_cache_key= new_advanced['proxy_cache_key']
+          add_cdn_resource_page.block_search_engine_crawlers= new_advanced['block_search_engine_crawlers']
         end
+        sleep 20
         # add_cdn_resource_page.create_cdn_resource
       end
 
