@@ -37,4 +37,13 @@ module UiHelpers
       wait_for_ajax
     end
   end
+
+  def drop_down_actions(action)
+    action_path = "//*[contains(@href,'#{@resource_path}')][contains(text(),'#{action}')]"
+    action_button_path = action_path + "/ancestor::*[@class='actions']/a"
+    browser.find_elements(:xpath => action_button_path).first.click
+    wait_for_ajax
+    browser.find_elements(:xpath => action_path).first.click
+    browser.switch_to.alert.accept if action == 'Delete'
+  end
 end
