@@ -27,11 +27,11 @@ module UiHelpers
   end
 
   def multi_select_box(id, value)
-    list = value.kind_of?(Array) ? value : [value]  
+    list = value.kind_of?(Array) ? value : [value]
     list.each do |el|
       browser.find_elements(:xpath => "//div[@id = '#{id}']/ul").first.click
       wait_for_ajax
-      browser.find_elements(:xpath => "//div[@id = '#{id}']//input").first.send_keys(value)
+      browser.find_elements(:xpath => "//div[@id = '#{id}']//input").first.send_keys(el)
       wait_for_ajax
       browser.find_elements(:xpath => "//div[@id = '#{id}']//*[contains(text(),'#{el}')]").first.click()
       wait_for_ajax
