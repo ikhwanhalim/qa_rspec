@@ -17,9 +17,9 @@ describe "Check Backups Limits" do
 ########################################################################################################################
   # Check 'Free' limits
   it "Create with negative 'Free' value" do 
-    data = {:resource_class => "Resource::Backup",
+    data = {:resource_class => "Billing::Resource::Backup",
             :limits => {
-                :limit_free => "-2"
+                :limit_free => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -27,9 +27,9 @@ describe "Check Backups Limits" do
   end
 
   it "Create with pozitive 'Free' value > 0" do 
-    data = {:resource_class => "Resource::Backup",
+    data = {:resource_class => "Billing::Resource::Backup",
             :limits => {
-                :limit_free => "2"
+                :limit_free => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -49,23 +49,23 @@ describe "Check Backups Limits" do
   it "Delete resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Max' limits
   it "Create with negative 'Max' value" do 
-    data = {:resource_class => "Resource::Backup",
+    data = {:resource_class => "Billing::Resource::Backup",
             :limits => {
-                :limit => "-2"
+                :limit => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
     expect(response['limit'].first).to eq("must be greater than or equal to 0")
   end
   it "Create with pozitive 'Max' value > 0" do 
-    data = {:resource_class => "Resource::Backup",
+    data = {:resource_class => "Billing::Resource::Backup",
             :limits => {
-                :limit => "2"
+                :limit => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -83,27 +83,27 @@ describe "Check Backups Limits" do
   it "Delete resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Prices'
   it "Create with negative 'Price' value" do 
-    data = {:resource_class => "Resource::Backup",
+    data = {:resource_class => "Billing::Resource::Backup",
             :prices => {
-                :price => "-2"
+                :price => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
     expect(response['price'].first).to eq("must be greater than or equal to 0")
   end
   it "Create with pozitive 'Price' value > 0" do 
-    data = {:resource_class => "Resource::Backup",
+    data = {:resource_class => "Billing::Resource::Backup",
             :prices => {
-                :price => "2"
+                :price => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['prices']['price']).to eq("$#{data[:prices][:price]}.00 /hr")
+    expect(response['prices']['price']).to eq(data[:prices][:price].to_f)
   end
   it "Edit 'Price' value, set 0" do
     data = {:prices => {
@@ -117,6 +117,6 @@ describe "Check Backups Limits" do
   it "Delete resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 end

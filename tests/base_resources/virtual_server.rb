@@ -17,18 +17,18 @@ describe "Check resources for Virtual Server" do
   end
 ########################################################################################################################
   it "Create with negative 'Max' value" do 
-    data = {:resource_class => "Resource::VmLimit",
+    data = {:resource_class => "Billing::Resource::VmLimit",
             :limits => {
-                :limit => "-2"
+                :limit => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
     expect(response['limit'].first).to eq("must be greater than or equal to 0")
   end
   it "Create with pozitive 'Max' value > 0" do 
-    data = {:resource_class => "Resource::VmLimit",
+    data = {:resource_class => "Billing::Resource::VmLimit",
             :limits => {
-                :limit => "2"
+                :limit => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -36,16 +36,16 @@ describe "Check resources for Virtual Server" do
   end
   it "Edit 'Max' value, set 0 (Unlimited)" do
     data = {:limits => {
-        :limit => "0"
+        :limit => 0
     }
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response['limits']['limit'].to_s).to eq(data[:limits][:limit])
+    expect(response['limits']['limit']).to eq(data[:limits][:limit])
   end
   it "Delete resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 end
