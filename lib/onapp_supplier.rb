@@ -58,6 +58,14 @@ class OnappSupplier
     @published_zone = get("/settings/hypervisor_zones/#{@hvz_id}").values.first
   end
 
+  def make_public
+    put("/federation/hypervisor_zones/#{@hvz_id}/make_public")
+  end
+
+  def make_private
+    put("/federation/hypervisor_zones/#{@hvz_id}/make_private")
+  end
+
   def disable_zone(id=@published_zone['id'])
     @published_zone = post("/federation/hypervisor_zones/#{id}/deactivate").values.first
   end
@@ -106,6 +114,7 @@ class OnappSupplier
   def data_stores_attach
     id = @data_store_group['id']
     post("/settings/data_store_zones/#{id}/data_stores/attach_range", {ids: @data_stores_ids})
+    get("/settings/data_store_zones/#{id}/data_stores").any? ? true : false
   end
 
   # VM operations

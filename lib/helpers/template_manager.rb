@@ -50,7 +50,9 @@ module TemplateManager
 
   def add_to_template_store(template_id, price=0)
     data = {"relation_group_template"=>{"template_id"=>template_id, "price"=>price}}
-    template_store_list = get("/template_store").select {|s| s['system_group'] == false}
+    template_store_list = get("/template_store").select do |s|
+      !s['system_group'] && !s['relations'].first['image_template']['remote_id']
+    end
     if template_store_list
       @template_store = template_store_list.first
     else
