@@ -19,6 +19,10 @@ module BaseResources
   def get_net_zone_id(hvz_id)
     net_zone_id = nil
     network_joins = get("/settings/hypervisor_zones/#{hvz_id}/network_joins")
+    if !network_joins.any?
+      hv_id = get("/settings/hypervisor_zones/#{hvz_id}/hypervisors").first['hypervisor']['id']
+      network_joins = get("/settings/hypervisors/#{hv_id}/network_joins")
+    end
     network_id = network_joins.first['network_join']['network_id']
     network = get("/settings/networks/#{network_id}")
     net_zone_id = network['network']['network_group_id']
