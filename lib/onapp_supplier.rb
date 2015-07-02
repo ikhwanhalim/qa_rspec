@@ -133,9 +133,9 @@ class OnappSupplier
 
   def get_token(receiver)
     10.times do
-      token = get("/federation/hypervisor_zones/#{@hvz_id}/supplier_tokens").select do |t|
+      token = get("/federation/hypervisor_zones/#{@hvz_id}/supplier_tokens").detect do |t|
         t['token']['receiver'] == receiver
-      end.first
+      end
       return token if token
       sleep 1
     end

@@ -28,6 +28,7 @@ module OnappHTTP
     Log.info("GET request has been sent to #{link} with params #{data}")
     request
     rescue Mechanize::ResponseCodeError => e
+      conn.page.code = e.page.code if conn.page
       JSON.parse e.page.body
     rescue JSON::ParserError
       Log.warn("This is HTML page")
@@ -39,6 +40,7 @@ module OnappHTTP
     request
     JSON.parse(request.body) unless request.body.blank?
     rescue Mechanize::ResponseCodeError => e
+      conn.page.code = e.page.code if conn.page
       JSON.parse e.page.body
   end
 
@@ -47,6 +49,7 @@ module OnappHTTP
     Log.info("DELETE request has been sent to #{link} with params #{data}")
     request
     rescue Mechanize::ResponseCodeError => e
+      conn.page.code = e.page.code if conn.page
       JSON.parse e.page.body
   end
 
@@ -56,6 +59,7 @@ module OnappHTTP
     request
     JSON.parse(request.body) unless request.body.blank?
     rescue Mechanize::ResponseCodeError => e
+      conn.page.code = e.page.code if conn.page
       JSON.parse e.page.body
   end
 end

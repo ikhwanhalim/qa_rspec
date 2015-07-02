@@ -4,7 +4,7 @@ require 'virtual_machine/vm_base'
 
 class OnappTrader
   include OnappHTTP
-  attr_accessor :subscribed_zone, :vm
+  attr_accessor :subscribed_zone, :vm, :template_store
 
   def initialize
     data = YAML::load_file('config/conf.yml')
@@ -22,12 +22,25 @@ class OnappTrader
                  'data_store_label' => federation_id,
                  'network_group_label' => federation_id,
                  'network_label' => federation_id,
-                 'image_template_group_label' => federation_id,
+                 'image_template_group_label' => federation_id
                 }
     }
     response = post("/federation/hypervisor_zones/#{federation_id}/subscribe", data)
     return response if response
-    @subscribed_zone = all_subscribed.select {|z| z['federation_id'] == federation_id}.first
+    @subscribed_zone = all_subscribed.detect { |z| z['federation_id'] == federation_id }
+    template_store
+  end
+
+  def template_store
+    get_all('/template_store').detect { |ts| ts['label'] ==  @subscribed_zone['federation_id']}
+  end
+
+  def find_template(label)
+    template = get('/templates/all').detect do |t|
+      t['image_template']['remote_id'] =~ /#{@subscribed_zone['federation_id']}/ &&
+      t['image_template']['label'] == label
+    end
+    template['image_template']
   end
 
   def search(label)
@@ -76,18 +89,17 @@ class OnappTrader
   # VM operations
   def create_vm(template_label, federation_id)
     hypervisors = get('/settings/hypervisors').select {|h| h['hypervisor']['label'] == federation_id}
-    templates = get('/templates/all').select do |t|
-      t['image_template']['remote_id'] &&
-          t['image_template']['remote_id'].include?(federation_id) &&
-          t['image_template']['label'] == template_label
-    end
     Log.error('Hypervisor does not have resources') unless hypervisors
-    data = {'hypervisor' => hypervisors.first['hypervisor'], 'template' => templates.first['image_template']}
+    data = {'hypervisor' => hypervisors.first['hypervisor'],
+            'template' => find_template(template_label)
+    }
     auth_data = {'url' => @url, 'user' => @user, 'pass' => @pass}
     @vm = VirtualMachine.new(federation: auth_data)
     @vm.create(nil, nil, data)
-    errors = @vm.virtual_machine['errors']
-    return errors.to_s if errors
+    if @vm.errors
+      Log.warn @vm.errors.to_s
+      return @vm.errors.to_s
+    end
     Log.error("VM has not been built") unless @vm.is_created?
   end
 

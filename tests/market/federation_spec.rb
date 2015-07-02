@@ -150,6 +150,11 @@ describe "Market" do
       @supplier.remove_all_from_federation
     end
 
+    after do
+      expect(@trader.conn.page.code).to_not eq '500'
+      expect(@supplier.conn.page.code).to_not eq '500'
+    end
+
     let(:federation_id) { @trader.subscribed_zone['federation_id'] }
 
     describe "Supplier" do
@@ -172,7 +177,8 @@ describe "Market" do
       end
 
       it "should not be able subscribe to zone twice" do
-        expect(@trader.subscribe(federation_id).keys.first).to eq 'errors'
+        @trader.subscribe(federation_id)
+        expect(@trader.conn.page.code).to eq "422"
       end
 
       it "should has virtual template group" do
@@ -204,6 +210,21 @@ describe "Market" do
         error = @trader.create_vm(@supplier.template['label'], federation_id).to_s
         expect(error.include?("aren't enough resources")).to be true
         expect(@supplier.data_stores_attach).to be true
+      end
+
+      it 'should not be able remove federated template' do
+        template = @trader.find_template(@supplier.template['label'])
+        @trader.delete("/templates/#{template['id']}")
+        expect(@trader.conn.page.code).to eq "422"
+      end
+
+      it 'should not be able remove federated template from template group' do
+        err = @trader.delete("/settings/image_template_groups/%s/relation_group_templates/%s" %
+                             [@trader.template_store['id'],
+                             @trader.template_store['relations'].first['id']]
+        )
+        expect(@trader.conn.page.code).to eq "422"
+        expect(err.to_s).to include "can't be added or deleted"
       end
     end
   end

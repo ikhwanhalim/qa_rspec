@@ -7,9 +7,9 @@ describe "Federation Virtual Machine" do
     @supplier = OnappSupplier.new
     @trader = OnappTrader.new
     @supplier.add_to_federation
-    @trader.wait_for_publishing(@supplier.published_zone['federation_id'])
-    @trader.subscribe(@supplier.published_zone['federation_id'])
-    federation_id = @trader.subscribed_zone['federation_id']
+    federation_id = @supplier.published_zone['federation_id']
+    @trader.wait_for_publishing(federation_id)
+    @trader.subscribe(federation_id)
     @trader.create_vm(@supplier.template['label'], federation_id)
     @supplier.find_vm(federation_id)
     expect(@trader.vm.pinged?).to be true
