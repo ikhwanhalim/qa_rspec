@@ -116,7 +116,7 @@ describe "Checking Billing Plan functionality" do
     # Add base resources to BP
     # Add Limits for User VSs
     # Template
-    @template_br_data = {:resource_class => "Resource::Template",
+    @template_br_data = {:resource_class => "Billing::Resource::Template",
                          :limits => {:limit => "1",
                                      :limit_free => "0"
                          },
@@ -125,7 +125,7 @@ describe "Checking Billing Plan functionality" do
     }
     @template_br.create_base_resource(@bp.bp_id, @template_br_data)
     # Storage Disk Size
-    @storage_disk_size_br_data = {:resource_class => "Resource::StorageDiskSize",
+    @storage_disk_size_br_data = {:resource_class => "Billing::Resource::StorageDiskSize",
                          :limits => {:limit => "1",
                                      :limit_free => "0"
                          },
@@ -134,7 +134,7 @@ describe "Checking Billing Plan functionality" do
     }
     @storage_disk_size_br.create_base_resource(@bp.bp_id, @storage_disk_size_br_data)
     # Backup
-    @backup_br_data = {:resource_class => "Resource::Backup",
+    @backup_br_data = {:resource_class => "Billing::Resource::Backup",
                          :limits => {:limit => "1",
                                      :limit_free => "0"
                          },
@@ -143,7 +143,7 @@ describe "Checking Billing Plan functionality" do
     }
     @backup_br.create_base_resource(@bp.bp_id, @backup_br_data)
     # HV
-    @hv_br_data = {:resource_class => "Resource::HypervisorGroup",
+    @hv_br_data = {:resource_class => "Billing::Resource::HypervisorGroup",
                    :target_id => @hvz_id,
                    :target_type => "Pack",
                    :limits => {:limit_free_cpu => "1",
@@ -164,7 +164,7 @@ describe "Checking Billing Plan functionality" do
     @hv_br.create_base_resource(@bp.bp_id, @hv_br_data)
 
     # DS
-    @ds_br_data = {:resource_class => "Resource::DataStoreGroup",
+    @ds_br_data = {:resource_class => "Billing::Resource::DataStoreGroup",
                    :target_id => @dsz_id,
                    :target_type => "Pack",
                    :limits=> {:limit_free=>"6",
@@ -186,7 +186,7 @@ describe "Checking Billing Plan functionality" do
     @ds_br.create_base_resource(@bp.bp_id, @ds_br_data)
 
     # NW
-    @ntw_br_data = {:resource_class => "Resource::NetworkGroup",
+    @ntw_br_data = {:resource_class => "Billing::Resource::NetworkGroup",
                     :target_id => @netz_id,
                     :target_type => "Pack",
                     :limits => {:limit_ip => "2",
@@ -208,7 +208,7 @@ describe "Checking Billing Plan functionality" do
     @ntw_br.create_base_resource(@bp.bp_id, @ntw_br_data)
 
     # BS
-    @bsz_br_data = {:resource_class => "Resource::BackupServerGroup",
+    @bsz_br_data = {:resource_class => "Billing::Resource::BackupServerGroup",
                     :target_id => @bsz_id,
                     :target_type => "Pack",
                     :limits => {:limit_backup_free => '0',
