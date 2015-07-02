@@ -18,7 +18,7 @@ describe "Check Backup Server Zone limits" do
   end
 ########################################################################################################################
   it "Create Backup Server Zone limit with unexisted backup server zone id" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => 0,
             :target_type => "Pack"
     }
@@ -30,11 +30,11 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Free' limits
   it "Create 'Backups' limit with negative 'Free' value" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_backup_free => "-2"
+                :limit_backup_free => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -42,11 +42,11 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Backups' limit with pozitive 'Free' value > 0" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_backup_free => "2"
+                :limit_backup_free => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -66,16 +66,16 @@ describe "Check Backup Server Zone limits" do
   it "Delete 'Backups' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Max' limits
   it "Create 'Backups' limit with negative 'Max' value" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_backup => "-2"
+                :limit_backup => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -83,11 +83,11 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Backups' limit with pozitive 'Max' value > 0" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_backup => "2"
+                :limit_backup => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -107,16 +107,16 @@ describe "Check Backup Server Zone limits" do
   it "Delete 'Backups' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Prices'
   it "Create 'Backups' limit with negative 'Price' value" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :prices => {
-                :price_backup => "-2"
+                :price_backup => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -124,15 +124,15 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Backups' limit with pozitive 'Price' value > 0" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :prices => {
-                :price_backup => "2"
+                :price_backup => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['prices']['price_backup']).to eq("$#{data[:prices][:price_backup]}.00 /hr")
+    expect(response['prices']['price_backup']).to eq(data[:prices][:price_backup].to_f)
   end
 
   it "Edit 'Backups' limi 'Price' value, set 0" do
@@ -148,7 +148,7 @@ describe "Check Backup Server Zone limits" do
   it "Delete 'Backups' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 
 ########################################################################################################################
@@ -156,11 +156,11 @@ describe "Check Backup Server Zone limits" do
 ########################################################################################################################
   # Check 'Free' limits
   it "Create 'Backup Disk Size' limit with negative 'Free' value" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_backup_disk_size_free => "-2"
+                :limit_backup_disk_size_free => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -168,15 +168,15 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Backup Disk Size' limit with pozitive 'Free' value > 0" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_backup_disk_size_free => "2"
+                :limit_backup_disk_size_free => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['limits']['limit_backup_disk_size_free']).to eq("#{data[:limits][:limit_backup_disk_size_free]} GB")
+    expect(response['limits']['limit_backup_disk_size_free']).to eq(data[:limits][:limit_backup_disk_size_free].to_f)
   end
 
   it "Edit 'Backup Disk Size' limit 'Free' value, set 0" do
@@ -192,16 +192,16 @@ describe "Check Backup Server Zone limits" do
   it "Delete 'Backup Disk Size' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Max' limits
   it "Create 'Backup Disk Size' limit with negative 'Max' value" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_backup_disk_size => "-2"
+                :limit_backup_disk_size => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -209,15 +209,15 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Backup Disk Size' limit with pozitive 'Max' value > 0" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_backup_disk_size => "2"
+                :limit_backup_disk_size => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['limits']['limit_backup_disk_size']).to eq("#{data[:limits][:limit_backup_disk_size]} GB")
+    expect(response['limits']['limit_backup_disk_size']).to eq(data[:limits][:limit_backup_disk_size].to_f)
   end
 
   it "Edit 'Backup Disk Size' limit 'Max' value, set 0 (Unlimited)" do
@@ -233,16 +233,16 @@ describe "Check Backup Server Zone limits" do
   it "Delete 'Backup Disk Size' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Prices'
   it "Create 'Backup Disk Size' limit with negative 'Price' value" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :prices => {
-                :price_backup_disk_size => "-2"
+                :price_backup_disk_size => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -250,15 +250,15 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Backup Disk Size' limit with pozitive 'Price' value > 0" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :prices => {
-                :price_backup_disk_size => "2"
+                :price_backup_disk_size => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['prices']['price_backup_disk_size']).to eq("$#{data[:prices][:price_backup_disk_size]}.00 per GB /hr")
+    expect(response['prices']['price_backup_disk_size']).to eq(data[:prices][:price_backup_disk_size].to_f)
   end
 
   it "Edit 'Backup Disk Size' limit 'Price' value, set 0" do
@@ -274,18 +274,18 @@ describe "Check Backup Server Zone limits" do
   it "Delete 'Backup Disk Size' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Templates' limits
 ########################################################################################################################
   # Check 'Free' limits
   it "Create 'Templates' limit with negative 'Free' value" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_template_free => "-2"
+                :limit_template_free => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -293,11 +293,11 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Templates' limit with pozitive 'Free' value > 0" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_template_free => "2"
+                :limit_template_free => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -317,16 +317,16 @@ describe "Check Backup Server Zone limits" do
   it "Delete 'Templates' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Max' limits
   it "Create 'Templates' limit with negative 'Max' value" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_template => "-2"
+                :limit_template => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -334,11 +334,11 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Templates' limit with pozitive 'Max' value > 0" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_template => "2"
+                :limit_template => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -358,16 +358,16 @@ describe "Check Backup Server Zone limits" do
   it "Delete 'Templates' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Prices'
   it "Create 'Templates' limit with negative 'Price' value" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :prices => {
-                :price_template => "-2"
+                :price_template => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -375,15 +375,15 @@ describe "Check Backup Server Zone limits" do
     
   end
   it "Create 'Templates' limit with pozitive 'Price' value > 0" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :prices => {
-                :price_template => "2"
+                :price_template => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['prices']['price_template']).to eq("$#{data[:prices][:price_template]}.00 /hr")
+    expect(response['prices']['price_template']).to eq(data[:prices][:price_template].to_f)
   end
 
   it "Edit 'Templates' limit 'Price' value, set 0" do
@@ -399,18 +399,18 @@ describe "Check Backup Server Zone limits" do
   it "Delete 'Templates' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Template Disk Size' limits
 ########################################################################################################################
   # Check 'Free' limits
   it "Create 'Template Disk Size' limit with negative 'Free' value" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_template_disk_size_free => "-2"
+                :limit_template_disk_size_free => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -418,15 +418,15 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Template Disk Size' limit with pozitive 'Free' value > 0" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_template_disk_size_free => "2"
+                :limit_template_disk_size_free => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['limits']['limit_template_disk_size_free']).to eq("#{data[:limits][:limit_template_disk_size_free]} GB")
+    expect(response['limits']['limit_template_disk_size_free']).to eq(data[:limits][:limit_template_disk_size_free].to_f)
   end
 
   it "Edit 'Template Disk Size' limit 'Free' value, set 0" do
@@ -442,16 +442,16 @@ describe "Check Backup Server Zone limits" do
   it "Delete 'Template Disk Size' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Max' limits
   it "Create 'Template Disk Size' limit with negative 'Max' value" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_template_disk_size => "-2"
+                :limit_template_disk_size => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -459,15 +459,15 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Template Disk Size' limit with pozitive 'Max' value > 0" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_template_disk_size => "2"
+                :limit_template_disk_size => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['limits']['limit_template_disk_size']).to eq("#{data[:limits][:limit_template_disk_size]} GB")
+    expect(response['limits']['limit_template_disk_size']).to eq(data[:limits][:limit_template_disk_size].to_f)
   end
 
   it "Edit 'Template Disk Size' limit 'Max' value, set 0 (Unlimited)" do
@@ -483,16 +483,16 @@ describe "Check Backup Server Zone limits" do
   it "Delete 'Template Disk Size' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Prices'
   it "Create 'Template Disk Size' limit with negative 'Price' value" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :prices => {
-                :price_template_disk_size => "-2"
+                :price_template_disk_size => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -500,20 +500,20 @@ describe "Check Backup Server Zone limits" do
   end
 
   it "Create 'Template Disk Size' limit with pozitive 'Price' value > 0" do
-    data = {:resource_class => "Resource::BackupServerGroup",
+    data = {:resource_class => "Billing::Resource::BackupServerGroup",
             :target_id => @bsz_id,
             :target_type => "Pack",
             :prices => {
-                :price_template_disk_size => "2"
+                :price_template_disk_size => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['prices']['price_template_disk_size']).to eq("$#{data[:prices][:price_template_disk_size]}.00 per GB /hr")
+    expect(response['prices']['price_template_disk_size']).to eq(data[:prices][:price_template_disk_size].to_f)
   end
 
   it "Edit 'Template Disk Size' limit 'Price' value, set 0" do
     data = {:prices => {
-        :price_template_disk_size => 20
+        :price_template_disk_size => 0
         }
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
@@ -524,7 +524,7 @@ describe "Check Backup Server Zone limits" do
   it "Delete 'Template Disk Size' limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
 end

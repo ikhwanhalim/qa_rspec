@@ -18,7 +18,7 @@ describe "Check resources for Recipe Group" do
   end
 ########################################################################################################################
   it "Create Recipe Group limit with unexisted recipe group id" do 
-    data = {:resource_class => "Resource::RecipeGroup",
+    data = {:resource_class => "Billing::Resource::RecipeGroup",
             :target_id => 0,
             :target_type => "RecipeGroup"
     }
@@ -26,7 +26,7 @@ describe "Check resources for Recipe Group" do
     expect(response['base'].first).to eq("Target not found")
   end
   it "Create Recipe Group limit with existed recipe group id" do 
-    data = {:resource_class => "Resource::RecipeGroup",
+    data = {:resource_class => "Billing::Resource::RecipeGroup",
             :target_id => @recipe_group_id,
             :target_type => "RecipeGroup"
     }
@@ -36,6 +36,6 @@ describe "Check resources for Recipe Group" do
   it "Delete Recipe Group limit resource" do
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 end

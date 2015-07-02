@@ -24,7 +24,7 @@ describe "Check Limits for guaranteed minIOPS" do
   end
 
   it "Create 'min IOPS' limit for not SolidFire DataStore type" do
-    data = {:resource_class => "Resource::SolidFire",
+    data = {:resource_class => "Billing::Resource::SolidFire",
             :target_id => @lvm_dsz_id,
             :target_type => "Pack"
     }
@@ -33,7 +33,7 @@ describe "Check Limits for guaranteed minIOPS" do
   end
 ########################################################################################################################
   it "Create 'min IOPS' limit for unexisted DataStore Zone id" do
-    data = {:resource_class => "Resource::SolidFire",
+    data = {:resource_class => "Billing::Resource::SolidFire",
             :target_id => 0,
             :target_type => "Pack"
     }
@@ -44,11 +44,11 @@ describe "Check Limits for guaranteed minIOPS" do
   # Check 'Free' limits
   it "Create 'min IOPS' limit with negative 'Free' value" do
     ds_solidfire?
-    data = {:resource_class => "Resource::SolidFire",
+    data = {:resource_class => "Billing::Resource::SolidFire",
             :target_id => @sf_dsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_free => "-2"
+                :limit_free => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -57,11 +57,11 @@ describe "Check Limits for guaranteed minIOPS" do
 
   it "Create 'min IOPS' limit with pozitive 'Free' value > 0" do
     ds_solidfire?
-    data = {:resource_class => "Resource::SolidFire",
+    data = {:resource_class => "Billing::Resource::SolidFire",
             :target_id => @sf_dsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit_free => "2"
+                :limit_free => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -71,7 +71,7 @@ describe "Check Limits for guaranteed minIOPS" do
   it "Edit 'min IOPS' limit 'Free' value, set 0" do
     ds_solidfire?
     data = {:limits => {
-                :limit_free => "0"
+                :limit_free => 0
             }
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
@@ -83,17 +83,17 @@ describe "Check Limits for guaranteed minIOPS" do
     ds_solidfire?
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Max' limits
   it "Create 'min IOPS' limit with negative 'Max' value" do
     ds_solidfire?
-    data = {:resource_class => "Resource::SolidFire",
+    data = {:resource_class => "Billing::Resource::SolidFire",
             :target_id => @sf_dsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit => "-2"
+                :limit => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -102,11 +102,11 @@ describe "Check Limits for guaranteed minIOPS" do
 
   it "Create 'min IOPS' limit with pozitive 'Max' value > 0" do
     ds_solidfire?
-    data = {:resource_class => "Resource::SolidFire",
+    data = {:resource_class => "Billing::Resource::SolidFire",
             :target_id => @sf_dsz_id,
             :target_type => "Pack",
             :limits => {
-                :limit => "2"
+                :limit => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -116,7 +116,7 @@ describe "Check Limits for guaranteed minIOPS" do
   it "Edit 'min IOPS' limit 'Max' value, set 0 (Unlimited)" do
     ds_solidfire?
     data = {:limits => {
-                :limit => "0"
+                :limit => 0
             }
     }
     @br.edit_base_resource(@bp_id, @br.br_id, data)
@@ -128,17 +128,17 @@ describe "Check Limits for guaranteed minIOPS" do
     ds_solidfire?
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Prices On'
   it "Create 'min IOPS' limit with negative 'Price On' value" do
     ds_solidfire?
-    data = {:resource_class => "Resource::SolidFire",
+    data = {:resource_class => "Billing::Resource::SolidFire",
             :target_id => @sf_dsz_id,
             :target_type => "Pack",
             :prices => {
-                :price_on => "-2"
+                :price_on => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -147,15 +147,15 @@ describe "Check Limits for guaranteed minIOPS" do
 
   it "Create 'min IOPS' limit with pozitive 'Price On' value > 0" do
     ds_solidfire?
-    data = {:resource_class => "Resource::SolidFire",
+    data = {:resource_class => "Billing::Resource::SolidFire",
             :target_id => @sf_dsz_id,
             :target_type => "Pack",
             :prices => {
-                :price_on => "2"
+                :price_on => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['prices']['price_on']).to eq("$#{data[:prices][:price_on]}.00 per request /hr")
+    expect(response['prices']['price_on']).to eq(data[:prices][:price_on].to_f)
   end
 
   it "Edit 'min IOPS' limit 'Price On' value, set 0" do
@@ -173,17 +173,17 @@ describe "Check Limits for guaranteed minIOPS" do
     ds_solidfire?
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 ########################################################################################################################
   # Check 'Prices Off'
   it "Create 'min IOPS' limit with negative 'Price Off' value" do
     ds_solidfire?
-    data = {:resource_class => "Resource::SolidFire",
+    data = {:resource_class => "Billing::Resource::SolidFire",
             :target_id => @sf_dsz_id,
             :target_type => "Pack",
             :prices => {
-                :price_off => "-2"
+                :price_off => -2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
@@ -192,15 +192,15 @@ describe "Check Limits for guaranteed minIOPS" do
 
   it "Create 'min IOPS' limit with pozitive 'Price Off' value > 0" do
     ds_solidfire?
-    data = {:resource_class => "Resource::SolidFire",
+    data = {:resource_class => "Billing::Resource::SolidFire",
             :target_id => @sf_dsz_id,
             :target_type => "Pack",
             :prices => {
-                :price_off => "2"
+                :price_off => 2
             }
     }
     response = @br.create_base_resource(@bp_id, data)
-    expect(response['prices']['price_off']).to eq("$#{data[:prices][:price_off]}.00 per request /hr")
+    expect(response['prices']['price_off']).to eq(data[:prices][:price_off].to_f)
   end
 
   it "Edit 'min IOPS' limit 'Price Off' value, set 0" do
@@ -218,6 +218,6 @@ describe "Check Limits for guaranteed minIOPS" do
     ds_solidfire?
     @br.delete_base_resource(@bp_id, @br.br_id)
     response = @br.get_base_resource(@bp_id, @br.br_id)
-    expect(response.first).to eq('BaseResource not found')
+    expect(response.first).to eq('Resource not found')
   end
 end
