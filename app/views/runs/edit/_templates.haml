@@ -1,0 +1,29 @@
+%table.table.table-bordered.table-striped
+  %thead
+    %tr
+      %th 
+        %span1 Template name
+        = link_to image_tag('Plus.png', :class => "plus", :title => "Add template"), "#", :class => "icon-plus"
+        = link_to image_tag('Reload.png', :class => "reload", :title => "Download new templates"), runs_update_templates_path, :class => "icon-reload"
+    %tbody.template
+      - for template in selected_templates
+        %tr
+          %th
+            = link_to image_tag('Minus.png', :class => "minus", :title => "Remove template"), "#", :class => "icon-minus"
+            = select_tag "", options_for_select(@templates.map{|t| ["#{t.label}(#{t.virtualization})", t.manager_id]}, template.manager_id),
+              class: "form-control", name: "run[templates][]"
+
+
+:javascript
+  $( ".icon-plus" ).click(function() {
+
+    $("#{escape_javascript(render :partial => "runs/edit/template_new_select")}").appendTo("tbody.template");
+    
+    $('.template select').each(function(){
+      $(this).attr("name", "run[templates][]");
+    })
+
+    $( ".icon-minus" ).click(function() {
+      $(this).parents('th').remove();
+    }); 
+  });

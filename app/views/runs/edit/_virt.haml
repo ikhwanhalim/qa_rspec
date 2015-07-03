@@ -1,0 +1,14 @@
+%table.table.table-bordered.table-striped
+  %thead
+    %tr
+      %th.id.center #
+      %th.id Virtualization
+    %tbody
+      - @virt.each do |v|
+        %tr
+          - if YAML.load(@run.virt).include?(v)
+            %td.center= check_box_tag 'run[virt][]', v, true, :class => "checkbox"
+          -else
+            %td.center= check_box_tag 'run[virt][]', v, false, :class => "checkbox"
+          %td= v.upcase
+          

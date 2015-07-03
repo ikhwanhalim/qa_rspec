@@ -39,16 +39,20 @@ class Run < ActiveRecord::Base
     return data
   end
 
-  def self.render_hash(hash, html=nil)
+  def self.render_hash(hash, selected=[], html=nil)
     html ||= ''
     hash.each do |h|
       html << "<div class='arrow-right'></div>"
       html << "<label class='folder'>#{h[:data].upcase}</label><ul>"
       if h[:children].first.kind_of? Hash
-        render_hash(h[:children], html)
+        render_hash(h[:children], selected, html)
       else
         h[:children].each do |c|
-          cb = "<input class='checkbox' type='checkbox' name='run[files][]' value='#{c}'>"
+          cb = if selected.include?(c)
+            "<input class='checkbox' type='checkbox' name='run[files][]' value='#{c}' checked>"
+          else
+            "<input class='checkbox' type='checkbox' name='run[files][]' value='#{c}'>"
+          end
           html << "<li>#{cb}<label>#{c.split('/').last}</label></li>"
         end
         html << "</ul><br>"

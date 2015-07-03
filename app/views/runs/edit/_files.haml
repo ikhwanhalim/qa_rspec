@@ -1,0 +1,23 @@
+= r.label "Test suite name:"
+= r.text_field :title, :class => "form-control", :value => run.title
+%br
+= r.label "Streams counter:"
+= r.text_field :threads, value: run.threads, class: "form-control", type: "number", min: 1
+%br
+= Run.render_hash(@files, YAML.load(run.files)).html_safe
+
+:javascript
+  $('.folder').next().hide()
+  $('.folder').click(function(){
+    var $status = $(this).prev()
+    var $list = $(this).next()
+    if($status.is('.arrow-right')) {
+      $status.attr('class','arrow-down')
+    } else {
+      $status.attr('class','arrow-right')
+    }
+    $list.toggle('slow');
+  })
+  $('.checkbox').next().click(function(){
+    $(this).prev().trigger('click')
+  })

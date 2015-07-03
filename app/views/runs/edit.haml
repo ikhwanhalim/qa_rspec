@@ -2,19 +2,18 @@
   =form_for @run do |r|
     %fieldset
       %legend Select Suite
-      = render partial: "runs/new/files", :locals => { :r => r }
+      = render partial: "runs/edit/files", :locals => { r: r, run: @run }
     %fieldset
       %legend Select Templstes
-      = render partial: "runs/new/templates"
+      = render partial: "runs/edit/templates", :locals => { selected_templates:  @selected_templates }
     %fieldset
       %legend Select Virtualization
-      = render partial: "runs/new/virt"
+      = render partial: "runs/edit/virt"
     = r.submit
 
 /* Generate wizard */
 :javascript
   $(document).ready(function() {
-    $("li:contains('New run')").addClass('active')
     $('form').stepy({titleClick: true});
     $(".stepy-navigator>a").attr('class', 'btn btn-success');
     $("input[type='submit']").attr('class', 'btn btn-success');

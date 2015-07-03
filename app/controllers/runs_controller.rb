@@ -35,6 +35,37 @@ class RunsController < ApplicationController
     end
   end
 
+  def edit
+    @run = Run.find(params[:id])
+    @virt = %w{xen3 xen4 kvm5 kvm6}
+    @files = Array[Run.directory_hash("tests")]
+    @templates = Template.all.sort_by {|t| t.label}
+    @selected_templates = Template.where(manager_id: YAML.load(@run.templates))
+  end
+
+  def update
+    Report.where(run_id: params[:id]).delete_all
+    array = []
+    keys = ["template_name", "virt", "spec_files"]
+    params[:run][:templates] ||= ["NoTemplatesSelected"]
+    params[:run][:virt] ||= ["NoVirtualization"]
+    @run = Run.find(params[:id])
+    @run.update_attributes(params[:run])
+    if @run.valid?
+      reports = (@run.templates).product(@run.virt)
+      reports.each do |report|
+        hash = Hash[[keys,report + [@run.files.to_yaml]].transpose]
+        array << Report.new(hash)
+      end
+      @run.reports += array
+      redirect_to root_path
+    else
+      errors = @run.errors.messages
+      errors.each {|k,v| errors[k]=v.first}
+      redirect_to new_run_path, flash: errors
+    end
+  end
+
   def update_templates
     Template.new.update_templates
     redirect_to root_path

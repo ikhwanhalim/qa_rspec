@@ -1,0 +1,5 @@
+%tr
+  %th
+    = link_to image_tag('Minus.png', :class => "minus", :title => "Remove template"), "#", :class => "icon-minus"
+    = select_tag "", options_for_select(@templates.map{|t| ["#{t.label}(#{t.virtualization})", t.manager_id]}),
+      :class => "form-control"
