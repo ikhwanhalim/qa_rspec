@@ -56,7 +56,7 @@ class OnappTrader
   def all_subscribed
     zones = get "/settings/hypervisor_zones"
     zones.map! { |z| z["hypervisor_group"]}
-    zones.delete_if { |z| z['federation_id'] == nil }
+    zones.select! { |z| z['traded'] == true }
   end
 
   def unsubscribe_all
@@ -76,11 +76,11 @@ class OnappTrader
   end
 
   def wait_for_publishing(federation_id)
-    zones = []
     10.times do
-      return zones if zones.any?
       zones = get("/federation/hypervisor_zones/unsubscribed")
-      zones.select!{|hvz| hvz['hypervisor_zone']['federation_id'] == federation_id}
+      zones.each do |hvz|
+        return hvz if hvz['hypervisor_zone']['federation_id'] == federation_id
+      end
       sleep 1
     end
     Log.error("Zone has not been published")
@@ -116,4 +116,34 @@ class OnappTrader
     data = {token: {token: token, sender: sender}}
     post("/federation/trader_tokens", data)
   end
+
+  #Announcements
+  def find_announcement(market_id)
+    10.times do
+      all_announcements.each do |a|
+        return a if a['announcement']['federation_id'] == market_id
+      end
+      sleep 1
+    end
+    Log.error('Announcement was not created on the market')
+  end
+
+  def all_announcements
+    get("/federation/hypervisor_zones/#{subscribed_zone['id']}/announcements")
+  end
+
+  def announcement_removed?(announcement)
+    10.times do
+      return true unless all_announcements.include?(announcement)
+      sleep 1
+    end
+    Log.error('Announcement was not removed on the market')
+  end
+
+  def edit_announcement(id, text)
+    data = {announcement: {text: text}}
+    put("/federation/hypervisor_zones/#{subscribed_zone['id']}/announcements/#{id}", data)
+  end
+
+  #IP addresses
 end

@@ -125,6 +125,33 @@ class OnappSupplier
     @vm.info_update
   end
 
+  #Announcements
+  def generate_announcement
+    data = {announcement: {text: 'Autotest message',
+                           start_at: 10.second.from_now,
+                           finish_at: 1.day.from_now
+    }}
+    post("/federation/hypervisor_zones/#{published_zone['id']}/announcements", data)
+  end
+
+  def all_announcements
+    get("/federation/hypervisor_zones/#{published_zone['id']}/announcements")
+  end
+
+  def wait_announcement_id(local_id)
+    10.times do
+      all_announcements.each do |a|
+        return a if a['announcement']['id'] == local_id && a['announcement']['federation_id']
+      end
+      sleep 1
+    end
+    Log.error('Announcement was not created on the market')
+  end
+
+  def remove_announcement(local_id)
+    delete("/federation/hypervisor_zones/#{published_zone['id']}/announcements/#{local_id}")
+  end
+
   #Tokens
   def generate_token(receiver)
     data = {token: {receiver: receiver}}
@@ -133,10 +160,9 @@ class OnappSupplier
 
   def get_token(receiver)
     10.times do
-      token = get("/federation/hypervisor_zones/#{@hvz_id}/supplier_tokens").detect do |t|
-        t['token']['receiver'] == receiver
+      get("/federation/hypervisor_zones/#{@hvz_id}/supplier_tokens").each do |t|
+        return t if t['token']['receiver'] == receiver
       end
-      return token if token
       sleep 1
     end
     Log.error('Token not found')

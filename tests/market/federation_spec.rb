@@ -165,6 +165,21 @@ describe "Market" do
         @supplier.enable_zone
         expect(@supplier.published_zone['federation_enabled']).to be true
       end
+
+      it "should be able create announcement" do
+        id = @supplier.generate_announcement['announcement']['id']
+        announcement = @supplier.wait_announcement_id(id)
+        expect(announcement['announcement']['federation_id']).to include federation_id
+      end
+
+      it "should be able remove announcement" do
+        id = @supplier.generate_announcement['announcement']['id']
+        market_id = @supplier.wait_announcement_id(id)['announcement']['federation_id']
+        announcement = @trader.find_announcement(market_id)
+        expect(@trader.all_announcements).to include announcement
+        @supplier.remove_announcement(id)
+        expect(@trader.announcement_removed?(announcement)).to be true
+      end
     end
 
     describe "Trader" do
@@ -225,6 +240,14 @@ describe "Market" do
         )
         expect(@trader.conn.page.code).to eq "422"
         expect(err.to_s).to include "can't be added or deleted"
+      end
+
+      it 'should be able edit annoucement' do
+        id = @supplier.generate_announcement['announcement']['id']
+        market_id = @supplier.wait_announcement_id(id)['announcement']['federation_id']
+        announcement_id = @trader.find_announcement(market_id)['announcement']['id']
+        @trader.edit_announcement(announcement_id, 'modified')
+        expect(@trader.find_announcement(market_id)['announcement']['text']).to eq 'modified'
       end
     end
   end

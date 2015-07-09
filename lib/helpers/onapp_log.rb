@@ -28,7 +28,6 @@ module Log
 
   def formatted_message(message, message_type)
     output = "#{Time.now} | #{message_type}: #{message}\n"
-    p output
     if message_type == "ERR"
       ERR + output + CLEAR
     elsif message_type == "WARN"
