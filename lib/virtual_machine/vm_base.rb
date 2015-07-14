@@ -226,7 +226,6 @@ class VirtualMachine
     @disks = get("#{@route}/disks")
     @network_interfaces = get("#{@route}/network_interfaces")
     ip_addresses
-    # @ip_addresses = get("#{@route}/ip_addresses")
     @template = get("/templates/#{@virtual_machine['template_id']}")['image_template']
     @hypervisor = get("/hypervisors/#{@virtual_machine['hypervisor_id']}")['hypervisor']
   end
@@ -266,10 +265,6 @@ class VirtualMachine
   def disks
     @disks
   end
-
-  # def ip_addresses
-  #   @ip_addresses
-  # end
 
   def network_interfaces
     @network_interfaces
