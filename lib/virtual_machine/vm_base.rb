@@ -7,11 +7,13 @@ require 'virtual_machine/vm_networks'
 require 'helpers/onapp_ssh'
 require 'helpers/template_manager'
 require 'virtual_machine/vm_firewall'
+require 'virtual_machine/vm_ip_addresses'
 
 require 'yaml'
 
 class VirtualMachine  
-  include OnappHTTP, OnappSSH, Hypervisor, TemplateManager, VmDisks, VmOperationsWaiters, VmNetwork, VmFirewall
+  include OnappHTTP, OnappSSH, Hypervisor, TemplateManager, VmDisks, VmOperationsWaiters, VmNetwork, VmFirewall,
+          VmIpAddress
 
   attr_accessor :virtual_machine
 
@@ -223,7 +225,8 @@ class VirtualMachine
     @virtual_machine = get("#{@route}")['virtual_machine']
     @disks = get("#{@route}/disks")
     @network_interfaces = get("#{@route}/network_interfaces")
-    @ip_addresses = get("#{@route}/ip_addresses")
+    ip_addresses
+    # @ip_addresses = get("#{@route}/ip_addresses")
     @template = get("/templates/#{@virtual_machine['template_id']}")['image_template']
     @hypervisor = get("/hypervisors/#{@virtual_machine['hypervisor_id']}")['hypervisor']
   end
@@ -264,9 +267,9 @@ class VirtualMachine
     @disks
   end
 
-  def ip_addresses
-    @ip_addresses
-  end
+  # def ip_addresses
+  #   @ip_addresses
+  # end
 
   def network_interfaces
     @network_interfaces

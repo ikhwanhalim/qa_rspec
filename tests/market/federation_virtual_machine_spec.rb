@@ -97,4 +97,29 @@ describe "Federation Virtual Machine" do
       expect(@trader.vm.firewall_rules.empty?).to be true
     end
   end
+
+  describe "Normal backup" do
+
+    it {}
+  end
+
+  describe "New IP address" do
+    before :all do
+      @ip_join = @trader.vm.allocate_new_ip
+    end
+
+    after :all do
+      @trader.vm.delete_ip(@ip_join['id'])
+    end
+
+    it 'should pinged' do
+      expect(@trader.vm.pinged?(ip_address_number: 1)).to be true
+      expect(@trader.vm.pinged?(ip_address_number: 2)).to be true
+    end
+
+    it 'SSH port should be opened' do
+      expect(@trader.vm.is_port_opened?(ip: @ip_join['ip_address']['address'])).to be true
+      expect(@trader.vm.ssh_port_opened).to be true
+    end
+  end
 end

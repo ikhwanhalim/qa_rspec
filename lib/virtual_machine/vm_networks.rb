@@ -47,4 +47,10 @@ module VmNetwork
     ip_address = ip_address[ip_address_number - 1]
     ip_address['ip_address_join']['ip_address']['address']
   end
+
+  def rebuild_network(**params)
+    data = params || { is_shutdown_required: true, shutdown_type: 'graceful', required_startup: 1 }
+    post("#{@route}/rebuild_network", data)
+    wait_for_rebuild_network
+  end
 end

@@ -1,4 +1,5 @@
 require 'helpers/transaction'
+require 'timeout'
 
 module VmOperationsWaiters
   include Transaction  
@@ -55,12 +56,29 @@ module VmOperationsWaiters
   end
 
   #VmNetwork
+  def wait_for_update_firewall
+    wait_for_transaction(primary_network_interface_id, 'NetworkInterface', 'update_firewall')
+  end
+
   def wait_for_update_custom_firewall_rule
     wait_for_transaction(@virtual_machine['id'], 'VirtualMachine', 'update_custom_firewall_rule')
+  end
+
+  def wait_for_rebuild_network
+    wait_for_transaction(@virtual_machine['id'], 'VirtualMachine', 'rebuild_network')
   end
 
   def set_max_mem
     @maxmem = @virtual_machine['memory']*2 if @hypervisor['hypervisor_type'] == 'xen'
     @maxmem = @virtual_machine['memory'] if @hypervisor['hypervisor_type'] == 'kvm'
+  end
+
+  def wait_until(max = 30)
+    Timeout.timeout(max) do
+      until value = yield
+        sleep(1)
+      end
+      value
+    end
   end
 end
