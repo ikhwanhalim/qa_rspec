@@ -48,6 +48,7 @@ class Run < ActiveRecord::Base
         render_hash(h[:children], selected, html)
       else
         h[:children].each do |c|
+          next unless c.match(/.rb$/)
           cb = if selected.include?(c)
             "<input class='checkbox' type='checkbox' name='run[files][]' value='#{c}' checked>"
           else
