@@ -29,12 +29,14 @@
               %a{:href => root_path} Runs
             %li
               %a{:href => new_run_path} New run
+            %li
+              %a{:href => config_edit_path} Configuration
             - if user_signed_in?
               %li= link_to "Sign out", destroy_user_session_path, :method => :delete
             - else
               %li= link_to "Sign in", new_user_session_path
     .container.top150
-      .span12
+      .row
         = render 'layouts/messages'
         = yield
     /

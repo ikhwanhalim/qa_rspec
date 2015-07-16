@@ -1,5 +1,7 @@
 Repair::Application.routes.draw do
-	
+
+  post "config/update"
+  get "config/edit"
 	devise_for :users
 	root to: "runs#index"
   get "runs/update_templates"

@@ -1,0 +1,13 @@
+- data.each do |k, v|
+  - if v.kind_of?(Hash)
+    .row.gray
+      .col-lg-1
+        = label_tag k
+    .left50
+      = render partial: 'tree', locals: {data: v, path: path + "[#{k}]"}
+  - else
+    .row
+      .col-lg-1.top20
+        = label_tag k
+      .col-lg-4
+        = text_field_tag path + "[#{k}]", v, :class => "form-control"
