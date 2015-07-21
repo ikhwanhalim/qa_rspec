@@ -17,7 +17,7 @@ module TemplateManager
   end
 
   def installed_templates
-    get("/templates/all").map {|t| t['image_template']}
+    get("/templates/all").map {|t| t['image_template'] if t['image_template']['manager_id']}.compact
   end
 
   def available_templates
