@@ -88,28 +88,7 @@ class RunsController < ApplicationController
     elsif is_testing_running?(params[:runs])
       redirect_to(root_path, :flash => { :warning => "some tests are running!" })
     else
-      $hash = Hash[*params[:runs].to_a.map {|k| [k, nil]}.flatten]
-      $hash.each do |k,v|
-        $hash[k] = Report.where(run_id: k)
-        $hash[k].each { |report| report.update_attribute(:status, "Ready") }
-        $hash[k].map!(&:id)
-      end
-      $hash.each do |run,reports|
-        Spawnling.new do
-          run = Run.find(run)
-          while reports.any?
-            report = Report.find(reports.first)
-            if report.status != 'Stopped'
-              active_threads = Report.where("status='Running' and run_id='#{run.id}'")
-              if active_threads.count < run.threads
-                Run.thread(report)
-                reports.shift
-              end
-            end
-            sleep 5
-          end
-        end
-      end
+      Run.run_all_threads(params[:runs])
       redirect_to root_path
     end
   end

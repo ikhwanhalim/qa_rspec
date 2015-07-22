@@ -1,5 +1,9 @@
 Repair::Application.routes.draw do
 
+  get "cron/index"
+  get "cron/reset"
+  post "cron/update"
+
   post "config/update"
   get "config/edit"
 	devise_for :users

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20140827124001) do
+ActiveRecord::Schema.define(:version => 20150720120931) do
 
   create_table "reports", :force => true do |t|
     t.text     "spec_files"
@@ -30,8 +30,10 @@ ActiveRecord::Schema.define(:version => 20140827124001) do
     t.text     "templates"
     t.text     "virt"
     t.integer  "threads"
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
+    t.datetime "created_at",                          :null => false
+    t.datetime "updated_at",                          :null => false
+    t.string   "cron_period"
+    t.string   "cron_status", :default => "Inactive"
   end
 
   create_table "templates", :force => true do |t|

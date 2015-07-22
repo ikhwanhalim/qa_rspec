@@ -31,6 +31,8 @@
               %a{:href => new_run_path} New run
             %li
               %a{:href => config_edit_path} Configuration
+            %li
+              %a{:href => cron_index_path} Cron
             - if user_signed_in?
               %li= link_to "Sign out", destroy_user_session_path, :method => :delete
             - else

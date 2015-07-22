@@ -24,6 +24,31 @@ class Run < ActiveRecord::Base
     end
   end
 
+  def self.run_all_threads(run_ids)
+    $hash = Hash[*run_ids.to_a.map {|k| [k, nil]}.flatten]
+    $hash.each do |k,v|
+      $hash[k] = Report.where(run_id: k)
+      $hash[k].each { |report| report.update_attribute(:status, "Ready") }
+      $hash[k].map!(&:id)
+    end
+    $hash.each do |run,reports|
+      Spawnling.new do
+        run = Run.find(run)
+        while reports.any?
+          report = Report.find(reports.first)
+          if report.status != 'Stopped'
+            active_threads = Report.where("status='Running' and run_id='#{run.id}'")
+            if active_threads.count < run.threads
+              self.thread(report)
+              reports.shift
+            end
+          end
+          sleep 5
+        end
+      end
+    end
+  end
+
   def self.directory_hash(path, name=nil)
     data = {:data => (name || path)}
     data[:children] = children = []
@@ -62,4 +87,14 @@ class Run < ActiveRecord::Base
     html
   end
 
+  def self.update_cron_period_and_status(runs)
+    Run.transaction do
+      runs.each do |r|
+        record = Run.find(r[:id])
+        record.cron_period = r[:period]
+        record.cron_status = r[:status]
+        record.save
+      end
+    end
+  end
 end
