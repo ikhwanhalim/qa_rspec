@@ -1,0 +1,21 @@
+.container
+  = form_tag cron_update_path do
+    .row
+      %table.table.table-bordered.table-striped
+        %thead
+          %tr
+            %th Runs
+            %th Cron Period
+            %th Status
+          %tbody
+            -@runs.each do |r|
+              =hidden_field_tag 'runs[][id]', r.id
+              %tr
+                %td
+                  = r.title
+                %td
+                  = select_tag 'runs[][period]', options_for_select(@periods, r.cron_period), class: 'form-control'
+                %td
+                  = select_tag 'runs[][status]', options_for_select(@statuses, r.cron_status), class: 'form-control'
+    = link_to 'Reset', cron_reset_path, :class => "btn btn-danger space"
+    = submit_tag 'Update', :class => "btn btn-success space"
