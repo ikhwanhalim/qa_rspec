@@ -15,6 +15,7 @@ module VmFirewall
              protocol: protocol
     }
     post("/virtual_machines/#{identifier}/firewall_rules", {firewall_rule: data})
+    return false if api_response_code  == '404'
   end
 
   def edit_firewall_rule(id, data={})
@@ -29,14 +30,15 @@ module VmFirewall
   end
 
   def set_default_firewall_rule(command: 'ACCEPT', network_interface: 1)
-    data = {network_interface: {default_firewall_rule: command}}
     interface = if network_interface == 1
        network_interfaces.select { |ni| ni['network_interface']['primary'] }
     else
        network_interfaces.select { |ni| !ni['network_interface']['primary'] }
     end.first
     id = interface['network_interface']['id']
-    put("/virtual_machines/#{identifier}/network_interfaces/#{id}", data)
+    data = {:network_interfaces => { id => {:default_firewall_rule => command}}}
+    put("/virtual_machines/#{identifier}/firewall_rules/update_defaults", data)
+    update_firewall_rules
   end
 
   def delete_firewall_rule(id)

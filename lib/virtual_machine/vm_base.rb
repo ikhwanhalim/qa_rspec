@@ -111,7 +111,7 @@ class VirtualMachine
     hash = {'virtual_machine' => {resource => new.to_s, 'allow_migration' => '0', 'allow_cold_resize' => '1'}}
     result = put("#{@route}", hash)
     puts result
-    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} \n #{result}") if api_responce_code != expect_code
+    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_response_code } \n #{result}") if api_response_code  != expect_code
     old = @virtual_machine[resource]
     @virtual_machine[resource] = new
     if hot_resize_available?(resource, new, old)
@@ -150,7 +150,7 @@ class VirtualMachine
     new_hv = hv_for_vm_migration
     hash = {'virtual_machine' => {'destination' => new_hv['id'], 'cold_migrate_on_rollback' => '0'}}
     result = post("#{@route}/migrate", hash)
-    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} \n #{result}") if api_responce_code != expect_code
+    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_response_code } \n #{result}") if api_response_code  != expect_code
     wait_for_hot_migration
     @hypervisor = new_hv
     @virtual_machine['hypervisor_id'] = @hypervisor['id']
@@ -162,7 +162,7 @@ class VirtualMachine
     new_hv = hv_for_vm_migration
     hash = {'virtual_machine' => {'destination' => new_hv['id']}}
     result = post("#{@route}/migrate", hash)
-    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} \n #{result}") if api_responce_code != expect_code
+    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_response_code } \n #{result}") if api_response_code  != expect_code
     wait_for_cold_migration
     @hypervisor = new_hv
     @virtual_machine['hypervisor_id'] = @hypervisor['id']
@@ -174,43 +174,45 @@ class VirtualMachine
 # Recovery
   def recovery_reboot
     post("#{@route}/reboot",'','?mode=recovery')
-    api_responce_code == '201'
+    api_response_code  == '201'
   end
   def recovery?
     check_hostname.include?('recovery')
   end
 # OPERATIONS
-  def api_responce_code
+  def api_response_code
     @conn.page.code
   end
 
   def destroy
     delete("#{@route}")
-    api_responce_code == '201'    
+    api_response_code  == '201'
   end
 
   def stop
     post("#{@route}/stop")
-    api_responce_code == '201'
+    api_response_code  == '201'
   end
 
   def shut_down
     post("#{@route}/shutdown")
-    api_responce_code == '201'
+    api_response_code  == '201'
   end
 
   def start_up
     post("#{@route}/startup")
-    api_responce_code == '201'
+    api_response_code  == '201'
   end
 
   def reboot
     post("#{@route}/reboot")
-    api_responce_code == '201'
+    api_response_code  == '201'
   end
 
   def rebuild(template = @template)
-    post("#{@route}/build", {'template_id' => template.id.to_s, 'required_startup' => '1'})
+    post("#{@route}/build", {'template_id' => template['id'].to_s, 'required_startup' => '1'})
+    return false if api_response_code  == '404'
+    wait_for_stop
     disk_wait_for_format('primary')    
     disk_wait_for_format('swap') if @template['allowed_swap']
     disk_wait_for_provision('primary') if @template['operating_system'] != 'freebsd'

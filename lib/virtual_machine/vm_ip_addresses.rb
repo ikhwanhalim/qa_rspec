@@ -7,13 +7,14 @@ module VmIpAddress
 
   def primary_network_interface_id
     network_interfaces.map do |i|
-      i['network_interface']['id'] if i['network_interface']['label'] == primary_network_interface
+      i['network_interface']['id'] if i['network_interface']['primary']
     end.compact.first
   end
 
   def allocate_new_ip
     data = {ip_address_join: {network_interface_id: primary_network_interface_id}}
     post("#{@route}/ip_addresses", data)
+    return false if api_response_code == '404'
     wait_for_update_firewall
     rebuild_network
     old_ips = @ip_addresses

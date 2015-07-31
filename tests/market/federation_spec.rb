@@ -183,6 +183,10 @@ describe "Market" do
     end
 
     describe "Trader" do
+      after :all do
+        @supplier.data_stores_attach
+      end
+
       it "zone should be present" do
         expect(@trader.subscribed_zone).to be_present
       end

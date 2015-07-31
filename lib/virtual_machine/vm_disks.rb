@@ -34,7 +34,7 @@ module VmDisks
     size = find_disk_by_id(id)['disk_size'].to_i - value.to_i if action == 'decr'
     size = value.to_i if action == 'set'
     result = put("/settings/disks/#{id}", {disk: {disk_size: size}})
-    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} \n #{result}") if api_responce_code.to_i != expect_code.to_i
+    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_response_code } \n #{result}") if api_response_code .to_i != expect_code.to_i
     if expect_code.to_i == 204.to_i
       wait_for_stop
       wait_for_transaction(id, 'Disk', 'resize_disk')
@@ -59,7 +59,7 @@ module VmDisks
       min_iops: 100
     }
     result = post("/virtual_machines/#{@virtual_machine['id']}/disks", {disk: data})
-    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} \n #{result}") if api_responce_code.to_i != expect_code.to_i
+    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_response_code } \n #{result}") if api_response_code .to_i != expect_code.to_i
     disk = result['disk']
     wait_for_transaction(disk['id'], 'Disk', 'build_disk')
     find_disks
@@ -69,7 +69,7 @@ module VmDisks
     id ||= select_id(type:type)
     ds_id ||= select_max_data_store(exclude:find_disk_by_id(id)['data_store_id'])['id']
     result = post("#{@route}/disks/#{id}/migrate", {disk:{data_store_id: ds_id}})
-    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_responce_code} \n #{result}") if api_responce_code.to_i != expect_code.to_i
+    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_response_code } \n #{result}") if api_response_code .to_i != expect_code.to_i
     if expect_code.to_i == 201.to_i
       puts @last_transaction_id
       wait_for_transaction(id, 'Disk', 'migrate_disk')
@@ -81,9 +81,10 @@ module VmDisks
     end
   end
 
-  def destroy_disk(id)
+  def destroy_disk(id, expect_code:201)
     params = {force: 1, shutdown_type: 'graceful', required_startup: 1}
-    delete("/settings/disks/#{id}", params)
+    result = delete("/settings/disks/#{id}", params)
+    Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_response_code } \n #{result}") if api_response_code .to_i != expect_code.to_i
     wait_for_transaction(id, 'Disk', 'destroy_disk')
     find_disks
   end
