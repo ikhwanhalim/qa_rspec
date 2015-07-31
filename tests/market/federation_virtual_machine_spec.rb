@@ -44,6 +44,49 @@ describe "Federation Virtual Machine" do
     expect(@supplier.vm.pinged? && @supplier.vm.ssh_port_opened).to be true
   end
 
+  it "trader should be able rebuild vm" do
+    expect(@trader.vm.rebuild).to be true
+  end
+
+  describe 'Supplier should not be able' do
+    it "rebuild vm" do
+      expect(@supplier.vm.rebuild).to be false
+    end
+
+    it "delete vm" do
+      expect(@supplier.vm.destroy).to be false
+    end
+
+    it "add firewall rule" do
+      expect(@supplier.vm.create_firewall_rule).to be false
+    end
+
+    it "rebuild network" do
+      expect(@supplier.vm.rebuild_network).to be false
+    end
+
+    it "add disk" do
+      begin
+        @supplier.vm.add_disk
+      rescue
+        expect(@supplier.vm.api_response_code ).to eq '404'
+      end
+    end
+
+    it "destroy swap disk" do
+      id = @supplier.vm.disks.map {|d| d['disk']['id'] if d['disk']['is_swap']}.compact.first
+      begin
+        @supplier.vm.destroy_disk(id)
+      rescue
+        expect(@supplier.vm.api_response_code ).to eq '404'
+      end
+    end
+
+    it "allocate IP address" do
+      expect(@supplier.vm.allocate_new_ip).to be false
+    end
+  end
+
   describe 'Firewall rules' do
     before { @trader.vm.destroy_all_firewall_rules }
 
@@ -54,13 +97,10 @@ describe "Federation Virtual Machine" do
       end
 
       it "set default firewall rule" do
-        skip('CORE-3955')
         @trader.vm.set_default_firewall_rule(command: 'DROP')
-        @trader.vm.update_firewall_rules
         expect(@trader.vm.pinged?(attemps: 3)).to be false
         expect(@trader.vm.is_port_opened?(port: 22, time: 1)).to be false
         @trader.vm.set_default_firewall_rule(command: 'ACCEPT')
-        @trader.vm.update_firewall_rules
         expect(@trader.vm.pinged?(attemps: 3)).to be true
         expect(@trader.vm.is_port_opened?(port: 22, time: 1)).to be true
       end
