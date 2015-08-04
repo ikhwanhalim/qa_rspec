@@ -28,6 +28,18 @@ module DetailCdnResourcePage
       self.class.page_url(browser.current_url)
       super
     end
+    def wait_for_activation
+      wait_until(300, 'CDN Resource was not activated for 5 minutes') do
+        sleep 5
+        browser.navigate.refresh
+        wait_for_ajax
+        resource_status.include? 'Active'
+      end
+    end
+    def check_data_on_page(basic, advanced)
+      raise('Incorrect CDN hostname') if basic['hostname'] != cdn_hostname
+
+    end
   end
 
   class Advanced
