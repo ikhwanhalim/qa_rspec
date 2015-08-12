@@ -1,9 +1,12 @@
 require 'yaml'
 require 'helpers/onapp_http'
 require 'virtual_machine/vm_base'
+require 'virtual_machine/vm_operations_waiter'
 
 class OnappTrader
   include OnappHTTP
+  include VmOperationsWaiters
+
   attr_accessor :subscribed_zone, :vm, :template_store
 
   def initialize
@@ -60,15 +63,13 @@ class OnappTrader
   end
 
   def unsubscribe_all
-    response = nil
+    errors = ''
     all_subscribed.each do |z|
-      3.times do
-        response = delete("/federation/hypervisor_zones/#{z['id']}/unsubscribe")
-        break unless response['errors']
-        sleep 3
-      end
-      Log.error(response.to_s) if response['errors']
+      response = delete("/federation/hypervisor_zones/#{z['id']}/unsubscribe")
+      errors << "Zone #{z['id']} has not been removed. " if response['errors']
+      next
     end
+    Log.error(errors) unless errors.empty?
   end
 
   def get_all(resource)
