@@ -4,6 +4,8 @@ require 'rspec'
 require 'ui_lib/login_page'
 require 'ui_lib/add_cdn_resource_page'
 require 'ui_lib/edit_cdn_resource_page'
+require 'ui_lib/detail_cdn_resource_page'
+require 'ui_lib/cdn_resources_page'
 
 describe 'CDN Resource Test Plan' do
   YAML::load_file('tests/ui_tests/cdn_tests.yml').each do |key, value|
@@ -12,6 +14,7 @@ describe 'CDN Resource Test Plan' do
     edit_base = value['edit']['base'] unless value['edit'].nil?
     edit_advanced = value['edit']['advanced'] unless value['edit'].nil?
     describe key do
+      include DetailCdnResourcePage
       before :all do
         # @headless = Headless.new
         # @headless.start
@@ -82,12 +85,17 @@ describe 'CDN Resource Test Plan' do
           add_cdn_resource_page.proxy_cache_key= new_advanced['proxy_cache_key']
           add_cdn_resource_page.block_search_engine_crawlers= new_advanced['block_search_engine_crawlers']
         end
-        sleep 20
-        # add_cdn_resource_page.create_cdn_resource
+
+         add_cdn_resource_page.create_cdn_resource_button
       end
 
       it 'Check creation' do
-
+          detail_cdn_resource_page = DetailCdnResourcePage::Basic.new(@browser)
+          detail_cdn_resource_page.wait_for_activation
+          detail_cdn_resource_page.check_data_on_page(new_base, new_advanced)
+          detail_cdn_resource_page.press_advanced_details
+          detail_cdn_resource_page = DetailCdnResourcePage::Advanced.new(@browser)
+          detail_cdn_resource_page.check_data_ona_page(new_base, new_advanced)
       end
       
       it 'Edit CDN Resources' do
@@ -103,66 +111,9 @@ describe 'CDN Resource Test Plan' do
       end
 
       it 'Delete CDN resource' do
-
+        # cdn_resources_page = CdnResourcesPage.new(@browser)
+        # cdn_resources_page.delete
       end
     end
   end
 end
-=begin
-  describe  do
-    before :all do
-      # @headless = Headless.new
-      # @headless.start
-      @browser = Selenium::WebDriver.for :ff
-      @base_url = YAML::load_file('config/conf.yml')['url']
-      @login_page = LoginPage.new(@browser, true)
-      @home_page = @login_page.login
-      @home_page.current_url.should eq("#{@base_url}/")
-      @home_page.alert.should eq('Signed in successfully.')
-      fail 'CDN is not enabled' unless @home_page.cdn_status?
-    end
-
-    it 'Create CDN Resource' do
-      add_cdn_resource_page = AddCdnResourcePage.new(@browser, true)
-      add_cdn_resource_page.cdn_resource_type = 'http'
-      add_cdn_resource_page.next_page
-      add_cdn_resource_page.cdn_hostname = 'vovka.the.best'
-      add_cdn_resource_page.content_origin = 'PULL'
-      add_cdn_resource_page.origin1 = '10.10.10.10'
-      add_cdn_resource_page.add_origin2
-      add_cdn_resource_page.origin1 = 'vovka.the.best'
-      add_cdn_resource_page.add_origin3
-      add_cdn_resource_page.origin3 = '10.10.10.12'
-      add_cdn_resource_page.remove_origin3
-      add_cdn_resource_page.remove_origin2    #
-      add_cdn_resource_page.add_origin2
-      add_cdn_resource_page.origin2 = '10.10.10.11'
-      add_cdn_resource_page.add_origin3
-      add_cdn_resource_page.origin3 = '10.10.10.12'
-      add_cdn_resource_page.next_page
-      add_cdn_resource_page.edge_groups = 'iraEG1', 'iraEG3'
-    end
-    it 'Check creation' do
-
-    end
-
-    it 'Edit CDN Resources' do
-
-    end
-
-    it 'Check After edit' do
-
-    end
-
-    it 'Delete CDN resource' do
-
-    end
-
-
-
-    after :all do
-      @browser.close
-      # @headless.destroy
-    end
-  end
-=end
