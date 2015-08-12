@@ -44,6 +44,7 @@ describe "Federation Virtual Machine" do
     expect(@supplier.vm.pinged? && @supplier.vm.ssh_port_opened).to be true
   end
 
+  #TODO SSH after rebuild
   it "trader should be able rebuild vm" do
     expect(@trader.vm.rebuild).to be true
   end
@@ -139,7 +140,6 @@ describe "Federation Virtual Machine" do
   end
 
   describe "Normal backup" do
-
     it {}
   end
 

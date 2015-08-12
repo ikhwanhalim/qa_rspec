@@ -3,11 +3,15 @@ require 'helpers/onapp_http'
 require 'helpers/template_manager'
 require 'helpers/hypervisor'
 require 'virtual_machine/vm_base'
+require 'virtual_machine/vm_operations_waiter'
+
 
 class OnappSupplier
   include OnappHTTP
   include TemplateManager
   include Hypervisor
+  include VmOperationsWaiters
+
   attr_accessor :published_zone, :vm, :resources
 
   def initialize
