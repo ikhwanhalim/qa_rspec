@@ -15,10 +15,7 @@
     $('.template select').each(function(){
       $(this).attr("name", "run[templates][]");
     })
-
-    $( ".icon-minus" ).click(function() {
-      $(this).parents('th').remove();
-    }); 
   });
-
-        
+  $( "table" ).on('click', '.icon-minus', function() {
+    $(this).parents('th').remove();
+  });

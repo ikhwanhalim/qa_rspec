@@ -15,6 +15,7 @@
 
 
 :javascript
+
   $( ".icon-plus" ).click(function() {
 
     $("#{escape_javascript(render :partial => "runs/edit/template_new_select")}").appendTo("tbody.template");
@@ -22,8 +23,7 @@
     $('.template select').each(function(){
       $(this).attr("name", "run[templates][]");
     })
-
-    $( ".icon-minus" ).click(function() {
-      $(this).parents('th').remove();
-    }); 
+  });
+  $( "table" ).on('click', '.icon-minus', function() {
+    $(this).parents('th').remove();
   });
