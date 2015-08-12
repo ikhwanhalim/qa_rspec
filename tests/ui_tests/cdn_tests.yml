@@ -10,14 +10,14 @@ HTTP CDN resource test:
     advanced:
       origin_policy: AUTO
       country_access_policy: Allow by default
-      except_for_countries: ['Russian Federation']
+      except_for_countries: ['Russian Federation', 'Honduras']
       hotlink_policy: Block by default
       except_for_domains: 'alo.ha vovka.the.best'
       ip_access_policy: Allow by default
       except_for_ip: '192.168.1.1'
-      secondary_cdn_hostnames: ['some.host.name1', 'some.host.name2', 'some.host.name13', 'some.host.name4', 'some.host.name5']
-      enable_url_signing: true
-      url_signing: 'WTF is this? =)'
+      secondary_cdn_hostnames: ['some.host.name1', 'some.host.name2', 'some.host.name3', 'some.host.name4', 'some.host.name5']
+      #enable_url_signing: true
+      #url_signing: 'WTF is this? =)'
       cache_expiry: 45
       enable_password: true
       unauthorized_html: '<span style="color: red;">Invalid username or password. Dont be stupid! MAAAAN!</span>'

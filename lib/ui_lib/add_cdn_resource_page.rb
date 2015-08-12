@@ -3,11 +3,13 @@ require 'page-object'
 require 'selenium-webdriver'
 require 'helpers/ui_helpers'
 require 'helpers/ui/page_helpers/cdn_resource_advanced_settings'
+require 'ui_lib/detail_cdn_resource_page'
 
 class AddCdnResourcePage
   include PageObject
   include UiHelpers
   include CdnResourceAdvancedSettings
+  include DetailCdnResourcePage
 
   attr_accessor :cdn_resource_type, :cdn_hostname, :enable_ssl, :ssl_type, :custom_sni_ssl, :content_origin,
                 :storage_server_origin, :ftp_password, :ftp_password_confirmation, :resource_origin, :external_publishing_location, :failover_external_publishing_location,
@@ -26,18 +28,6 @@ class AddCdnResourcePage
   text_field(:cdn_host, :id => 'cdn_resource_cdn_hostname')
   text_field(:ftp_pass, :id => 'cdn_resource_ftp_password')
   text_field(:ftp_pass_confirmation, :id => 'cdn_resource_ftp_password_confirmation')
-
-=begin
-  text_field(:origin, :id => 'cdn_resource_origin')
-  text_field(:origin1, :xpath => '//ul[@id = "origins-multiply-field"]/li[1]//input[@name="cdn_resource[origins][]"]')
-  text_field(:origin2, :xpath => '//ul[@id = "origins-multiply-field"]/li[2]//input[@name="cdn_resource[origins][]"]')
-  text_field(:origin3, :xpath => '//ul[@id = "origins-multiply-field"]/li[3]//input[@name="cdn_resource[origins][]"]')
-  button(:remove_origin1, :xpath => '//ul[@id = "origins-multiply-field"]/li[1]//input[@name="cdn_resource[origins][]"]/../a')
-  button(:remove_origin2, :xpath => '//ul[@id = "origins-multiply-field"]/li[2]//input[@name="cdn_resource[origins][]"]/../a')
-  button(:remove_origin3, :xpath => '//ul[@id = "origins-multiply-field"]/li[3]//input[@name="cdn_resource[origins][]"]/../a')
-  button(:add_origin2, :xpath => '//ul[@id = "origins-multiply-field"]/li[1]//span[@class="icon add"]')
-  button(:add_origin3, :xpath => '//ul[@id = "origins-multiply-field"]/li[2]//span[@class="icon add"]')
-=end
 
   text_field(:external_publishing_loc, :id => 'cdn_resource_external_publishing_location')
   text_field(:failover_external_publishing_loc, :id => 'cdn_resource_failover_external_publishing_location')
@@ -147,9 +137,8 @@ class AddCdnResourcePage
   end
 
   def create_cdn_resource_button
-    self.create_cdn_resource
+    create_cdn_resource
     wait_for_ajax
-    # return CdnResourceDetailsPage.new(browser, false)
   end
 
 end
