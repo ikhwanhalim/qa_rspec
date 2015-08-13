@@ -33,7 +33,7 @@ module VmNetwork
     ip_address = ip(network_interface, ip_address_number)
     Log.info("Ping IP address: #{ip_address}")
     host = Net::Ping::External.new(ip_address)
-    attemps.times { return true if host.ping?; sleep 1 }
+    attemps.times { return true if host.ping?; sleep 5 }
     false
   end
 
