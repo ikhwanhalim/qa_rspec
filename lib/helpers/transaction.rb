@@ -1,6 +1,7 @@
 require 'helpers/onapp_http'
 require 'helpers/onapp_log'
 require 'yaml'
+require 'pry'
 
 module Transaction
   include OnappHTTP
@@ -22,14 +23,13 @@ module Transaction
     end
     Log.error("Unable to find transaction according to credentials") if result.empty?
     transaction = result.last     
-    @last_transaction_id = transaction['transaction']['id']
-    transaction_id = transaction['transaction']['id']
+    @last_transaction_id = transaction_id = transaction['transaction']['id']
     loop do
       sleep 10 
       status = get("/transactions/#{transaction_id}")['transaction']['status']
       break if status != 'running' && status != 'pending'
     end
-    last_transaction_status = transaction['transaction']['status']
+    last_transaction_status = get("/transactions/#{transaction_id}")['transaction']['status']
     log_text = "Transaction #{@url}/transactions/#{transaction_id}.json"
     Log.error("#{log_text} FAILED") if last_transaction_status == 'failed'
     Log.error("#{log_text} CANCELLED") if last_transaction_status == 'cancelled'

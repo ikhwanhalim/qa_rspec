@@ -238,14 +238,14 @@ class VirtualMachine
 
   def exist_on_hv?
     cred = { 'vm_host' => "#{@hypervisor['ip_address']}" }
-    wait_until do
-      result = if @hypervisor['hypervisor_type'] == 'kvm'
-         tunnel_execute(cred, "virsh list | grep #{identifier}")
-      elsif @hypervisor['hypervisor_type'] == 'xen'
-        tunnel_execute(cred, "xm list | grep #{identifier}")
-      end
-      result.any? ? true : false
+    # wait_until do
+    result = if @hypervisor['hypervisor_type'] == 'kvm'
+       tunnel_execute(cred, "virsh list | grep #{identifier}")
+    elsif @hypervisor['hypervisor_type'] == 'xen'
+      tunnel_execute(cred, "xm list | grep #{identifier}")
     end
+    result.any? ? true : false
+    # end
   end
 
   # VM params

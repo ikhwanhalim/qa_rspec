@@ -11,9 +11,11 @@ module OnappSSH
     cred['cp_hostname'] ||= 'onapp'
     Log.error("HV ip should not be nil") unless cred['vm_host']
     cred['vm_user'] ||= 'root'
-    cmd = "echo '%s' | ssh -t %s@%s ssh %s@%s" % [command,
-                                                      cred['cp_hostname'], cred['cp_ip'],
-                                                      cred['vm_user'], cred['vm_host'],]
+
+    cmd = "echo \"%s\" | ssh -t %s@%s ssh %s@%s" % [command,
+                                                  cred['cp_hostname'], cred['cp_ip'],
+                                                  cred['vm_user'], cred['vm_host']]
+    Log.info(cmd)
     %x[ #{cmd} ].split("\r\n")
   end
 
