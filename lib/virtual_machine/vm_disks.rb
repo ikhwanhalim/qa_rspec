@@ -81,7 +81,7 @@ module VmDisks
     end
   end
 
-  def destroy_disk(id, expect_code:201)
+  def destroy_disk(id, expect_code:204)
     params = {force: 1, shutdown_type: 'graceful', required_startup: 1}
     result = delete("/settings/disks/#{id}", params)
     Log.error ("Unexpected responce code. Expected = #{expect_code}, got = #{api_response_code } \n #{result}") if api_response_code .to_i != expect_code.to_i
