@@ -94,20 +94,9 @@ class RunsController < ApplicationController
   end
 
   def kill
-    if $hash
-      $hash.each do |run_id, reports_ids|
-        reports = Report.where("run_id = #{run_id} AND status != 'Finished'")
-        reports.each {|r| r.update_attribute(:status, "Stopped")}
-        $hash[run_id].clear
-      end
-      Spawnling.new do
-        system "kill -9 `ps -ef | grep rspec | grep -v grep | awk '{print $2}'`"
-      end
-      $hash = nil
-      redirect_to root_path
-    else
-      redirect_to(root_path, :flash => { :warning => "nothing to do!" })
-    end
+    Run.ready_and_running_report.each {|r| r.update_attribute(:status, "Stopped")}
+    system "kill -9 `ps -ef | grep rspec | grep -v grep | awk '{print $2}'`"
+    redirect_to root_path
   end
 
   def report
