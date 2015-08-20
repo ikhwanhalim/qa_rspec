@@ -16,6 +16,7 @@ module OnappHTTP
     @pass = pass || data['pass']
     @ip = IPSocket::getaddress URI(@url).host
     @conn = Mechanize.new
+    @conn.agent.allowed_error_codes += [403, 404, 406, 422]
     cookie = Mechanize::Cookie.new :domain=>@ip, :name => 'hide_market_logs', :value => '1', :path => '/'
     @conn.cookie_jar << cookie
     @headers = {'Accept' => 'application/json','Content-Type' => 'application/json'}
@@ -24,42 +25,24 @@ module OnappHTTP
   end
 
   def get(link, data="")
-    request = JSON.parse @conn.get(@url + link + '.json', data, nil, @headers).body
-    Log.info("GET request has been sent to #{link} with params #{data}")
-    request
-    rescue Mechanize::ResponseCodeError => e
-      conn.page.code = e.page.code if conn.page
-      JSON.parse e.page.body
-    rescue JSON::ParserError
-      Log.warn("This is HTML page")
+    Log.info("GET request is sending to #{link} with params #{data}")
+    JSON.parse @conn.get("#{@url + link}.json", data, nil, @headers).body
   end
 
   def post(link, data="", additional='')
-    request = @conn.post(@url + link + '.json'+additional, data.to_json, @headers)
-    Log.info("POST request has been sent to #{link} with params #{data}")
-    request
-    JSON.parse(request.body) unless request.body.blank?
-    rescue Mechanize::ResponseCodeError => e
-      conn.page.code = e.page.code if conn.page
-      JSON.parse e.page.body
+    request = @conn.post("#{@url + link}.json" + additional, data.to_json, @headers)
+    Log.info("POST request is sending to #{link} with params #{data}")
+    request.body.blank? ? request : JSON.parse(request.body)
   end
 
   def delete(link, data="")
-    request = @conn.delete(@url + link + '.json', data, @headers)
-    Log.info("DELETE request has been sent to #{link} with params #{data}")
-    request
-    rescue Mechanize::ResponseCodeError => e
-      conn.page.code = e.page.code if conn.page
-      JSON.parse e.page.body
+    Log.info("DELETE request is sending to #{link} with params #{data}")
+    @conn.delete("#{@url + link}.json", data, @headers)
   end
 
   def put(link, data="")
     request = @conn.put(@url + link + '.json', data.to_json, @headers)
-    Log.info("PUT request has been sent to #{link} with params #{data}")
-    request
-    JSON.parse(request.body) unless request.body.blank?
-    rescue Mechanize::ResponseCodeError => e
-      conn.page.code = e.page.code if conn.page
-      JSON.parse e.page.body
+    Log.info("PUT request is sending to #{link} with params #{data}")
+    request.body.blank? ? request : JSON.parse(request.body)
   end
 end
