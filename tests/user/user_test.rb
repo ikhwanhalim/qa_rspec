@@ -89,9 +89,7 @@ describe "Checking Billing Plan functionality" do
     data = {:role_ids => [@role.role_id]}
     @user.edit_user(data)
     @user.login_as_user
-    @user.get("#{@user.url}/settings.json")
-    expect(@user.get("#{@user.url}/settings.json")['error']).to eq("You do not have permissions for this action")
+    expect(@user.get("/settings")['error']).to eq("You do not have permissions for this action")
     @user.login_as_user(1)
   end
-
 end
