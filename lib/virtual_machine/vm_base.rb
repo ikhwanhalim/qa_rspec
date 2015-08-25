@@ -209,16 +209,18 @@ class VirtualMachine
     api_response_code  == '201'
   end
 
-  def rebuild(template = @template)
+  def rebuild(template: @template, federated: false)
     post("#{@route}/build", {'template_id' => template['id'].to_s, 'required_startup' => '1'})
     return false if api_response_code  == '404'
     wait_for_stop
-    disk_wait_for_format('primary')    
-    disk_wait_for_format('swap') if @template['allowed_swap']
-    disk_wait_for_provision('primary') if @template['operating_system'] != 'freebsd'
-    disk_wait_for_provision('swap') if @template['operating_system'] == 'freebsd'
-    wait_for_configure_operating_system
-    wait_for_provision_win if @template['operating_system'] == 'windows'
+    unless federated
+      disk_wait_for_format('primary')
+      disk_wait_for_format('swap') if template['allowed_swap']
+      disk_wait_for_provision('primary') if template['operating_system'] != 'freebsd'
+      disk_wait_for_provision('swap') if template['operating_system'] == 'freebsd'
+      wait_for_configure_operating_system
+      wait_for_provision_win if template['operating_system'] == 'windows'
+    end
     wait_for_start
   end
 
@@ -238,14 +240,12 @@ class VirtualMachine
 
   def exist_on_hv?
     cred = { 'vm_host' => "#{@hypervisor['ip_address']}" }
-    # wait_until do
     result = if @hypervisor['hypervisor_type'] == 'kvm'
        tunnel_execute(cred, "virsh list | grep #{identifier}")
     elsif @hypervisor['hypervisor_type'] == 'xen'
       tunnel_execute(cred, "xm list | grep #{identifier}")
     end
     result.any? ? true : false
-    # end
   end
 
   # VM params

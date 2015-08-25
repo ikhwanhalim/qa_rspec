@@ -7,6 +7,8 @@ describe "Market" do
   before :all do
     @supplier = OnappSupplier.new
     @trader = OnappTrader.new
+    @trader.unsubscribe_all
+    @supplier.remove_all_from_federation
   end
 
 ###############################################
@@ -58,7 +60,8 @@ describe "Market" do
 
     describe "Trader" do
       it "should not be able subscribe to private zone" do
-        expect(@trader.subscribe(federation_id).keys.first).to eq 'errors'
+        @trader.subscribe(federation_id)
+        expect(@trader.conn.page.code).to eq '422'
       end
 
       it "should be able subscribe with token and zone should be able after unsubscribing" do
@@ -98,14 +101,16 @@ describe "Market" do
       end
 
       it "should not be able generate tokens if zone public" do
-        expect(@supplier.generate_token(:receiver).keys.first).to eq 'error'
+        @supplier.generate_token(:receiver)
+        expect(@supplier.conn.page.code).to eq '403'
       end
     end
 
     describe "Trader" do
       it "should not be able subscribe to disabled zone" do
         @supplier.disable_zone
-        expect(@trader.subscribe(federation_id).keys.first).to eq 'errors'
+        @trader.subscribe(federation_id)
+        expect(@trader.conn.page.code).to eq '422'
         @supplier.enable_zone
         @trader.wait_for_publishing federation_id
         federation_ids = @trader.all_unsubscribed.map {|z| z['federation_id']}
@@ -148,11 +153,6 @@ describe "Market" do
     after :all do
       @trader.unsubscribe_all
       @supplier.remove_all_from_federation
-    end
-
-    after do
-      expect(@trader.conn.page.code).to_not eq '500'
-      expect(@supplier.conn.page.code).to_not eq '500'
     end
 
     let(:federation_id) { @trader.subscribed_zone['federation_id'] }

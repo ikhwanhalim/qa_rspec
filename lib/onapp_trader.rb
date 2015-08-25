@@ -29,7 +29,7 @@ class OnappTrader
                 }
     }
     response = post("/federation/hypervisor_zones/#{federation_id}/subscribe", data)
-    return response if response
+    return response if @conn.page.code == '422'
     @subscribed_zone = all_subscribed.detect { |z| z['federation_id'] == federation_id }
     template_store
   end
@@ -110,6 +110,10 @@ class OnappTrader
     @vm = VirtualMachine.new(federation: auth_data)
     @vm.find_by_id(identifier)
     @vm.info_update
+  end
+
+  def vm_hash
+    vm.virtual_machine
   end
 
   #Tokens

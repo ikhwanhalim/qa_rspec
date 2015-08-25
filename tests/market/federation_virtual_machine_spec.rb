@@ -6,6 +6,8 @@ describe "Federation Virtual Machine" do
   before :all do
     @supplier = OnappSupplier.new
     @trader = OnappTrader.new
+    @trader.unsubscribe_all
+    @supplier.remove_all_from_federation
     @supplier.add_to_federation
     federation_id = @supplier.published_zone['federation_id']
     @trader.wait_for_publishing(federation_id)
@@ -44,9 +46,9 @@ describe "Federation Virtual Machine" do
     expect(@supplier.vm.pinged? && @supplier.vm.ssh_port_opened).to be true
   end
 
-  #TODO SSH after rebuild
   it "trader should be able rebuild vm" do
-    expect(@trader.vm.rebuild).to be true
+    expect(@trader.vm.rebuild(federated: true)).to be true
+    expect(@trader.vm.execute_with_pass('hostname').first).to eq @trader.vm_hash['hostname']
   end
 
   describe 'Supplier should not be able' do
