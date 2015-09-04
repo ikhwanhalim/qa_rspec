@@ -209,6 +209,11 @@ class VirtualMachine
     api_response_code  == '201'
   end
 
+  def suspend
+    post("#{@route}/suspend")
+    api_response_code == '201'
+  end
+
   def rebuild(template: @template, federated: false)
     post("#{@route}/build", {'template_id' => template['id'].to_s, 'required_startup' => '1'})
     return false if api_response_code  == '404'

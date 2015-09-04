@@ -48,6 +48,13 @@ describe 'VIRTUAL MACHINE REGRESSION AUTOTEST' do
       @vm.exist_on_hv?.should be_truthy
       @vm.ssh_port_opened.should be_truthy
     end
+    it 'Suspend/Unsuspend Virtual Machine' do
+      @vm.suspend.should be_truthy
+      @vm.wait_for_stop.should be_truthy
+      @vm.exist_on_hv?.should be_falsey
+      @vm.suspend.should be_truthy    #unsuspend VM before deleting
+      @vm.exist_on_hv?.should be_falsey
+    end
   end
   describe 'Migrate Virtual Machine operations' do
     it 'Hot Migrate VM' do
