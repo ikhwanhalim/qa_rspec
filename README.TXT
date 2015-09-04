@@ -11,6 +11,7 @@ rvm use 2.0 --default
 Needs to be installed additional libs:
 sudo apt-get install mysql-client libmysqlclient-dev
 sudo apt-get install nodejs
+*sudo apt-get install xvfb firefox (only for UI tests)
 
 Navigate your project folder and run the following commands:
 bundle
