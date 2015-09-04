@@ -5,6 +5,7 @@ require 'socket'
 require 'uri'
 require 'active_support/all'
 require 'helpers/onapp_log'
+require 'hashie'
 
 module OnappHTTP
   attr_accessor :conn
@@ -26,13 +27,18 @@ module OnappHTTP
 
   def get(link, data="")
     Log.info("GET request is sending to #{link} with params #{data}")
-    JSON.parse @conn.get("#{@url + link}.json", data, nil, @headers).body
+    response = JSON.parse @conn.get("#{@url + link}.json", data, nil, @headers).body
+    @conn.page.body = convert_to_mash(response)
   end
 
   def post(link, data="", additional='')
     request = @conn.post("#{@url + link}.json" + additional, data.to_json, @headers)
     Log.info("POST request is sending to #{link} with params #{data}")
-    request.body.blank? ? request : JSON.parse(request.body)
+    if request.body.blank?
+      request
+    else
+      @conn.page.body = convert_to_mash(JSON.parse(request.body))
+    end
   end
 
   def delete(link, data="")
@@ -43,6 +49,20 @@ module OnappHTTP
   def put(link, data="")
     request = @conn.put(@url + link + '.json', data.to_json, @headers)
     Log.info("PUT request is sending to #{link} with params #{data}")
-    request.body.blank? ? request : JSON.parse(request.body)
+    if request.body.blank?
+      request
+    else
+      @conn.page.body = convert_to_mash(JSON.parse(request.body))
+    end
+  end
+
+  private
+
+  def convert_to_mash(data)
+    if data.kind_of?(Array)
+      data.map { |e| Hashie::Mash.new e }
+    else
+      Hashie::Mash.new data
+    end
   end
 end
