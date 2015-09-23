@@ -51,14 +51,19 @@ class FederationTrader
     zones.map! &:hypervisor_zone
   end
 
-  def zone_search(action)
+  def zone_appeared?(federation_id)
     5.times do
       zone = all_unsubscribed.detect { |z| z.federation_id == federation_id }
-      if action == :empty
-        return zone unless zone
-      elsif action == :any
-        return zone if zone
-      end
+      return true if zone
+      sleep 1
+    end
+    false
+  end
+
+  def zone_disappeared?(federation_id)
+    5.times do
+      zone = all_unsubscribed.detect { |z| z.federation_id == federation_id }
+      return true unless zone
       sleep 1
     end
     false

@@ -8,6 +8,9 @@ class Federation
   def initialize
     @trader = FederationTrader.new
     @supplier = FederationSupplier.new
-    @market = FederationMarket.new
+  end
+
+  def market
+    @market = FederationMarket.new(@supplier.published_zone.federation_id)
   end
 end

@@ -1,5 +1,4 @@
-require 'federation_supplier'
-require 'federation_trader'
+require 'federation'
 require 'virtual_machine/vm_base'
 
 
@@ -8,27 +7,23 @@ describe "Market" do
     @federation = Federation.new
   end
 
+  let(:federation) { @federation }
   let(:supplier) { @federation.supplier }
   let(:trader) { @federation.trader }
-  let(:market) { @federation.market }
-
-###############################################
-##Tests if zone has been published as private##
-###############################################
 
   context "Zone has been published as private" do
     before :all do
-      supplier.add_to_federation(private: 1)
+      @federation.supplier.add_to_federation(private: 1)
+      @federation.market.set_preflight
     end
 
     after :all do
-      supplier.remove_from_federation
+      @federation.supplier.remove_from_federation
     end
 
     let(:federation_id) { supplier.published_zone.federation_id }
 
     describe "Supplier" do
-
       it "should be able generate tokens" do
         supplier.generate_token(:receiver)
         token = supplier.get_token('receiver').token
@@ -36,14 +31,14 @@ describe "Market" do
       end
 
       it 'private zone should not be visible for trader' do
-        expect(trader.zone_search(:empty)).to be_nil
+        expect(trader.zone_disappeared?(federation_id)).to be true
       end
 
       it 'sould be able switch zone to public' do
         supplier.make_public
-        expect(trader.zone_search(:any).federation_id).to eq federation_id
+        expect(trader.zone_appeared?(federation_id)).to be true
         supplier.make_private
-        expect(trader.trader.zone_search(:empty)).to be_nil
+        expect(trader.zone_disappeared?(federation_id)).to be true
       end
     end
 
@@ -67,18 +62,15 @@ describe "Market" do
     end
   end
 
-############################
-##Tests for published zone##
-############################
-
-  context "Zone has been published" do
+  context "Zone has been published as public" do
     before :all do
-      supplier.add_to_federation(label: "Simple Zone Label")
-      trader.wait_for_publishing supplier.published_zone.federation_id
+      @federation.supplier.add_to_federation(label: "Simple Zone Label")
+      @federation.market.set_preflight
+      @federation.trader.wait_for_publishing(@federation.market.federation_id)
     end
 
     after :all do
-      supplier.remove_from_federation
+      @federation.supplier.remove_from_federation
     end
 
     let(:federation_id) { supplier.published_zone.federation_id }
@@ -96,6 +88,14 @@ describe "Market" do
     end
 
     describe "Trader" do
+      it 'preflight check should be not passed' do
+
+      end
+
+      it 'preflight check should be passed' do
+
+      end
+
       it "should not be able subscribe to disabled zone" do
         supplier.disable_zone
         trader.subscribe(federation_id)
@@ -128,20 +128,17 @@ describe "Market" do
     end
   end
 
-#############################
-##Tests for subscribed zone##
-#############################
-
   context "Zone has been subscribed" do
     before :all do
-      supplier.add_to_federation
-      trader.wait_for_publishing supplier.published_zone.federation_id
-      trader.subscribe supplier.published_zone.federation_id
+      @federation.supplier.add_to_federation
+      @federation.market.set_preflight
+      @federation.trader.wait_for_publishing(@federation.market.federation_id)
+      @federation.trader.subscribe(@federation.market.federation_id)
     end
 
     after :all do
-      trader.unsubscribe_all
-      supplier.remove_from_federation
+      @federation.trader.unsubscribe_all
+      @federation.supplier.remove_from_federation
     end
 
     let(:federation_id) { trader.subscribed_zone.federation_id }
@@ -173,7 +170,7 @@ describe "Market" do
 
     describe "Trader" do
       after :all do
-        supplier.data_stores_attach
+        @federation.supplier.data_stores_attach
       end
 
       it "zone should be present" do
