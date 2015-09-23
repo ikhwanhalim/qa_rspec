@@ -1,18 +1,16 @@
-require 'onapp_supplier'
-require 'onapp_trader'
+require 'federation_supplier'
+require 'federation_trader'
 require 'virtual_machine/vm_base'
 
 describe "Federation Virtual Machine" do
   before :all do
-    @supplier = OnappSupplier.new
-    @trader = OnappTrader.new
-    @trader.unsubscribe_all
-    @supplier.remove_all_from_federation
+    @supplier = FederationSupplier.new
+    @trader = FederationTrader.new
     @supplier.add_to_federation
-    federation_id = @supplier.published_zone['federation_id']
+    federation_id = @supplier.published_zone.federation_id
     @trader.wait_for_publishing(federation_id)
     @trader.subscribe(federation_id)
-    @trader.create_vm(@supplier.template['label'], federation_id)
+    @trader.create_vm(@supplier.template.label, federation_id)
     @supplier.find_vm(federation_id)
     expect(@trader.vm.pinged?).to be true
   end
@@ -24,7 +22,7 @@ describe "Federation Virtual Machine" do
     @supplier.remove_all_from_federation
   end
 
-  let(:federation_id) { @trader.subscribed_zone['federation_id'] }
+  let(:federation_id) { @trader.subscribed_zone.federation_id }
 
   it "should pinged after booting" do
     expect(@trader.vm.pinged? && @trader.vm.ssh_port_opened).to be true
@@ -48,7 +46,7 @@ describe "Federation Virtual Machine" do
 
   it "trader should be able rebuild vm" do
     expect(@trader.vm.rebuild(federated: true)).to be true
-    expect(@trader.vm.execute_with_pass('hostname').first).to eq @trader.vm_hash['hostname']
+    expect(@trader.vm.execute_with_pass('hostname').first).to eq @trader.vm_hash.hostname
   end
 
   describe 'Supplier should not be able' do
@@ -77,7 +75,7 @@ describe "Federation Virtual Machine" do
     end
 
     it "destroy swap disk" do
-      id = @supplier.vm.disks.map {|d| d['disk']['id'] if d['disk']['is_swap']}.compact.first
+      id = @supplier.vm.disks.detect {|d| d.disk.id if d.disk.is_swap}
       begin
         @supplier.vm.destroy_disk(id)
       rescue
@@ -95,7 +93,7 @@ describe "Federation Virtual Machine" do
 
     describe "Default firewall rules" do
       it "should be ACCEPT" do
-        rule = @trader.vm.network_interfaces.first['network_interface']['default_firewall_rule']
+        rule = @trader.vm.network_interfaces.first.network_interface.default_firewall_rule
         expect(rule).to eq 'ACCEPT'
       end
 
@@ -125,7 +123,7 @@ describe "Federation Virtual Machine" do
       @trader.vm.create_firewall_rule(port: 22, command: 'DROP')
       @trader.vm.update_firewall_rules
       expect(@trader.vm.is_port_opened?(port: 22, time: 1)).to be false
-      id = @trader.vm.firewall_rules.first["firewall_rule"]["id"]
+      id = @trader.vm.firewall_rules.first.firewall_rule.id
       @trader.vm.edit_firewall_rule(id, {command: 'ACCEPT'})
       @trader.vm.update_firewall_rules
       expect(@trader.vm.is_port_opened?(port: 22, time: 1)).to be true
@@ -134,7 +132,7 @@ describe "Federation Virtual Machine" do
     it "should be able remove firewall rule" do
       @trader.vm.create_firewall_rule(port: 22, command: 'DROP')
       @trader.vm.update_firewall_rules
-      id = @trader.vm.firewall_rules.first["firewall_rule"]["id"]
+      id = @trader.vm.firewall_rules.first.firewall_rule.id
       @trader.vm.delete_firewall_rule(id)
       @trader.vm.update_firewall_rules
       expect(@trader.vm.firewall_rules.empty?).to be true
@@ -151,7 +149,7 @@ describe "Federation Virtual Machine" do
     end
 
     after :all do
-      @trader.vm.delete_ip(@ip_join['id'])
+      @trader.vm.delete_ip(@ip_join.id)
     end
 
     it 'should pinged' do
@@ -160,7 +158,7 @@ describe "Federation Virtual Machine" do
     end
 
     it 'SSH port should be opened' do
-      expect(@trader.vm.is_port_opened?(ip: @ip_join['ip_address']['address'])).to be true
+      expect(@trader.vm.is_port_opened?(ip: @ip_join.ip_address.address)).to be true
       expect(@trader.vm.ssh_port_opened).to be true
     end
   end
