@@ -88,12 +88,19 @@ describe "Market" do
     end
 
     describe "Trader" do
-      it 'preflight check should be not passed' do
+      describe "preflight process" do
+        before do
+          @federation.market.set_preflight(status = false)
+        end
 
-      end
+        it 'should be not passed' do
+          @federation.market.set_preflight(status = true)
+          expect(trader.zone_disappeared?(federation_id)).to be true
+        end
 
-      it 'preflight check should be passed' do
-
+        it 'should be passed' do
+          expect(trader.zone_appeared?(federation_id)).to be true
+        end
       end
 
       it "should not be able subscribe to disabled zone" do
