@@ -30,7 +30,12 @@ class OnappISO
   def edit_iso (data)
     params ={}
     params[:image_template_iso] = data
-    put("/template_isos/#{@iso_id}", params)
+    response = put("/template_isos/#{@iso_id}", params)
+    if response ['image_template_iso']
+      @data = response['image_template_iso']
+    else
+      @data = response['errors']
+    end
   end
 
   def make_iso_public

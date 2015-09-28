@@ -36,7 +36,7 @@ describe 'ISO functionality tests' do
       expect(@iso.api_response_code).to eq '422'
     end
 
-    it 'Create ISO test with incorrect min_memory_size' do
+    it 'Create ISO with incorrect min_memory_size' do
       data = {'label' => 'iso_api_test',
               'make_public' => '0',
               'min_memory_size' => '0',
@@ -50,7 +50,7 @@ describe 'ISO functionality tests' do
       expect(@iso.api_response_code).to eq '422'
     end
 
-    it 'Create ISO test with empty version' do
+    it 'Create ISO with empty version' do
       data = {'label' => 'iso_api_test',
               'make_public' => '0',
               'min_memory_size' => '0',
@@ -64,7 +64,7 @@ describe 'ISO functionality tests' do
       expect(@iso.api_response_code).to eq '422'
     end
 
-    it 'Create ISO test with empty operating_system' do
+    it 'Create ISO with empty operating_system' do
       data = {'label' => 'iso_api_test',
               'make_public' => '0',
               'min_memory_size' => '128',
@@ -78,7 +78,7 @@ describe 'ISO functionality tests' do
       expect(@iso.api_response_code).to eq '422'
     end
 
-    it 'Create ISO test with empty virtualization' do
+    it 'Create ISO with empty virtualization' do
       data = {'label' => 'iso_api_test',
               'make_public' => '0',
               'min_memory_size' => '128',
@@ -92,7 +92,7 @@ describe 'ISO functionality tests' do
       expect(@iso.api_response_code).to eq '422'
     end
 
-    it 'Create ISO test with empty file_url' do
+    it 'Create ISO with empty file_url' do
       data = {'label' => 'iso_api_test',
               'make_public' => '0',
               'min_memory_size' => '128',
@@ -103,6 +103,34 @@ describe 'ISO functionality tests' do
               'file_url' => ''}
       response = @iso.create_iso(data)
       expect(response['file_url']).to eq(["can't be blank"])
+      expect(@iso.api_response_code).to eq '422'
+    end
+
+  end
+
+  describe 'Edit ISO negative tests' do
+
+    it 'Edit ISO with the min_memory_size less than 128' do
+       response = @iso.edit_iso('min_memory_size' => '100')
+       expect(response['min_memory_size']).to eq(["must be greater than or equal to 128"])
+       expect(@iso.api_response_code).to eq '422'
+    end
+
+    it 'Edit ISO with the empty version' do
+      response = @iso.edit_iso('version' => '')
+      expect(response['version']).to eq(["can't be blank"])
+      expect(@iso.api_response_code).to eq '422'
+    end
+
+    it 'Edit ISO with empty operating_system' do
+      response = @iso.create_iso('operating_system' => '')
+      expect(response['operating_system']).to eq(["can't be blank"])
+      expect(@iso.api_response_code).to eq '422'
+    end
+
+    it 'Edit ISO with incorrect virtualization type' do
+      response = @iso.create_iso('virtualization' => ["xee"])
+      expect(response['virtualization']).to eq(["type 'xee' is incompatible"])
       expect(@iso.api_response_code).to eq '422'
     end
 
@@ -149,7 +177,7 @@ describe 'ISO functionality tests' do
   end
 
     it 'Make ISO public' do
-    response = @iso.make_iso_public
+    @iso.make_iso_public
     expect(@iso.api_response_code).to eq '201'
     response = @iso.get_iso(@iso.iso_id)
     expect(response['user_id']).to be_nil
