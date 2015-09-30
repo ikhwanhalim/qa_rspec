@@ -15,3 +15,9 @@ trader:
   url: http://69.168.237.162
   user: admin
   pass: changeme
+
+market:
+  ip: 69.168.237.164
+  url: http://69.168.237.164:3000
+  user: admin
+  pass: admin

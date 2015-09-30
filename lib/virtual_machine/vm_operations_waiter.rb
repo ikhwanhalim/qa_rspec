@@ -29,6 +29,10 @@ module VmOperationsWaiters
     wait_for_transaction(@virtual_machine['id'], 'VirtualMachine', 'destroy_virtual_machine')
   end
 
+  def wait_for_reset_root_password
+    wait_for_transaction(@virtual_machine['id'], 'VirtualMachine', 'reset_root_password')
+  end
+
   def wait_for_reboot
     set_max_mem
     wait_for_transaction(@virtual_machine['id'], 'VirtualMachine', 'reboot_virtual_machine')

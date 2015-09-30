@@ -229,6 +229,15 @@ class VirtualMachine
     wait_for_start
   end
 
+  def reset_root_password
+    post("#{@route}/reset_password")
+    return false if api_response_code  == '404'
+    wait_for_stop
+    wait_for_reset_root_password
+    wait_for_start
+    info_update
+  end
+
   def info_update
     @route ||= "/virtual_machines/#{@virtual_machine['identifier']}"
     @virtual_machine = get("#{@route}")['virtual_machine']
