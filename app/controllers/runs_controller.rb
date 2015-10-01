@@ -4,13 +4,14 @@ class RunsController < ApplicationController
 
   def index
     @runs = Run.all
+    @templates = Template.env_list
   end
 
   def new
     @run = Run.new
     @virt = %w{xen3 xen4 kvm5 kvm6}
     @files = Array[Run.directory_hash("tests")]
-    @templates = Template.all.sort_by {|t| t.label}
+    @templates = Template.env_list
   end
  
   def create
@@ -39,8 +40,8 @@ class RunsController < ApplicationController
     @run = Run.find(params[:id])
     @virt = %w{xen3 xen4 kvm5 kvm6}
     @files = Array[Run.directory_hash("tests")]
-    @templates = Template.all.sort_by {|t| t.label}
-    @selected_templates = Template.where(manager_id: YAML.load(@run.templates))
+    @templates = Template.env_list
+    @selected_templates = @templates.where(manager_id: YAML.load(@run.templates))
   end
 
   def update
@@ -121,7 +122,7 @@ class RunsController < ApplicationController
     statuses = []
     run_ids.map do |id|
       run = Run.find id
-      statuses += Template.where(manager_id: YAML.load(run.templates)).map &:status
+      statuses += Template.env_list.where(manager_id: YAML.load(run.templates)).map &:status
     end
     statuses.include?('Undefined')
   end

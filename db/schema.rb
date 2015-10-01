@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20150720120931) do
+ActiveRecord::Schema.define(:version => 20151001092058) do
 
   create_table "reports", :force => true do |t|
     t.text     "spec_files"
@@ -43,6 +43,7 @@ ActiveRecord::Schema.define(:version => 20150720120931) do
     t.string   "status",         :default => "Undefined"
     t.datetime "created_at",                              :null => false
     t.datetime "updated_at",                              :null => false
+    t.string   "version"
   end
 
   create_table "users", :force => true do |t|

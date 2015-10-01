@@ -9,7 +9,7 @@ class Run < ActiveRecord::Base
     end
 
     def thread(report)
-      template = Template.where(manager_id: report.template_name).first
+      template = Template.env_list(report.template_name).first
       manager_id = template ? template.manager_id : ""
       files = YAML.load(report.spec_files)
       report.report_file ||= Report.file_ident
@@ -19,7 +19,7 @@ class Run < ActiveRecord::Base
                 "VIRT_TYPE='#{report.virt}' "\
                 "TEMPLATE_MANAGER_ID='#{manager_id}' "\
                 "rspec #{files.join ' '} --format h --out #{full_report_path}"
-      p str_run
+      Log.info(str_run)
       Spawnling.new do
         report_by_id = Report.find(report.id)
         report_by_id.update_attribute(:status, "Running") if report_by_id.status != 'Stopped'
@@ -72,25 +72,33 @@ class Run < ActiveRecord::Base
 
     def render_hash(hash, selected=[], html=nil)
       html ||= ''
+      hash.sort_by! {|e| e.kind_of?(String) ? 1 : 0}
       hash.each do |h|
+        if h.kind_of? String
+          html << generate_select_boxes(h, selected)
+          next
+        end
         html << "<div class='arrow-right'></div>"
         html << "<label class='folder'>#{h[:data].upcase}</label><ul>"
-        if h[:children].first.kind_of? Hash
+        if h[:children].detect { |c| c.kind_of? Hash }
           render_hash(h[:children], selected, html)
         else
-          h[:children].each do |c|
-            next unless c.match(/.rb$/)
-            cb = if selected.include?(c)
-              "<input class='checkbox' type='checkbox' name='run[files][]' value='#{c}' checked>"
-            else
-              "<input class='checkbox' type='checkbox' name='run[files][]' value='#{c}'>"
-            end
-            html << "<li>#{cb}<label>#{c.split('/').last}</label></li>"
+          h[:children].to_a.each do |c|
+            html << generate_select_boxes(c, selected)
           end
-          html << "</ul><br>"
         end
+        html << "</ul><br>"
       end
       html
+    end
+
+    def generate_select_boxes(el, selected)
+      cb = if selected.include?(el)
+             "<input class='checkbox' type='checkbox' name='run[files][]' value='#{el}' checked>"
+           else
+             "<input class='checkbox' type='checkbox' name='run[files][]' value='#{el}'>"
+           end
+      return "<li>#{cb}<label>#{el.split('/').last}</label></li>"
     end
 
     def update_cron_period_and_status(runs)

@@ -23,9 +23,9 @@
                     =simple_format YAML.load(r.files).join("\n")
                 %th
                   %p
-                    - templates = ::Template.where(manager_id: YAML.load(r.templates))
+                    - templates = @templates.where(manager_id: YAML.load(r.templates))
                     - templates.each do |t|
-                      = t.label
+                      = "#{t.label}(#{t.version})"
                       - if t.status == "Undefined"
                         %span.label.label-default= t.status
                       - elsif t.status == "Downloaded"

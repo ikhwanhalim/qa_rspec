@@ -31,6 +31,13 @@ module OnappHTTP
     @conn.page.body = convert_to_mash(response)
   end
 
+  def get_from_url(link, data="")
+    conn = Mechanize.new
+    Log.info("GET request is sending to #{link} with params #{data}")
+    response = JSON.parse conn.get(link, data, nil, @headers).body
+    conn.page.body = convert_to_mash(response)
+  end
+
   def post(link, data="", additional='')
     request = @conn.post("#{@url + link}.json" + additional, data.to_json, @headers)
     Log.info("POST request is sending to #{link} with params #{data}")

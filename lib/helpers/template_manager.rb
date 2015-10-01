@@ -1,6 +1,9 @@
 require_relative 'onapp_http'
+require_relative 'transaction'
 
 module TemplateManager
+  include Transaction
+
   attr_reader :template_store, :template
 
   def get_template(manager_id)
@@ -8,9 +11,9 @@ module TemplateManager
     @manager_id = manager_id
     @template = installed_template.nil? ? download_template : installed_template
     if @template.nil?
-      raise 'Template does not exist'
+      Log.error('Template does not exist')
     else
-      sleep 20 until active? @template['id']
+      wait_for_download_template
       add_to_template_store(@template['id'])
       return @template
     end
@@ -24,10 +27,18 @@ module TemplateManager
     get("/templates/available").map {|t| t['remote_template']}
   end
 
-  private
+  def dev_templates
+    templates = get_from_url('http://templates-manager.onappdev.com/')
+    templates.map { |t| t.release.label += '(dev)'; t.release }
+  end
+
+  def released_templates
+    templates = get_from_url('http://templates-manager.onapp.com/')
+    templates.map &:release
+  end
 
   def installed_template
-    templates = get("/templates/all").select {|t| t['image_template']['manager_id'] == @manager_id}
+    templates = get("/templates/all").select { |t| t['image_template']['manager_id'] == @manager_id }
     if templates.any?
       return templates.first['image_template']
     else
@@ -36,10 +47,10 @@ module TemplateManager
   end
 
   def download_template
-    templates = get("/templates/available").select {|t| t['remote_template']['manager_id'] == @manager_id}
-    for_upgrade = get("/templates/upgrades").select {|t| t['remote_template']['manager_id'] == @manager_id}
+    templates = get("/templates/available").select { |t| t['remote_template']['manager_id'] == @manager_id }
+    for_upgrade = get("/templates/upgrades").select { |t| t['remote_template']['manager_id'] == @manager_id }
     if templates.any?
-      return post( "/templates", {'image_template'=>{'manager_id'=>@manager_id}})["image_template"]
+      return post( "/templates", {'image_template' => {'manager_id' => @manager_id}})["image_template"]
     elsif for_upgrade.any?
       id = for_upgrade.first['remote_template']['id']
       return put("/templates/#{id}/upgrade")["image_template"]
@@ -59,6 +70,13 @@ module TemplateManager
       @template_store = post("/settings/image_template_groups", {"image_template_group"=>{"label"=>"AutoTests"}})
     end
     post("/settings/image_template_groups/#{@template_store['id']}/relation_group_templates", data)
+  end
+
+  def wait_for_download_template
+    wait_for_transaction(@template.id, "ImageTemplateBase", "download_template")
+    wait_for_transaction(@template.id, "ImageTemplateBase", "test_checksum")
+    wait_for_transaction(@template.id, "ImageTemplateBase", "distribute_template")
+    wait_for_transaction(@template.id, "ImageTemplateBase", "cleanup_template")
   end
 
   def active?(id)

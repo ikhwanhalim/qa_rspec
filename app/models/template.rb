@@ -1,34 +1,48 @@
 class Template < ActiveRecord::Base
   include OnappHTTP
   include TemplateManager
-  attr_accessible :label, :manager_id, :virtualization
+  attr_accessible :label, :manager_id, :virtualization, :version
+
+  scope :dev, ->(id = nil) do
+    query = id ? "manager_id = '#{id}' AND " : ''
+    where(query + "label LIKE '%(dev)%'").order(:label)
+  end
+
+  scope :prod, ->(id = nil) do
+    query = id ? "manager_id = '#{id}' AND " : ''
+    where(query + "label NOT LIKE '%(dev)%'").order(:label)
+  end
 
   def update_templates
-    onapp_http_auth
-    templates = []
+    templates = released_templates + dev_templates
     array = []
-    templates += installed_templates
-    templates += available_templates
-    exists_templates = Template.all.map {|t| t.manager_id}
-    keys = ["label", "manager_id", "virtualization"]
-
+    exists_templates = Template.all.map {|t| "#{t.manager_id}.#{t.version}"}
+    keys = ['label', 'manager_id', 'virtualization', 'version']
     templates.each do |t|
-      unless exists_templates.include?(t["manager_id"])
-        hash = Hash[[keys,[t['label'], t['manager_id'], t['virtualization']]].transpose]
+      unless exists_templates.include?("#{t.manager_id}.#{t.version}")
+        hash = Hash[[keys,[t['label'], t['manager_id'], t['virtualization'], t['version']]].transpose]
         array << Template.new(hash)
       end
     end
-
     Template.transaction do
       Template.import array
     end
+  end
+
+  def server_url
+    onapp_http_auth
+    get('/settings/edit').settings.update_server_url
+  end
+
+  def self.env_list(manager_id = nil)
+    Template.new.server_url.include?('onappdev') ? self.dev(manager_id) : self.prod(manager_id)
   end
 
   def download_templates(manager_ids)
     onapp_http_auth
     manager_ids.each do |id|
       Spawnling.new do
-        template = Template.where(manager_id: id).first
+        template = Template.env_list(id).first
         template.update_attribute(:status, 'Undefined')
         get_template(id)
         template.update_attribute(:status, 'Downloaded')
