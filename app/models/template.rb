@@ -50,6 +50,14 @@ class Template < ActiveRecord::Base
     end
   end
 
+  def set_undefined(templates)
+    onapp_http_auth
+    installed_manager_ids = installed_templates.map &:manager_id
+    templates.each do |t|
+      t.update_attribute(:status, 'Undefined') unless installed_manager_ids.include?(t.manager_id)
+    end
+  end
+
   def onapp_http_auth
     data = YAML::load_file('config/conf.yml')
     auth(url: data['url'], user: data['user'], pass: data['pass'])

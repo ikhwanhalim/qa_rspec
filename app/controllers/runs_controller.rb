@@ -5,6 +5,7 @@ class RunsController < ApplicationController
   def index
     @runs = Run.all
     @templates = Template.env_list
+    Template.new.set_undefined(@templates)
   end
 
   def new

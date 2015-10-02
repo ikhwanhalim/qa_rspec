@@ -9,14 +9,11 @@ module TemplateManager
   def get_template(manager_id)
     Log.error('Template manager_id is empty') unless manager_id
     @manager_id = manager_id
-    @template = installed_template.nil? ? download_template : installed_template
-    if @template.nil?
-      Log.error('Template does not exist')
-    else
-      wait_for_download_template
-      add_to_template_store(@template['id'])
-      return @template
-    end
+    @template = installed_template || download_template
+    Log.error('Template does not exist') unless @template
+    wait_for_download_template if @template.state != 'active'
+    add_to_template_store(@template.id)
+    @template
   end
 
   def installed_templates
@@ -62,7 +59,7 @@ module TemplateManager
   def add_to_template_store(template_id, price=0)
     data = {"relation_group_template"=>{"template_id"=>template_id, "price"=>price}}
     template_store_list = get("/template_store").select do |s|
-      !s['system_group'] && !s['relations'].first['image_template']['remote_id'] if s['relations'].any?
+      !s.system_group && (s.relations.any? ? !s.relations.first.image_template.remote_id : true)
     end
     if template_store_list
       @template_store = template_store_list.first
@@ -77,11 +74,6 @@ module TemplateManager
     wait_for_transaction(@template.id, "ImageTemplateBase", "test_checksum")
     wait_for_transaction(@template.id, "ImageTemplateBase", "distribute_template")
     wait_for_transaction(@template.id, "ImageTemplateBase", "cleanup_template")
-  end
-
-  def active?(id)
-    @template = get("/templates/#{id}").values.first
-    @template['state'] == 'active'
   end
 
   def remove_template(id)
