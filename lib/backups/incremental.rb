@@ -1,8 +1,8 @@
-require 'helpers/onapp_http'
+require 'helpers/api_client'
 require 'backups/backup_base'
 
 class Incremental < BackupBase
-  include OnappHTTP
+  include ApiClient
   attr_accessor :id, :type
 
   def get_incremental

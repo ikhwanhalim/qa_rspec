@@ -4,10 +4,10 @@ require 'yaml'
 require 'socket'
 require 'uri'
 require 'active_support/all'
-require 'helpers/onapp_log'
+require 'helpers/logger'
 require 'hashie'
 
-module OnappHTTP
+module ApiClient
   attr_accessor :conn
 
   def auth(url: nil, user: nil, pass: nil)

@@ -1,8 +1,8 @@
 require './lib/helpers/transaction'
-require 'helpers/onapp_ssh'
+require 'helpers/ssh_client'
 
 class BackupBase
-  include Transaction, OnappHTTP
+  include Transaction, ApiClient
   attr_accessor :template_from_backup
   def initialize(user=nil)
     if user

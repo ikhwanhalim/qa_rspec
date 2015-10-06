@@ -1,10 +1,10 @@
 require 'yaml'
-require 'helpers/onapp_http'
+require 'helpers/api_client'
 require 'json'
 require 'onapp_billing'
 
 class OnappBaseResource
-  include OnappHTTP
+  include ApiClient
   attr_accessor :br_id, :data
 
   def initialize

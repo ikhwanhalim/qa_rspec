@@ -1,10 +1,10 @@
-require 'helpers/onapp_http'
+require 'helpers/api_client'
 require 'virtual_machine/vm_base'
-require 'virtual_machine/vm_operations_waiter'
+require 'helpers/waiter'
+require 'singleton'
 
 class FederationTrader
-  include OnappHTTP
-  include VmOperationsWaiters
+  include Singleton, ApiClient, Waiter
 
   attr_accessor :subscribed_zone, :vm, :template_store
 
@@ -52,21 +52,17 @@ class FederationTrader
   end
 
   def zone_appeared?(federation_id)
-    5.times do
+    wait_until do
       zone = all_unsubscribed.detect { |z| z.federation_id == federation_id }
-      return true if zone
-      sleep 1
+      zone ? true : false
     end
-    false
   end
 
   def zone_disappeared?(federation_id)
-    5.times do
+    wait_until do
       zone = all_unsubscribed.detect { |z| z.federation_id == federation_id }
-      return true unless zone
-      sleep 1
+      zone ? false : true
     end
-    false
   end
 
   def all_subscribed
@@ -86,17 +82,6 @@ class FederationTrader
 
   def get_all(resource)
     get(resource)
-  end
-
-  def wait_for_publishing(federation_id)
-    10.times do
-      zones = get("/federation/hypervisor_zones/unsubscribed")
-      zones.each do |hvz|
-        return hvz if hvz.hypervisor_zone.federation_id == federation_id
-      end
-      sleep 1
-    end
-    Log.error("Zone has not been published")
   end
 
   # VM operations
@@ -136,13 +121,10 @@ class FederationTrader
 
   #Announcements
   def find_announcement(market_id)
-    10.times do
-      all_announcements.each do |a|
-        return a if a.announcement.federation_id == market_id
-      end
-      sleep 1
+    wait_until do
+      announcement = all_announcements.detect { |a| a.announcement.federation_id == market_id }
+      announcement ? announcement : false
     end
-    Log.error('Announcement was not created on the market')
   end
 
   def all_announcements
@@ -150,17 +132,13 @@ class FederationTrader
   end
 
   def announcement_removed?(announcement)
-    10.times do
-      return true unless all_announcements.include?(announcement)
-      sleep 1
+    wait_until do
+      all_announcements.include?(announcement) ? false : true
     end
-    Log.error('Announcement was not removed on the market')
   end
 
   def edit_announcement(id, text)
     data = {announcement: {text: text}}
     put("/federation/hypervisor_zones/#{subscribed_zone.id}/announcements/#{id}", data)
   end
-
-  #IP addresses
 end

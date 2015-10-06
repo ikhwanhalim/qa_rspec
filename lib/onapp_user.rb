@@ -1,5 +1,5 @@
 require 'yaml'
-require 'helpers/onapp_http'
+require 'helpers/api_client'
 require 'helpers/transaction'
 require 'json'
 require 'helpers/template_manager'
@@ -7,7 +7,7 @@ require 'helpers/hypervisor'
 require 'helpers/base_resources'
 
 class OnappUser
-  include OnappHTTP
+  include ApiClient
   include Transaction
   include TemplateManager
   include Hypervisor

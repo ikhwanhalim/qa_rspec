@@ -7,7 +7,7 @@ describe "Federation Virtual Machine" do
     @federation.supplier.add_to_federation
     federation_id = @federation.supplier.published_zone.federation_id
     @federation.market.set_preflight
-    @federation.trader.wait_for_publishing(federation_id)
+    @federation.trader.zone_appeared?(federation_id)
     @federation.trader.subscribe(federation_id)
     @federation.trader.create_vm(@federation.supplier.template.label, federation_id)
     @federation.supplier.find_vm(federation_id)
@@ -155,7 +155,7 @@ describe "Federation Virtual Machine" do
   end
 
   describe "Normal backup" do
-    it { pending }
+    it { skip }
   end
 
   describe "New IP address" do

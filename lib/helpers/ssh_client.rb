@@ -1,10 +1,7 @@
 require 'json'
 require 'net/ssh'
-require 'pry'
 
-module OnappSSH
-
-
+module SshClient
   #Example for cred - {'vm_user'=>'name', 'vm_host'=>'ip', 'cp_hostname'=>'name', 'cp_ip'=>'ip'}
   def tunnel_execute(cred={}, command)
     cred['cp_ip'] ||= @ip
@@ -62,6 +59,7 @@ module OnappSSH
       execute_with_pass("dmesg | grep -oE 'cpu[0-9]*' | awk 'END{printf \"%.0f\n\", (NR+0.1)/2}'")
     end.first
   end
+
   def cpu_shares_on_hv
     cred = { 'vm_host' => "#{@hypervisor['ip_address']}" }
     if @hypervisor['hypervisor_type'] == 'kvm'
@@ -71,6 +69,7 @@ module OnappSSH
     end
     return result
   end
+
   def check_hostname
     execute_with_pass('hostname')
   end

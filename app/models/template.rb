@@ -1,5 +1,5 @@
 class Template < ActiveRecord::Base
-  include OnappHTTP
+  include ApiClient
   include TemplateManager
   attr_accessible :label, :manager_id, :virtualization, :version
 

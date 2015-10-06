@@ -6,11 +6,13 @@ class Federation
   attr_reader :trader, :supplier, :market
 
   def initialize
-    @trader = FederationTrader.new
-    @supplier = FederationSupplier.new
+    @trader = FederationTrader.instance
+    @supplier = FederationSupplier.instance
+    @market = FederationMarket.instance
   end
 
   def market
-    @market = FederationMarket.new(@supplier.published_zone.federation_id)
+    @market.instance_variable_set(:@federation_id, @supplier.published_zone.federation_id)
+    @market
   end
 end

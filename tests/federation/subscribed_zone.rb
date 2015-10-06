@@ -6,7 +6,7 @@ describe "Zone has been subscribed" do
     @federation = Federation.new
     @federation.supplier.add_to_federation
     @federation.market.set_preflight
-    @federation.trader.wait_for_publishing(@federation.market.federation_id)
+    @federation.trader.zone_appeared?(@federation.market.federation_id)
     @federation.trader.subscribe(@federation.market.federation_id)
   end
 
@@ -112,11 +112,11 @@ describe "Zone has been subscribed" do
 
   describe 'Perform on the market' do
     it 'template tracker sync' do
-      pending
+      skip
     end
 
     it 'resources sync' do
-      pending
+      skip
     end
   end
 end

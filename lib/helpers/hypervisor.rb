@@ -1,5 +1,5 @@
 require 'yaml'
-require_relative 'onapp_http'
+require_relative 'api_client'
 
 module Hypervisor
   def for_vm_creation(virt, hvz_id = nil)

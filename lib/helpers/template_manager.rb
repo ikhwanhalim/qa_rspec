@@ -1,4 +1,4 @@
-require_relative 'onapp_http'
+require_relative 'api_client'
 require_relative 'transaction'
 
 module TemplateManager

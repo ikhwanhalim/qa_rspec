@@ -1,10 +1,10 @@
-require 'helpers/onapp_http'
+require 'helpers/api_client'
 require 'helpers/hypervisor'
 require 'helpers/template_manager'
 require 'virtual_machine/vm_disks'
 require 'virtual_machine/vm_operations_waiter'
 require 'virtual_machine/vm_networks'
-require 'helpers/onapp_ssh'
+require 'helpers/ssh_client'
 require 'helpers/template_manager'
 require 'virtual_machine/vm_firewall'
 require 'virtual_machine/vm_ip_addresses'
@@ -12,7 +12,7 @@ require 'virtual_machine/vm_ip_addresses'
 require 'yaml'
 
 class VirtualMachine  
-  include OnappHTTP, OnappSSH, Hypervisor, TemplateManager, VmDisks, VmOperationsWaiters, VmNetwork, VmFirewall,
+  include ApiClient, SshClient, Hypervisor, TemplateManager, VmDisks, VmOperationsWaiters, VmNetwork, VmFirewall,
           VmIpAddress
 
   attr_accessor :virtual_machine

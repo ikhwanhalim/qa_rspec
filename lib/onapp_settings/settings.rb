@@ -1,7 +1,7 @@
-require 'helpers/onapp_http'
+require 'helpers/api_client'
 
 class Settings
-  include OnappHTTP
+  include ApiClient
   attr_accessor :cfg
 
   def initialize

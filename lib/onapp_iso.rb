@@ -1,12 +1,12 @@
 require 'yaml'
 require 'json'
-require 'helpers/onapp_http'
-require 'helpers/onapp_log'
+require 'helpers/api_client'
+require 'helpers/logger'
 require 'helpers/transaction'
 
 class OnappISO
 
-  include OnappHTTP, Transaction
+  include ApiClient, Transaction
   attr_accessor :iso_id, :data
 
   def initialize

@@ -1,10 +1,10 @@
-require 'helpers/onapp_http'
-require 'helpers/onapp_log'
+require 'helpers/api_client'
+require 'helpers/logger'
 require 'yaml'
 require 'pry'
 
 module Transaction
-  include OnappHTTP
+  include ApiClient
   def wait_for_transaction(parent_id, parent_type, action)
     Log.info("Waiting for #{parent_type} (#{parent_id}) transaction: #{action}")
     auth unless self.conn

@@ -13,6 +13,7 @@ describe "Market" do
   context "Zone has been published as private" do
     before :all do
       @federation.supplier.add_to_federation(private: 1)
+      @federation.market.wait_for_zone_publishing
       @federation.market.set_preflight
     end
 
@@ -51,11 +52,11 @@ describe "Market" do
         supplier.generate_token(:receiver)
         token = supplier.get_token('receiver').token
         trader.use_token(:sender, token.token)
-        trader.wait_for_publishing(federation_id)
+        trader.zone_appeared? federation_id
         trader.subscribe(federation_id)
         expect(trader.subscribed_zone).not_to be nil
         trader.unsubscribe_all
-        ids = trader.all_unsubscribed.map {|z| z.federation_id}
+        ids = trader.all_unsubscribed.map &:federation_id
         expect(ids.include?(federation_id)).to be true
       end
     end
@@ -64,8 +65,8 @@ describe "Market" do
   context "Zone has been published as public" do
     before :all do
       @federation.supplier.add_to_federation(label: "Simple Zone Label")
+      @federation.market.wait_for_zone_publishing
       @federation.market.set_preflight
-      @federation.trader.wait_for_publishing(@federation.market.federation_id)
     end
 
     after :all do
@@ -107,7 +108,7 @@ describe "Market" do
         trader.subscribe(federation_id)
         expect(trader.conn.page.code).to eq '422'
         supplier.enable_zone
-        trader.wait_for_publishing federation_id
+        trader.zone_appeared? federation_id
         federation_ids = trader.all_unsubscribed.map &:federation_id
         expect(federation_ids).to include(federation_id)
       end

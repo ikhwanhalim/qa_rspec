@@ -1,5 +1,5 @@
 require 'yaml'
-require_relative 'onapp_http'
+require_relative 'api_client'
 
 module BaseResources
   def get_dsz_id(hvz_id)

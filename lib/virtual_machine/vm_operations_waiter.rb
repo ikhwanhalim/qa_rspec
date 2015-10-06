@@ -1,8 +1,8 @@
 require 'helpers/transaction'
-require 'timeout'
+require 'helpers/waiter'
 
 module VmOperationsWaiters
-  include Transaction  
+  include Transaction, Waiter
   
   def wait_for_configure_operating_system
     wait_for_transaction(@virtual_machine['id'], 'VirtualMachine', 'configure_operating_system')
@@ -75,14 +75,5 @@ module VmOperationsWaiters
   def set_max_mem
     @maxmem = @virtual_machine['memory']*2 if @hypervisor['hypervisor_type'] == 'xen'
     @maxmem = @virtual_machine['memory'] if @hypervisor['hypervisor_type'] == 'kvm'
-  end
-
-  def wait_until(max = 30)
-    Timeout.timeout(max) do
-      until value = yield
-        sleep(1)
-      end
-      value
-    end
   end
 end

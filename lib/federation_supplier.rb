@@ -1,15 +1,13 @@
-require 'helpers/onapp_http'
+require 'helpers/api_client'
 require 'helpers/template_manager'
 require 'helpers/hypervisor'
 require 'virtual_machine/vm_base'
-require 'virtual_machine/vm_operations_waiter'
+require 'helpers/waiter'
+require 'singleton'
 
 
 class FederationSupplier
-  include OnappHTTP
-  include TemplateManager
-  include Hypervisor
-  include VmOperationsWaiters
+  include Singleton, ApiClient, TemplateManager, Hypervisor, Waiter
 
   attr_accessor :published_zone, :vm, :resources
 
@@ -142,13 +140,10 @@ class FederationSupplier
   end
 
   def wait_announcement_id(local_id)
-    10.times do
-      all_announcements.each do |a|
-        return a if a.announcement.id == local_id && a.announcement.federation_id
-      end
-      sleep 1
+    wait_until do
+      announcement = all_announcements.detect { |a| a.announcement.id == local_id && a.announcement.federation_id }
+      announcement ? announcement : false
     end
-    Log.error('Announcement was not created on the market')
   end
 
   def remove_announcement(local_id)
@@ -162,13 +157,12 @@ class FederationSupplier
   end
 
   def get_token(receiver)
-    10.times do
-      get("/federation/hypervisor_zones/#{@hvz_id}/supplier_tokens").each do |t|
-        return t if t.token.receiver == receiver
+    wait_until do
+      token = get("/federation/hypervisor_zones/#{@hvz_id}/supplier_tokens").detect do |t|
+        t.token.receiver == receiver
       end
-      sleep 1
+      token ? token : false
     end
-    Log.error('Token not found')
   end
 
   #Transactions

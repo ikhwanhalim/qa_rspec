@@ -10,12 +10,12 @@ require './lib/helpers/hypervisor'
 require './lib/onapp_settings/settings'
 require './lib/backups/incremental'
 require './lib/backups/normal'
-require './lib/helpers/onapp_http'
+require './lib/helpers/api_client'
 
 include Hypervisor
 include TemplateManager
 include VmStat
-include OnappHTTP
+include ApiClient
 
 def vm_port_speed(vm)
   vm_rate_limit = vm.network_interfaces.first['network_interface']['rate_limit']

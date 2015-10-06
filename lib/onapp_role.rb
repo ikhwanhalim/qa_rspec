@@ -1,9 +1,9 @@
 require 'yaml'
-require 'helpers/onapp_http'
+require 'helpers/api_client'
 require 'json'
 
 class OnappRole
-  include OnappHTTP
+  include ApiClient
   attr_accessor :role_id, :permissions, :data
 
   def initialize
