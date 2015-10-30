@@ -1,13 +1,13 @@
 class BackupServer
-  attr_reader :compute, :backup_ip_address,:backup_server_group_id,:capacity,:cpu_idle,:created_at,:distro,:enabled,:ip_address,
+  attr_reader :interface, :backup_ip_address,:backup_server_group_id,:capacity,:cpu_idle,:created_at,:distro,:enabled,:ip_address,
               :label,:updated_at
 
-  def initialize(compute)
-    @compute = compute
+  def initialize(interface)
+    @interface = interface
   end
 
   def find_first_active
-    servers = compute.get('/settings/backup_servers').map &:backup_server
+    servers = interface.get('/settings/backup_servers').map &:backup_server
     server = select_active_with_max_idle(servers)
     Log.error('Backup server was not found') unless server
     info_update(server)
@@ -15,7 +15,8 @@ class BackupServer
   end
 
   def ssh_execute(script)
-    compute.tunnel_execute({'vm_host' => ip_address}, script)
+    cred = {'vm_host' => ip_address, 'cp_ip' => interface.ip}
+    interface.tunnel_execute(cred, script)
   end
 
   def mount_vm_primary_disk
@@ -45,9 +46,9 @@ class BackupServer
   private
 
   def set_disk_data
-    @fs = compute.vm.disk.file_system
-    @dsi = compute.vm.disk.data_store_identifier
-    @di = compute.vm.disk.identifier
+    @fs = interface.virtual_machine.disk.file_system
+    @dsi = interface.virtual_machine.disk.data_store_identifier
+    @di = interface.virtual_machine.disk.identifier
   end
 
   def select_active_with_max_idle(servers)

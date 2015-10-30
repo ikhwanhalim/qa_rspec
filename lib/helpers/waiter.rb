@@ -1,5 +1,3 @@
-require 'timeout'
-
 module Waiter
   def wait_until(max = 30)
     Timeout.timeout(max) do

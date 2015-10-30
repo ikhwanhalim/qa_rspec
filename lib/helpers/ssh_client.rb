@@ -1,26 +1,22 @@
-require 'json'
-require 'net/ssh'
-
 module SshClient
   #Example for cred - {'vm_user'=>'name', 'vm_host'=>'ip', 'cp_hostname'=>'name', 'cp_ip'=>'ip'}
   def tunnel_execute(cred={}, command)
-    cred['cp_ip'] ||= @ip
-    cred['cp_hostname'] ||= 'onapp'
     Log.error("HV ip should not be nil") unless cred['vm_host']
-    cred['vm_user'] ||= 'root'
-
-    cmd = "echo \"%s\" | ssh -t %s@%s ssh %s@%s" % [command,
-                                                  cred['cp_hostname'], cred['cp_ip'],
-                                                  cred['vm_user'], cred['vm_host']]
+    credentials = [
+        command,
+        cred['cp_hostname'] || 'onapp',
+        cred['cp_ip'],
+        cred['vm_user'] || 'root',
+        cred['vm_host']
+    ]
+    cmd = "echo \"%s\" | ssh -t %s@%s ssh %s@%s" % credentials
     Log.info(cmd)
     %x[ #{cmd} ].split("\r\n")
   end
 
   #Example for cred - {'vm_user'=>'name', 'vm_host'=>'ip', 'vm_pass'=>'pass'}
   def execute_with_pass(cred={}, command)
-    puts @ip_addresses.first['ip_address_join']['ip_address']['address']
-    cred['vm_host'] ||= @ip_addresses.first['ip_address_join']['ip_address']['address']
-    cred['vm_pass'] ||= @virtual_machine['initial_root_password']
+    Log.info("#Execute #{command}. Credentials #{cred['vm_host']}/#{cred['vm_pass']}")
     ssh = Net::SSH.start(cred['vm_host'], cred['vm_user'] || 'root', :password => cred['vm_pass'], :paranoid => false)
     ssh.exec!(command).to_s.split("\n")
   end

@@ -237,6 +237,9 @@ GEM
     thor (0.19.1)
     thread_safe (0.3.5)
     tilt (1.4.1)
+    timeout (0.0.1)
+      timeout-extensions
+    timeout-extensions (0.0.0)
     treetop (1.4.15)
       polyglot
       polyglot (>= 0.3.1)
@@ -272,6 +275,7 @@ DEPENDENCIES
   coffee-rails (~> 3.2.1)
   devise
   erb2haml
+  fog-json
   fog-onapp (= 1.8.0)!
   haml-rails
   hashie
@@ -295,6 +299,7 @@ DEPENDENCIES
   sqlite3
   therubyracer
   thin
+  timeout
   twitter-bootswatch-rails (~> 3.2.0)
   twitter-bootswatch-rails-helpers
   uglifier (>= 1.0.3)

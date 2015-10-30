@@ -1,12 +1,8 @@
-require 'virtual_machine/vm_operations_waiter'
-require 'disk'
-require 'network_interface'
-
 class VirtualServer
-  include VmOperationsWaiters
+  include VmOperationsWaiters, Network, SshCommands
 
   attr_accessor :maxmem
-  attr_reader :compute, :add_to_marketplace, :admin_note, :allowed_hot_migrate, :allowed_swap, :booted, :built,
+  attr_reader :interface, :add_to_marketplace, :admin_note, :allowed_hot_migrate, :allowed_swap, :booted, :built,
               :cores_per_socket, :cpu_shares, :cpu_sockets, :cpu_threads, :cpu_units, :cpus, :created_at,
               :customer_network_id, :deleted_at, :edge_server_type, :enable_autoscale, :enable_monitis,
               :firewall_notrack, :hostname, :hot_add_cpu, :hot_add_memory, :hypervisor_id,
@@ -18,46 +14,49 @@ class VirtualServer
               :user_id, :vip, :xen_id, :ip_addresses, :monthly_bandwidth_used, :total_disk_size, :price_per_hour,
               :price_per_hour_powered_off, :support_incremental_backups, :cpu_priority
 
-  def initialize(compute)
-    @compute = compute
+  def initialize(interface)
+    @interface = interface
   end
 
   def create
     hash ={'virtual_machine' => {
-        'hypervisor_id' => compute.hypervisor.id,
-        'template_id' => compute.template.id,
-        'label' => compute.template.label,
-        'memory' => compute.template.min_memory_size,
+        'hypervisor_id' => interface.hypervisor.id,
+        'template_id' => interface.template.id,
+        'label' => interface.template.label,
+        'memory' => interface.template.min_memory_size,
         'cpus' => '1',
-        'primary_disk_size' => compute.template.min_disk_size,
-        'hostname' => 'auto.compute',
+        'primary_disk_size' => interface.template.min_disk_size,
+        'hostname' => 'auto.interface',
         'required_virtual_machine_build' => '1',
         'required_ip_address_assignment' => '1',
-        'rate_limit' => '0'
+        'rate_limit' => '0',
+        'required_virtual_machine_startup' => '1'
     }
     }
-    hash['virtual_machine']['cpu_shares'] = '1' if !(compute.hypervisor.hypervisor_type == 'kvm' && compute.hypervisor.distro == 'centos5')
-    hash['virtual_machine']['swap_disk_size'] = '1' if compute.template.allowed_swap
-    result = compute.post('/virtual_machines', hash)
-    compute.check_responce_code('201')
-    info_update(result['virtual_machine'])
+    hash['virtual_machine']['cpu_shares'] = '1' if !(interface.hypervisor.hypervisor_type == 'kvm' && interface.hypervisor.distro == 'centos5')
+    hash['virtual_machine']['swap_disk_size'] = '1' if interface.template.allowed_swap
+    data = interface.post('/virtual_machines', hash)
+    info_update(data)
+    wait_for_build
+    info_update
     self
   end
 
   def wait_for_build(require_startup = true)
     disk('primary').wait_for_build
-    disk('swap').wait_for_build if compute.template.allowed_swap
-    disk('swap').wait_for_provision if compute.template.operating_system == 'freebsd'
-    disk('primary').wait_for_provision if compute.template.operating_system != 'freebsd'
+    disk('swap').wait_for_build if interface.template.allowed_swap
+    disk('swap').wait_for_provision if interface.template.operating_system == 'freebsd'
+    disk('primary').wait_for_provision if interface.template.operating_system != 'freebsd'
     wait_for_configure_operating_system
-    wait_for_provision_freebsd if compute.template.operating_system == 'freebsd'
-    wait_for_provision_win if compute.template.operating_system == 'windows'
+    wait_for_provision_freebsd if interface.template.operating_system == 'freebsd'
+    wait_for_provision_win if interface.template.operating_system == 'windows'
     wait_for_start if require_startup
     info_update
   end
 
   def destroy
-    compute.delete("#{@route}")
+    interface.delete("#{@route}")
+    wait_for_destroy
   end
 
   def disk(type = 'primary', number = 1)
@@ -78,34 +77,55 @@ class VirtualServer
     end
   end
 
-  def ssh_execute(script, ip)
-    ip ||= network_interface.ip_address.address
-    cred = {'vm_host' => ip, 'vm_pass' => initial_root_password}
-    compute.execute_with_pass(cred, script)
+  def ssh_execute(script)
+    cred = {
+        'vm_host' => ip_address,
+        'vm_pass' => initial_root_password
+    }
+    interface.execute_with_pass(cred, script)
   end
 
   def stop
-    compute.post("#{@route}/stop")
+    interface.post("#{@route}/stop")
     wait_for_stop
   end
 
   def shut_down
-    compute.post("#{@route}/shutdown")
+    interface.post("#{@route}/shutdown")
+    wait_for_stop
   end
 
   def start_up
-    compute.post("#{@route}/startup")
+    interface.post("#{@route}/startup")
+    wait_for_start
   end
 
   def reboot
-    compute.post("#{@route}/reboot")
+    interface.post("#{@route}/reboot")
+    wait_for_reboot
   end
 
+  def update_os
+    command = case operating_system_distro
+                when 'rhel' then RHEL.update_os
+                when 'ubuntu' then UBUNTU.update_os
+                when 'freebsd' then FreeBSD.update_os
+                when 'gentoo' then Gentoo.update_os
+                when 'opensuse' then OpenSUSE.update_os
+                when 'archlinux' then ArchLinux.update_os
+              end
+    status = ssh_execute(command).last.to_i
+    Log.error("Update has failed for #{operating_system_distro}\n#{command}") if status != 0
+  end
 
-  def info_update(info = false)
-    info = compute.get(@route)if !info
-    info.each { |k,v| instance_variable_set("@#{k}", v) }
-    @route = "/virtual_machines/#{self.identifier}"
+  def ip_address
+    network_interface.ip_address.address
+  end
+
+  def info_update(data=nil)
+    data ||= interface.get(@route)
+    data.virtual_machine.each { |k,v| instance_variable_set("@#{k}", v) }
+    @route = "/virtual_machines/#{identifier}"
     disk_info_update
     network_interface_info_update
     self
@@ -114,16 +134,16 @@ class VirtualServer
   private
 
   def disk_info_update
-    @disks = compute.get("#{@route}/disks")
+    @disks = interface.get("#{@route}/disks")
     @disks.map! do |x|
-      Disk.new(compute).info_update(x['disk'])
+      Disk.new(interface).info_update(x['disk'])
     end
   end
 
   def network_interface_info_update
-    @network_interfaces = compute.get("#{@route}/network_interfaces")
+    @network_interfaces = interface.get("#{@route}/network_interfaces")
     @network_interfaces.map! do |x|
-      NetworkInterface.new(compute, @route).info_update(x['network_interface'])
+      NetworkInterface.new(interface, @route).info_update(x['network_interface'])
     end
   end
 end

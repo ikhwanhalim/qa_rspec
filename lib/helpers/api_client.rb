@@ -1,14 +1,5 @@
-require 'mechanize'
-require 'json'
-require 'yaml'
-require 'socket'
-require 'uri'
-require 'active_support/all'
-require 'helpers/logger'
-require 'hashie'
-
 module ApiClient
-  attr_accessor :conn
+  attr_accessor :conn, :ip
 
   def auth(url: nil, user: nil, pass: nil)
     data = YAML::load_file('config/conf.yml')
