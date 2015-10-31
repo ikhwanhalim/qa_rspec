@@ -25,17 +25,22 @@ module Network
     end
   end
 
-  #TODO fix if server non-reachble
   def pinged?
     Log.info("Ping IP address: #{ip_address}")
-    host = Net::Ping::External.new(ip_address)
-    wait_until { host.ping? ? true : false }
+    wait_until(300) do
+      Net::Ping::External.new(ip_address).ping ? true : false
+    end
+  rescue Timeout::Error
+    false
   end
 
   def not_pinged?
     Log.info("Ping IP address: #{ip_address}")
-    host = Net::Ping::External.new(ip_address)
-    wait_until { host.ping? ? false : true }
+    wait_until(300) do
+      Net::Ping::External.new(ip_address).ping ? false : true
+    end
+  rescue Timeout::Error
+    false
   end
 
   def up?
