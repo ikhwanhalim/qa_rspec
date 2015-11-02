@@ -11,16 +11,12 @@ module SshCommands
     extend self
 
     def update_os
-      'apt-get update;apt-get --allow-unauthenticated upgrade;echo $?'
+      'apt-get update;apt-get --allow-unauthenticated upgrade -y;echo $?'
     end
   end
 
   module FreeBSD
     extend self
-
-    def update_os
-      'portsnap fetch extract'
-    end
   end
 
   module Gentoo

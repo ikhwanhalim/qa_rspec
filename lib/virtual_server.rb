@@ -42,6 +42,11 @@ class VirtualServer
     self
   end
 
+  def find(identifier)
+    @identifier = identifier
+    info_update
+  end
+
   def wait_for_build(require_startup = true)
     disk('primary').wait_for_build
     disk('swap').wait_for_build if interface.template.allowed_swap
@@ -55,7 +60,7 @@ class VirtualServer
   end
 
   def destroy
-    interface.delete("#{@route}")
+    interface.delete("#{route}")
     wait_for_destroy
   end
 
@@ -86,22 +91,22 @@ class VirtualServer
   end
 
   def stop
-    interface.post("#{@route}/stop")
+    interface.post("#{route}/stop")
     wait_for_stop
   end
 
   def shut_down
-    interface.post("#{@route}/shutdown")
+    interface.post("#{route}/shutdown")
     wait_for_stop
   end
 
   def start_up
-    interface.post("#{@route}/startup")
+    interface.post("#{route}/startup")
     wait_for_start
   end
 
   def reboot
-    interface.post("#{@route}/reboot")
+    interface.post("#{route}/reboot")
     wait_for_reboot
   end
 
@@ -109,13 +114,10 @@ class VirtualServer
     command = case operating_system_distro
                 when 'rhel' then RHEL.update_os
                 when 'ubuntu' then UBUNTU.update_os
-                when 'freebsd' then FreeBSD.update_os
-                when 'gentoo' then Gentoo.update_os
-                when 'opensuse' then OpenSUSE.update_os
-                when 'archlinux' then ArchLinux.update_os
               end
-    status = ssh_execute(command).last.to_i
-    Log.error("Update has failed for #{operating_system_distro}\n#{command}") if status != 0
+    result = ssh_execute(command)
+    status = result.last.to_i
+    Log.error("Update has failed for #{operating_system_distro}\n#{command}\n#{result.join('\n')}") if status != 0
   end
 
   def ip_address
@@ -123,9 +125,8 @@ class VirtualServer
   end
 
   def info_update(data=nil)
-    data ||= interface.get(@route)
+    data ||= interface.get(route)
     data.virtual_machine.each { |k,v| instance_variable_set("@#{k}", v) }
-    @route = "/virtual_machines/#{identifier}"
     disk_info_update
     network_interface_info_update
     self
@@ -133,17 +134,21 @@ class VirtualServer
 
   private
 
+  def route
+    @route ||= "/virtual_machines/#{identifier}"
+  end
+
   def disk_info_update
-    @disks = interface.get("#{@route}/disks")
+    @disks = interface.get("#{route}/disks")
     @disks.map! do |x|
       Disk.new(interface).info_update(x['disk'])
     end
   end
 
   def network_interface_info_update
-    @network_interfaces = interface.get("#{@route}/network_interfaces")
+    @network_interfaces = interface.get("#{route}/network_interfaces")
     @network_interfaces.map! do |x|
-      NetworkInterface.new(interface, @route).info_update(x['network_interface'])
+      NetworkInterface.new(interface, route).info_update(x['network_interface'])
     end
   end
 end
