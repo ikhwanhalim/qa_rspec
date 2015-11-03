@@ -148,7 +148,6 @@ GEM
     mysql2 (0.3.18)
     net-http-digest_auth (1.4)
     net-http-persistent (2.9.4)
-    net-ping (1.7.7)
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
     net-ssh (2.9.2)
@@ -285,7 +284,6 @@ DEPENDENCIES
   less-rails
   mechanize
   mysql2
-  net-ping
   net-ssh
   nokogiri
   onapp_market (= 1.8.0)!
