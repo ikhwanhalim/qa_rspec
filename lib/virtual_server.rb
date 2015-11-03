@@ -45,6 +45,8 @@ class VirtualServer
   def find(identifier)
     @identifier = identifier
     info_update
+    interface.hypervisor ||= Hypervisor.new(interface).find_by_id(hypervisor_id)
+    self
   end
 
   def wait_for_build(require_startup = true)

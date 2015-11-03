@@ -32,7 +32,8 @@ require 'timeout'
 class ReleaseTemplate
   include FogOnapp, ApiClient, SshClient, TemplateManager, Log
 
-  attr_reader :virtual_machine, :backup_server, :hypervisor, :template
+  attr_accessor :hypervisor
+  attr_reader :virtual_machine, :backup_server, :template
 
   def initialize
     auth unless self.conn

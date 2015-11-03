@@ -1,5 +1,5 @@
 class Hypervisor
-  attr_reader :allow_unsafe_assigned_interrupts, :backup, :backup_ip_address, :blocked, :built, :called_in_atnull,
+  attr_reader :interface, :allow_unsafe_assigned_interrupts, :backup, :backup_ip_address, :blocked, :built, :called_in_atnull,
               :cloud_boot_os, :connection_options, :cpu_cores, :cpu_idle, :cpu_mhz, :cpu_units, :cpus, :created_at,
               :custom_config, :disable_failover, :disks_per_storage_controller, :distro, :dom0_memory_size, :enabled,
               :failure_count, :format_disks, :free_mem, :host, :host_id, :hypervisor_group_id, :hypervisor_type, :id,
@@ -10,8 +10,14 @@ class Hypervisor
               :used_cpu_resources, :total_memory, :free_disk_space, :memory_allocated_by_running_vms,
               :total_memory_allocated_by_vms, :storage
 
-  def initialize(test)
-    @test = test
+  def initialize(interface)
+    @interface = interface
+  end
+
+  def find_by_id(id)
+    data = interface.get("/hypervisors/#{id}").hypervisor
+    info_update(data)
+    self
   end
 
   def find_by_virt(virt, hvz_id = nil)
@@ -19,7 +25,7 @@ class Hypervisor
     hv = nil
     virtualization = select_virtualization(virt)
     distro = select_distro(virt)
-    @test.get("/hypervisors").map(&:hypervisor).each do |h|
+    interface.get("/hypervisors").map(&:hypervisor).each do |h|
       if max_free < h.free_memory && h.distro == distro && h.hypervisor_type == virtualization &&
           h.enabled && h.server_type == 'virtual' && h.online
         hv = hvz_id ? (h if hvz_id == h.hypervisor_group_id) : h
@@ -31,7 +37,7 @@ class Hypervisor
   end
 
   def ssh_execute(script)
-    @test.tunnel_execute({'vm_host' => ip_address}, script)
+    interface.tunnel_execute({'vm_host' => ip_address}, script)
   end
 
   private

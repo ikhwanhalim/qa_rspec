@@ -1,27 +1,27 @@
 module Network
   include Waiter
 
-  def is_port_opened?(port = 22)
+  def ssh_opened?(port = 22)
     Log.info("Connect to: #{ip_address}:#{port}")
     wait_until(300) do
       begin
         TCPSocket.new(ip_address, port).close
+        return true
       rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
         false
       end
-      return true
     end
   end
 
-  def is_port_closed?(port = 22)
+  def ssh_closed?(port = 22)
     Log.info("Connect to: #{ip_address}:#{port}")
     wait_until(300) do
       begin
         TCPSocket.new(ip_address, port).close
+        false
       rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
         return true
       end
-      false
     end
   end
 
@@ -30,8 +30,6 @@ module Network
     wait_until(300) do
       Net::Ping::External.new(ip_address).ping ? true : false
     end
-  rescue Timeout::Error
-    false
   end
 
   def not_pinged?
@@ -39,15 +37,13 @@ module Network
     wait_until(300) do
       Net::Ping::External.new(ip_address).ping ? false : true
     end
-  rescue Timeout::Error
-    false
   end
 
   def up?
-    pinged? && is_port_opened?
+    pinged? && ssh_opened?
   end
 
   def down?
-    not_pinged? && is_port_closed?
+    not_pinged? && ssh_closed?
   end
 end
