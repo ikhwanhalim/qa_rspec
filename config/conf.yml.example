@@ -21,3 +21,6 @@ market:
   url: http://69.168.237.164:3000
   user: admin
   pass: admin
+hipchat:
+  token: XXXXXXXXXXXXXXXXXXXXXX
+  room: 'QA'
