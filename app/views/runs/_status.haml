@@ -29,8 +29,7 @@
             - else
               %span.label.label-danger= r.status
             - begin
-              - report_page = Nokogiri::HTML(open(@directory + r.report_file))
-              - if report_page.css(".failed").any? && r.status != "Failed"
+              - if r.failed?
                 %span.label.label-danger= "Failed"
             - rescue
               - r.update_attribute(:status, "File does not exist")

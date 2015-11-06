@@ -1,4 +1,4 @@
-class Template
+class ImageTemplate
   attr_reader :interface, :allow_resize_without_reboot, :allowed_hot_migrate, :allowed_swap, :application_server,
               :backup_server_id, :baremetal_server, :cdn, :checksum, :created_at, :disk_target_device,
               :ext4, :file_name, :id, :initial_password, :initial_username, :label, :manager_id, :min_disk_size,

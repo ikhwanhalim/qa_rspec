@@ -9,4 +9,9 @@ class Report < ActiveRecord::Base
   def self.file_ident
    (0...12).map { (65 + rand(26)).chr }.join
   end
+
+  def failed?
+    report_page = Nokogiri::HTML(open(Rails.root + 'reports' + report_file))
+    report_page.css(".failed").any? && status != "Failed" ? true : false
+  end
 end

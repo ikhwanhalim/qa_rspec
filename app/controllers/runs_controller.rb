@@ -90,7 +90,7 @@ class RunsController < ApplicationController
     elsif is_testing_running?(params[:runs])
       redirect_to(root_path, :flash => { :warning => "some tests are running!" })
     else
-      Run.run_all_threads(params[:runs])
+      Run.run_all_threads(params[:runs], root_url)
       redirect_to root_path
     end
   end

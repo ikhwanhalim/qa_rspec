@@ -10,7 +10,7 @@ require 'helpers/waiter'
 require 'helpers/network'
 require 'helpers/disks_operations_waiters'
 
-require 'template'
+require 'image_template'
 require 'hypervisor'
 require 'virtual_server'
 require 'backup_server'
@@ -38,7 +38,7 @@ class ReleaseTemplate
   end
 
   def precondition
-    @template = Template.new(self)
+    @template = ImageTemplate.new(self)
     @template.find_by_manager_id(ENV['TEMPLATE_MANAGER_ID'])
 
     @backup_server = BackupServer.new(self)

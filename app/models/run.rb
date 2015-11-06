@@ -1,4 +1,6 @@
 class Run < ActiveRecord::Base
+  include Rails.application.routes.url_helpers
+
   attr_accessible :files, :templates, :title, :virt, :threads
   has_many :reports, dependent: :destroy
   validates :title, :files, :threads, presence: true
@@ -28,7 +30,7 @@ class Run < ActiveRecord::Base
       end
     end
 
-    def run_all_threads(run_ids)
+    def run_all_threads(run_ids, root_url)
       hash = Hash[*run_ids.to_a.map {|k| [k, nil]}.flatten]
       hash.each do |k,v|
         hash[k] = Report.where(run_id: k)
@@ -36,6 +38,7 @@ class Run < ActiveRecord::Base
         hash[k].map!(&:id)
       end
       hash.each do |run,reports|
+        start = Time.current
         Spawnling.new do
           run = Run.find(run)
           while reports.any?
@@ -51,7 +54,24 @@ class Run < ActiveRecord::Base
             end
             sleep 5
           end
+          finish = Time.current
+          message = "#{run.title} time #{(finish - start).round(2)} sec (<a href='#{root_url + run.base_uri}'>open</a>)"
+          if run.reports.detect &:failed?
+            hipchat_notify(message, :fail)
+          else
+            hipchat_notify(message, :success)
+          end
         end
+      end
+    end
+
+    def hipchat_notify(message, status)
+      conf = Hashie::Mash.new(YAML.load_file('config/conf.yml'))
+      client = HipChat::Client.new(conf.hipchat.token, api_version: 'v2')
+      if status == :fail
+        client[conf.hipchat.room].send('', message, color: 'red')
+      elsif status == :success
+        client[conf.hipchat.room].send('', message, color: 'green')
       end
     end
 
@@ -111,5 +131,9 @@ class Run < ActiveRecord::Base
         end
       end
     end
+  end
+
+  def base_uri
+    runs_report_path(id: id)
   end
 end
