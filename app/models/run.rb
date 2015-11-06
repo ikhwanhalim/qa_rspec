@@ -1,4 +1,6 @@
 class Run < ActiveRecord::Base
+  include Rails.application.routes.url_helpers
+
   attr_accessible :files, :templates, :title, :virt, :threads
   has_many :reports, dependent: :destroy
   validates :title, :files, :threads, presence: true
