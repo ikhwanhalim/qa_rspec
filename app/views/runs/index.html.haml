@@ -40,8 +40,8 @@
                   = link_to image_tag('Edit.png', :class => "edit", :title => "Edit run"), edit_run_path(id: r.id)
                   = link_to image_tag('Report.png', :class => "report", :title => "Run report"), runs_report_path(id: r.id)
                   = link_to image_tag('Download.png', :class => "download", :title => "Download templates for run"), runs_download_templates_path(manager_ids: templates.map(&:manager_id)), method: :post
-                  = link_to image_tag('Delete.png', :class => "delete", :title => "Delete run"), r, method: :delete
-    = link_to 'Kill all running', runs_kill_path, :class => "btn btn-danger space"
+                  = link_to image_tag('Delete.png', :class => "delete", :title => "Delete run"), r, method: :delete, confirm: 'Are you sure?'
+    = link_to 'Kill all running', runs_kill_path, :class => "btn btn-danger space", confirm: 'Are you sure?'
     = submit_tag 'Run', :class => "btn btn-success space"
 
 :javascript

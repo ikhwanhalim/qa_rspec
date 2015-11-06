@@ -11,7 +11,7 @@ class RunsController < ApplicationController
   def new
     @run = Run.new
     @virt = %w{xen3 xen4 kvm5 kvm6}
-    @files = Array[Run.directory_hash("tests")]
+    @files = Array[Run.directory_hash("spec")]
     @templates = Template.env_list
   end
  
@@ -40,7 +40,7 @@ class RunsController < ApplicationController
   def edit
     @run = Run.find(params[:id])
     @virt = %w{xen3 xen4 kvm5 kvm6}
-    @files = Array[Run.directory_hash("tests")]
+    @files = Array[Run.directory_hash("spec")]
     @templates = Template.env_list
     @selected_templates = @templates.where(manager_id: YAML.load(@run.templates))
   end

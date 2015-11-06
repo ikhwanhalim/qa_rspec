@@ -8,7 +8,7 @@ require 'ui_lib/detail_cdn_resource_page'
 require 'ui_lib/cdn_resources_page'
 
 describe 'CDN Resource Test Plan' do
-  YAML::load_file('tests/ui_tests/cdn_tests.yml').each do |key, value|
+  YAML::load_file('spec/ui_tests/cdn_tests.yml').each do |key, value|
     new_base = value['new']['base']
     new_advanced = value['new']['advanced']
     edit_base = value['edit']['base'] unless value['edit'].nil?
