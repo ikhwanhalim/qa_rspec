@@ -54,12 +54,20 @@ class Run < ActiveRecord::Base
             end
             sleep 5
           end
-          finish = Time.current
-          message = "#{run.title} time #{(finish - start).round(2)} sec (<a href='#{root_url + run.base_uri}'>open</a>)"
-          if run.reports.detect &:failed?
-            hipchat_notify(message, :fail)
-          else
-            hipchat_notify(message, :success)
+          loop do
+            if report.status != "Finished"
+              report = Report.find(report.id)
+              sleep 5
+            else
+              finish = Time.current
+              message = "#{run.title} time #{(finish - start).round(2)} sec (<a href='#{root_url + run.base_uri}'>open</a>)"
+              if run.reports.detect &:failed?
+                hipchat_notify(message, :fail)
+              else
+                hipchat_notify(message, :success)
+              end
+              break
+            end
           end
         end
       end
