@@ -1,6 +1,4 @@
 class Run < ActiveRecord::Base
-  include Rails.application.routes.url_helpers
-
   attr_accessible :files, :templates, :title, :virt, :threads
   has_many :reports, dependent: :destroy
   validates :title, :files, :threads, presence: true
@@ -38,8 +36,8 @@ class Run < ActiveRecord::Base
         hash[k].map!(&:id)
       end
       hash.each do |run,reports|
-        start = Time.current
         Spawnling.new do
+          start = Time.current
           run = Run.find(run)
           while reports.any?
             report = Report.find(reports.first)
