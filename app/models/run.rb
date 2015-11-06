@@ -55,10 +55,7 @@ class Run < ActiveRecord::Base
             sleep 5
           end
           loop do
-            if report.status != "Finished"
-              report = Report.find(report.id)
-              sleep 5
-            else
+            if report.status == "Finished"
               finish = Time.current
               message = "#{run.title} time #{(finish - start).round(2)} sec (<a href='#{root_url + run.base_uri}'>open</a>)"
               if run.reports.detect &:failed?
@@ -67,6 +64,11 @@ class Run < ActiveRecord::Base
                 hipchat_notify(message, :success)
               end
               break
+            elsif report.status == "Stopped"
+              break
+            else
+              report = Report.find(report.id)
+              sleep 5
             end
           end
         end
