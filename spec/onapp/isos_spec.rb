@@ -11,7 +11,7 @@ describe 'ISO functionality tests' do
             'operating_system' => 'Linux',
             'operating_system_distro' => 'Fedora',
             'virtualization' => ["xen", "kvm"],
-            'file_url' => 'http://download.fedoraproject.org/pub/fedora/linux/releases/21/Server/x86_64/iso/Fedora-Server-netinst-x86_64-21.iso'}
+            'file_url' => 'http://templates.repo.onapp.com/Linux-iso/Fedora-Server-netinst-x86_64-21.iso'}
     @iso.create_iso(data)
   end
 

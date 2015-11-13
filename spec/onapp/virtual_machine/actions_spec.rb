@@ -1,4 +1,5 @@
 require 'virtual_machine/vm_base'
+require 'onapp_iso'
 
 require 'pry'
 
@@ -155,6 +156,28 @@ describe 'VIRTUAL MACHINE REGRESSION AUTOTEST' do
       @vm.exist_on_hv?.should be_truthy
       @vm.ssh_port_opened.should be_truthy
       @vm.recovery?.should be_falsey
+    end
+  end
+
+#Reboot VS from ISO
+  describe 'Reboot VS from ISO' do
+    before (:all) do
+      @iso=OnappISO.new
+      data = {'label' => 'iso_api_test',
+              'make_public' => '0',
+              'min_memory_size' => '256',
+              'version' => '1.0',
+              'operating_system' => 'Linux',
+              'operating_system_distro' => 'Fedora',
+              'virtualization' => ["xen", "kvm"],
+              'file_url' => 'http://templates.repo.onapp.com/Linux-iso/Fedora-Server-netinst-x86_64-21.iso'}
+      @iso.create_iso(data)
+    end
+    it 'Reboot VS from ISO' do
+       @vm.reboot_from_iso(@iso.iso_id)
+       @vm.wait_for_reboot
+       @vm.exist_on_hv?
+
     end
   end
 end

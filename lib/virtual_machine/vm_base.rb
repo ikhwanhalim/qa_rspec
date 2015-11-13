@@ -179,6 +179,14 @@ class VirtualMachine
   def recovery?
     check_hostname.include?('recovery')
   end
+
+#Boot from ISO
+  def reboot_from_iso (iso_id)
+    params = {}
+    params[:iso_id]= iso_id
+    post("#{@route}/reboot", params)
+    api_response_code == '201'
+  end
 # OPERATIONS
   def api_response_code
     @conn.page.code
