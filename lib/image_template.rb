@@ -14,6 +14,13 @@ class ImageTemplate
   def find_by_manager_id(manager_id)
     info = interface.get_template(manager_id)
     info_update(info)
+    self
+  end
+
+  def find_by_id(id)
+    info = interface.get("/templates/#{id}").image_template
+    info_update(info)
+    self
   end
 
   private

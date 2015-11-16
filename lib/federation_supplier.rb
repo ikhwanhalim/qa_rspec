@@ -1,43 +1,40 @@
 require 'helpers/api_client'
 require 'helpers/template_manager'
-require 'helpers/hypervisor'
-require 'virtual_machine/vm_base'
+require 'hypervisor'
 require 'helpers/waiter'
-require 'singleton'
-
+require 'hashie'
 
 class FederationSupplier
-  include Singleton, ApiClient, TemplateManager, Hypervisor, Waiter
+  include ApiClient, TemplateManager, Waiter
 
   attr_accessor :published_zone, :vm, :resources
+  attr_reader :federation
 
-  def initialize
+  def initialize(federation)
+    @federation = federation
     data = YAML::load_file('config/conf.yml')
     auth url: data['supplier']['url'], user: data['supplier']['user'], pass: data['supplier']['pass']
   end
 
   def get_publishing_resources
-    hv_zones = get("/settings/hypervisor_zones").select {|z| z.hypervisor_group.location_group_id}
-    hv_zones.each do |hv_zone|
-      id = hv_zone.hypervisor_group.id
-      hv = for_vm_creation(ENV['VIRT_TYPE'], id)
-      if hv
-        nt_joins = get("/settings/hypervisor_zones/#{id}/network_joins")
-        nt_joins += get("/settings/hypervisors/#{hv['id']}/network_joins")
-        ds_joins = get("/settings/hypervisor_zones/#{id}/data_store_joins")
-        ds_joins += get("/settings/hypervisors/#{hv.id}/data_store_joins")
-        nt = get("/settings/networks/#{nt_joins.first.network_join.network_id}").network
-        nt_zone = get("/settings/network_zones/#{nt.network_group_id}").network_group || Log.error("Network not attached")
-        ds = get("/settings/data_stores/#{ds_joins.first.data_store_join.data_store_id}").data_store
-        ds_zone = get("/settings/data_store_zones/#{ds.data_store_group_id}").data_store_group || Log.error("Data store not attached")
-        location_id = hv_zone.hypervisor_group.location_group_id
-        Log.error("Data store group not in location group") if ds_zone.location_group_id != location_id
-        Log.error("Network group not in location group") if nt_zone.location_group_id != location_id
-        return Hashie::Mash.new({'hypervisor_group' => hv_zone.hypervisor_group,
-                'data_store_group' => ds_zone,
-                'network_group' => nt_zone
-        })
-      end
+    hv = Hypervisor.new(self).find_by_virt(ENV['VIRT_TYPE'])
+    if hv
+      hvz_id = hv.hypervisor_group_id || Log.error("Hypervisor not attached")
+      hv_zone = get("/settings/hypervisor_zones/#{hvz_id}").hypervisor_group
+      nt_joins = get("/settings/hypervisor_zones/#{hvz_id}/network_joins")
+      nt_joins += get("/settings/hypervisors/#{hv.id}/network_joins")
+      ds_joins = get("/settings/hypervisor_zones/#{hvz_id}/data_store_joins")
+      ds_joins += get("/settings/hypervisors/#{hv.id}/data_store_joins")
+      nt = get("/settings/networks/#{nt_joins.first.network_join.network_id}").network
+      nt_zone = get("/settings/network_zones/#{nt.network_group_id}").network_group || Log.error("Network not attached")
+      ds = get("/settings/data_stores/#{ds_joins.first.data_store_join.data_store_id}").data_store
+      ds_zone = get("/settings/data_store_zones/#{ds.data_store_group_id}").data_store_group || Log.error("Data store not attached")
+      Log.error("Data store group not in location group") if ds_zone.location_group_id != hv_zone.location_group_id
+      Log.error("Network group not in location group") if nt_zone.location_group_id != hv_zone.location_group_id
+      return Hashie::Mash.new({'hypervisor_group' => hv_zone,
+              'data_store_group' => ds_zone,
+              'network_group' => nt_zone
+      })
     end
     Log.error "HypervisorGroupNotFound"
   end
@@ -57,6 +54,7 @@ class FederationSupplier
     response = post("/federation/hypervisor_zones/#{@hvz_id}/add", data)
     Log.error(response.values.join("\n")) if response['errors'].any?
     @published_zone = get("/settings/hypervisor_zones/#{@hvz_id}").values.first
+    sleep 5 #Wait for TemplateTracker and Zabbix tasks
   end
 
   def make_public
@@ -95,13 +93,16 @@ class FederationSupplier
     all_federated.each { |z| remove_from_federation(z.id) }
   end
 
-  def hypervisors_detach(id=@published_zone.id)
+  def hypervisors_detach
+    id=@published_zone.id
     @hypervisors_ids = get("/settings/hypervisor_zones/#{id}/hypervisors").map { |hv| hv.hypervisor.id }
     post("/settings/hypervisor_zones/#{id}/hypervisors/detach_range", {ids: @hypervisors_ids})
   end
 
-  def hypervisors_attach(id=@published_zone.id)
+  def hypervisors_attach
+    id=@published_zone.id
     post("/settings/hypervisor_zones/#{id}/hypervisors/attach_range", {ids: @hypervisors_ids})
+    !!get("/settings/hypervisor_zones/#{id}/hypervisors").any?
   end
 
   def data_stores_detach
@@ -115,7 +116,7 @@ class FederationSupplier
   def data_stores_attach
     id = @data_store_group.id
     post("/settings/data_store_zones/#{id}/data_stores/attach_range", {ids: @data_stores_ids})
-    get("/settings/data_store_zones/#{id}/data_stores").any? ? true : false
+    !!get("/settings/data_store_zones/#{id}/data_stores").any?
   end
 
   # VM operations
@@ -140,7 +141,7 @@ class FederationSupplier
   end
 
   def wait_announcement_id(local_id)
-    wait_until do
+    wait_until(300) do
       announcement = all_announcements.detect { |a| a.announcement.id == local_id && a.announcement.federation_id }
       announcement ? announcement : false
     end

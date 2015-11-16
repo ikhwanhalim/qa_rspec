@@ -36,6 +36,7 @@ class VirtualServer
     hash['virtual_machine']['cpu_shares'] = '1' if !(interface.hypervisor.hypervisor_type == 'kvm' && interface.hypervisor.distro == 'centos5')
     hash['virtual_machine']['swap_disk_size'] = '1' if interface.template.allowed_swap
     data = interface.post('/virtual_machines', hash)
+    return data.errors if data.errors
     info_update(data)
     wait_for_build
     info_update

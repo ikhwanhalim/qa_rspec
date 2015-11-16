@@ -1,5 +1,4 @@
 require 'federation'
-require 'virtual_machine/vm_base'
 
 describe "Market" do
   before :all do

@@ -1,14 +1,24 @@
 require 'helpers/api_client'
-require 'virtual_machine/vm_base'
 require 'helpers/waiter'
-require 'singleton'
+require 'active_support/all'
+require 'mechanize'
+require 'hypervisor'
+require 'image_template'
+require 'helpers/vm_operations_waiter'
+require 'helpers/network'
+require 'helpers/ssh_commands'
+require 'virtual_server'
 
 class FederationTrader
-  include Singleton, ApiClient, Waiter
+  include ApiClient, Waiter
 
   attr_accessor :subscribed_zone, :vm, :template_store
+  attr_reader :federation, :template, :hypervisor
 
-  def initialize
+  alias get_all get
+
+  def initialize(federation)
+    @federation = federation
     data = YAML::load_file('config/conf.yml')
     auth url: data['trader']['url'], user: data['trader']['user'], pass: data['trader']['pass']
   end
@@ -34,11 +44,12 @@ class FederationTrader
     get_all('/template_store').detect { |ts| ts.label ==  @subscribed_zone.federation_id}
   end
 
+  def find_hypervisor(label)
+    get('/settings/hypervisors').detect {|h| h.hypervisor.label == label}.hypervisor
+  end
+
   def find_template(label)
-    get('/templates/all').detect do |t|
-      t.image_template.remote_id =~ /#{@subscribed_zone.federation_id}/ &&
-      t.image_template.label == label
-    end.image_template
+    template_store.relations.detect {|r| r.image_template.label == label}.image_template
   end
 
   def search(label)
@@ -52,16 +63,15 @@ class FederationTrader
   end
 
   def zone_appeared?(federation_id)
-    wait_until do
-      zone = all_unsubscribed.detect { |z| z.federation_id == federation_id }
-      zone ? true : false
+    wait_until(60) do
+      federation.market.set_preflight if federation.market.resource.preflight
+      !!all_unsubscribed.detect { |z| z.federation_id == federation_id }
     end
   end
 
   def zone_disappeared?(federation_id)
-    wait_until do
-      zone = all_unsubscribed.detect { |z| z.federation_id == federation_id }
-      zone ? false : true
+    wait_until(60) do
+      !all_unsubscribed.detect { |z| z.federation_id == federation_id }
     end
   end
 
@@ -80,38 +90,18 @@ class FederationTrader
     Log.error(errors) unless errors.empty?
   end
 
-  def get_all(resource)
-    get(resource)
-  end
-
   # VM operations
-  def create_vm(template_label, federation_id)
-    hypervisors = get('/settings/hypervisors').select {|h| h.hypervisor.label == federation_id}
-    Log.error('Hypervisor does not have resources') unless hypervisors
-    data = Hashie::Mash.new({'hypervisor' => hypervisors.first.hypervisor,
-            'template' => find_template(template_label)
-    })
-    auth_data = Hashie::Mash.new({'url' => @url, 'user' => @user, 'pass' => @pass})
-    @vm = VirtualMachine.new(federation: auth_data)
-    @vm.create(nil, nil, data)
-    if @vm.errors
-      Log.warn @vm.errors.to_s
-      return @vm.errors
-    end
-    Log.error("VM has not been built") unless @vm.is_created?
+  def create_vm(template_label)
+    hypervisor_id = find_hypervisor(subscribed_zone.federation_id).id
+    template_id = find_template(template_label).id
+    @template = ImageTemplate.new(self)
+    template.find_by_id(template_id)
+    @hypervisor = Hypervisor.new(self)
+    hypervisor.find_by_id(hypervisor_id)
+    @vm = VirtualServer.new(self)
+    vm.create
   end
 
-  def find_vm(identifier)
-    @subscribed_zone = all_subscribed.first
-    auth_data = Hashie::Mash.new({'url' => @url, 'user' => @user, 'pass' => @pass})
-    @vm = VirtualMachine.new(federation: auth_data)
-    @vm.find_by_id(identifier)
-    @vm.info_update
-  end
-
-  def vm_hash
-    vm.virtual_machine
-  end
 
   #Tokens
   def use_token(sender, token)
@@ -121,7 +111,7 @@ class FederationTrader
 
   #Announcements
   def find_announcement(market_id)
-    wait_until do
+    wait_until(300) do
       announcement = all_announcements.detect { |a| a.announcement.federation_id == market_id }
       announcement ? announcement : false
     end
@@ -132,8 +122,8 @@ class FederationTrader
   end
 
   def announcement_removed?(announcement)
-    wait_until do
-      all_announcements.include?(announcement) ? false : true
+    wait_until(300) do
+      !all_announcements.include?(announcement)
     end
   end
 

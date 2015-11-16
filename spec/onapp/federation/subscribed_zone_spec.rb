@@ -1,11 +1,9 @@
 require 'federation'
-require 'virtual_machine/vm_base'
 
 describe "Zone has been subscribed" do
   before :all do
     @federation = Federation.new
     @federation.supplier.add_to_federation
-    @federation.market.set_preflight
     @federation.trader.zone_appeared?(@federation.market.federation_id)
     @federation.trader.subscribe(@federation.market.federation_id)
   end
@@ -39,7 +37,7 @@ describe "Zone has been subscribed" do
 
   describe "Trader" do
     after :all do
-      @federation.supplier.data_stores_attach
+      @federation.supplier.hypervisors_attach
     end
 
     it "zone should be present" do
@@ -80,13 +78,17 @@ describe "Zone has been subscribed" do
     end
 
     it "error should appeared if no enough resources on supplier" do
-      supplier.data_stores_detach
-      error = trader.create_vm(supplier.template.label, federation_id)
-      expect(error.primary_disk_size.first).to eq 'does not have enough disk space'
-      expect(supplier.data_stores_attach).to be true
+      #TODO detach resources
+      skip
+      supplier.hypervisors_detach
+      error = trader.create_vm(supplier.template.label)
+      expect(error.hypervisor_id.include?("can't be blank")).to be true
+      expect(supplier.hypervisors_attach).to be true
     end
 
     it 'should not be able remove federated template' do
+      #TODO in 4.2
+      skip
       template = trader.find_template(supplier.template.label)
       trader.delete("/templates/#{template.id}")
       expect(trader.conn.page.code).to eq "422"

@@ -34,6 +34,7 @@ class Hypervisor
     end
     Log.info("Hypervisor with id #{hv.id} has been selected")
     hv ? info_update(hv) : Log.error('Hypervisor was not found')
+    self
   end
 
   def ssh_execute(script)
