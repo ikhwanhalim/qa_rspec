@@ -135,6 +135,17 @@ class VirtualServer
     self
   end
 
+  def reboot_from_iso(iso_id)
+    params = {}
+    params[:iso_id] = iso_id
+    interface.post("#{route}/reboot", params)
+    return interface.conn.page.body.error if api_response_code != '201'
+  end
+
+  def api_response_code
+    interface.conn.page.code
+  end
+
   private
 
   def route
