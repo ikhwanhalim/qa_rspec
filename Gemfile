@@ -44,3 +44,4 @@ gem 'onapp_market', '1.8.0', git: 'git@bitbucket.org:onappcore/marketapi.git', b
 gem 'fog-onapp', '1.8.0', git: 'git@bitbucket.org:onappcore/fog-onapp.git', branch: 'master'
 gem 'fog-json'
 gem 'hipchat'
+gem 'rspec_junit_formatter'
