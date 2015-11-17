@@ -7,7 +7,7 @@ module Network
       begin
         TCPSocket.new(ip_address, port).close
         return true
-      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
+      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::ETIMEDOUT
         false
       end
     end
@@ -19,7 +19,7 @@ module Network
       begin
         TCPSocket.new(ip_address, port).close
         false
-      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
+      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::ETIMEDOUT
         return true
       end
     end
