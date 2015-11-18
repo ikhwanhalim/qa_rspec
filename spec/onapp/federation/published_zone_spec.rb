@@ -1,4 +1,4 @@
-require 'federation'
+require './groups/federation'
 
 describe "Market" do
   before :all do

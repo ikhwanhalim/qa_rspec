@@ -1,5 +1,4 @@
 require 'helpers/api_client'
-require 'federation'
 require 'helpers/waiter'
 require 'logger'
 
