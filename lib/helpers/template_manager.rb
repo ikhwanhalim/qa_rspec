@@ -4,16 +4,16 @@ require_relative 'transaction'
 module TemplateManager
   include Transaction
 
-  attr_reader :template_store, :template
+  attr_reader :template_store
 
   def get_template(manager_id)
     Log.error('Template manager_id is empty') unless manager_id
     @manager_id = manager_id
-    @template = installed_template || download_template
-    Log.error('Template does not exist') unless @template
-    wait_for_download_template if @template.state != 'active'
-    add_to_template_store(@template.id)
-    @template
+    template = installed_template || download_template
+    Log.error('Template does not exist') unless template
+    wait_for_download_template(template.id) if template.state != 'active'
+    add_to_template_store(template.id)
+    template
   end
 
   def installed_templates
@@ -69,11 +69,11 @@ module TemplateManager
     post("/settings/image_template_groups/#{@template_store['id']}/relation_group_templates", data)
   end
 
-  def wait_for_download_template
-    wait_for_transaction(@template.id, "ImageTemplateBase", "download_template")
-    wait_for_transaction(@template.id, "ImageTemplateBase", "test_checksum")
-    wait_for_transaction(@template.id, "ImageTemplateBase", "distribute_template")
-    wait_for_transaction(@template.id, "ImageTemplateBase", "cleanup_template")
+  def wait_for_download_template(id)
+    wait_for_transaction(id, "ImageTemplateBase", "download_template")
+    wait_for_transaction(id, "ImageTemplateBase", "test_checksum")
+    wait_for_transaction(id, "ImageTemplateBase", "distribute_template")
+    wait_for_transaction(id, "ImageTemplateBase", "cleanup_template")
   end
 
   def remove_template(id)
