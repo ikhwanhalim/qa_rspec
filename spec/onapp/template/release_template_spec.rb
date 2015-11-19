@@ -15,7 +15,10 @@ describe 'Templates Tests' do
 
   let(:virtual_machine) { @rt.virtual_machine }
   let(:backup_server) { @rt.backup_server }
+  let(:template) { @rt.template }
+
   let(:distros) { %w(rhel ubuntu) }
+
 
   it 'Virtual server should be stopped/started' do
     virtual_machine.stop
@@ -42,5 +45,9 @@ describe 'Templates Tests' do
 
   it 'Make backup, convert it to template and build new VS based on new Template' do
     #TODO
+  end
+
+  it 'should receive info from the DB' do
+    template.db_enable_hotresize
   end
 end

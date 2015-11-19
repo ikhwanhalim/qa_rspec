@@ -23,6 +23,11 @@ class ImageTemplate
     self
   end
 
+  def db_enable_hotresize
+    interface.query("update templates set resize_without_reboot_policy='---\n:xen:\n  :centos5: 15\n  :centos6: 15\n:kvm:\n  :centos5: 15\n  :centos6: 15\n' where id=#{id}")
+    interface.query("update templates set allow_resize_without_reboot=1 where id=#{id}")
+  end
+
   private
 
   def info_update(info)

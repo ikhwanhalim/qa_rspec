@@ -9,6 +9,7 @@ require 'helpers/ssh_commands'
 require 'helpers/waiter'
 require 'helpers/network'
 require 'helpers/disks_operations_waiters'
+require 'helpers/mysql'
 
 require 'image_template'
 require 'hypervisor'
@@ -28,7 +29,7 @@ require 'fog/json'
 require 'timeout'
 
 class ReleaseTemplate
-  include FogOnapp, ApiClient, SshClient, TemplateManager, Log
+  include FogOnapp, ApiClient, SshClient, TemplateManager, Log, Mysql
 
   attr_accessor :hypervisor
   attr_reader   :virtual_machine, :backup_server, :template

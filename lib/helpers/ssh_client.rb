@@ -21,6 +21,27 @@ module SshClient
     ssh.exec!(command).to_s.split("\n")
   end
 
+  def execute_with_keys(host, user, command)
+    keys = `ls ~/.ssh/*.pub`
+    keys.sub!(/\.pub.*\n$/,"")
+    begin
+      Net::SSH.start(host, user, :keys => keys, :paranoid => false) do |ssh|
+        lic=0
+        begin
+          sleep 2
+          result = ssh.exec!(command)
+          Log.info("Executed following command '#{command}' at #{host} as #{user} ")
+          lic+=1
+        end until ( $?==0 || lic > 50 )
+        ssh.close
+        return result
+      end
+    rescue SystemCallError
+      Log.error("Failed to execute following command '#{command}' at #{host} as #{user} " +$!)
+      raise
+    end
+  end
+
   def primary_disk
     execute_with_pass("df -hm | awk '{if($6==\"/\") print $2}'").first
   end
