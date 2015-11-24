@@ -19,8 +19,6 @@ class FederationTrader
 
   def initialize(federation)
     @federation = federation
-    data = YAML::load_file('config/conf.yml')
-    auth url: data['trader']['url'], user: data['trader']['user'], pass: data['trader']['pass']
   end
 
   def subscribe(federation_id)

@@ -47,7 +47,7 @@ describe 'Templates Tests' do
     #TODO
   end
 
-  it 'should receive info from the DB' do
+  it 'Hot resize fot template' do
     template.db_enable_hotresize
   end
 end

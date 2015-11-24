@@ -2,16 +2,9 @@ module SshClient
   #Example for cred - {'vm_user'=>'name', 'vm_host'=>'ip', 'cp_hostname'=>'name', 'cp_ip'=>'ip'}
   def tunnel_execute(cred={}, command)
     Log.error("HV ip should not be nil") unless cred['vm_host']
-    credentials = [
-        command,
-        cred['cp_hostname'] || 'onapp',
-        cred['cp_ip'],
-        cred['vm_user'] || 'root',
-        cred['vm_host']
-    ]
-    cmd = "echo \"%s\" | ssh -t %s@%s ssh %s@%s" % credentials
+    cmd = "echo \"#{command}\" | ssh -t onapp@#{ip} ssh root@#{cred['vm_host']}"
     Log.info(cmd)
-    %x[ #{cmd} ].split("\r\n")
+    %x[ #{cmd} 2>&1].split("\r\n")
   end
 
   #Example for cred - {'vm_user'=>'name', 'vm_host'=>'ip', 'vm_pass'=>'pass'}

@@ -12,8 +12,6 @@ class FederationSupplier
 
   def initialize(federation)
     @federation = federation
-    data = YAML::load_file('config/conf.yml')
-    auth url: data['supplier']['url'], user: data['supplier']['user'], pass: data['supplier']['pass']
   end
 
   def get_publishing_resources
@@ -46,11 +44,16 @@ class FederationSupplier
     @network_group = @resources.network_group
     @hvz_id = @resources.hypervisor_group.id
     stamp = 'federation-autotest' + DateTime.now.strftime('-%d-%m-%y(%H:%M:%S)')
-    data = { 'hypervisor_zone' => {'label' => label || stamp,
-                               'private' => private,
-                               'data_store_zone_id' => @data_store_group.id,
-                               'network_zone_id' => @network_group.id,
-                               'template_group_id' => @template_store.id}}
+    data = {
+      'hypervisor_zone' => {
+        'label' => label || stamp,
+        'private' => private,
+        'data_store_zone_id' => @data_store_group.id,
+        'network_zone_id' => @network_group.id,
+        'template_group_id' => @template_store.id,
+        'description' => "#{Socket.gethostname}\n#{Socket.ip_address_list.to_s}"
+      }
+    }
     response = post("/federation/hypervisor_zones/#{@hvz_id}/add", data)
     Log.error(response.values.join("\n")) if response['errors'].any?
     @published_zone = get("/settings/hypervisor_zones/#{@hvz_id}").values.first

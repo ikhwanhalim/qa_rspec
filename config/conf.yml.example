@@ -1,23 +1,19 @@
 ---
-ip: 69.168.237.161
 url: http://69.168.237.161
 user: admin
 pass: changeme
 
 supplier:
-  ip: 69.168.237.163
   url: http://69.168.237.163
   user: admin
   pass: changeme
 
 trader:
-  ip: 69.168.237.162
   url: http://69.168.237.162
   user: admin
   pass: changeme
 
 market:
-  ip: 69.168.237.164
   url: http://69.168.237.164:3000
   user: admin
   pass: admin

@@ -34,10 +34,6 @@ class ReleaseTemplate
   attr_accessor :hypervisor
   attr_reader   :virtual_machine, :backup_server, :template
 
-  def initialize
-    auth unless self.conn
-  end
-
   def precondition
     @template = ImageTemplate.new(self)
     @template.find_by_manager_id(ENV['TEMPLATE_MANAGER_ID'])

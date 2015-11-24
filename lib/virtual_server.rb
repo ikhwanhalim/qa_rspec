@@ -6,7 +6,7 @@ class VirtualServer
               :cores_per_socket, :cpu_shares, :cpu_sockets, :cpu_threads, :cpu_units, :cpus, :created_at,
               :customer_network_id, :deleted_at, :edge_server_type, :enable_autoscale, :enable_monitis,
               :firewall_notrack, :hostname, :hot_add_cpu, :hot_add_memory, :hypervisor_id,
-              :id, :identifier, :vwu1gypsg8umxm,:initial_root_password,:initial_root_password_encrypted,
+              :id, :identifier,:initial_root_password,:initial_root_password_encrypted,
               :instance_type_id, :iso_id, :label,:local_remote_access_ip_address,:local_remote_access_port,
               :locked,:memory, :min_disk_size, :note,:operating_system,:operating_system_distro,:preferred_hvs,
               :recovery_mode, :remote_access_password, :service_password, :state, :storage_server_type,
@@ -18,14 +18,22 @@ class VirtualServer
     @interface = interface
   end
 
+  def hypervisor
+    interface.hypervisor
+  end
+
+  def template
+    interface.template
+  end
+
   def create
     hash ={'virtual_machine' => {
-        'hypervisor_id' => interface.hypervisor.id,
-        'template_id' => interface.template.id,
-        'label' => interface.template.label,
-        'memory' => interface.template.min_memory_size,
+        'hypervisor_id' => hypervisor.id,
+        'template_id' => template.id,
+        'label' => template.label,
+        'memory' => template.min_memory_size,
         'cpus' => '1',
-        'primary_disk_size' => interface.template.min_disk_size,
+        'primary_disk_size' => template.min_disk_size,
         'hostname' => 'auto.interface',
         'required_virtual_machine_build' => '1',
         'required_ip_address_assignment' => '1',
@@ -33,8 +41,8 @@ class VirtualServer
         'required_virtual_machine_startup' => '1'
     }
     }
-    hash['virtual_machine']['cpu_shares'] = '1' if !(interface.hypervisor.hypervisor_type == 'kvm' && interface.hypervisor.distro == 'centos5')
-    hash['virtual_machine']['swap_disk_size'] = '1' if interface.template.allowed_swap
+    hash['virtual_machine']['cpu_shares'] = '1' if !(hypervisor.hypervisor_type == 'kvm' && hypervisor.distro == 'centos5')
+    hash['virtual_machine']['swap_disk_size'] = '1' if template.allowed_swap
     data = interface.post('/virtual_machines', hash)
     return data.errors if data.errors
     info_update(data)
@@ -45,19 +53,25 @@ class VirtualServer
 
   def find(identifier)
     @identifier = identifier
+    update_last_transaction
     info_update
     interface.hypervisor ||= Hypervisor.new(interface).find_by_id(hypervisor_id)
+    interface.template ||= ImageTemplate.new(interface).find_by_id(template_id)
     self
+  end
+
+  def update_last_transaction
+    @last_transaction_id = interface.get("#{route}/transactions", {page: 1, per_page: 1}).first['transaction']['id']
   end
 
   def wait_for_build(require_startup = true)
     disk('primary').wait_for_build
-    disk('swap').wait_for_build if interface.template.allowed_swap
-    disk('swap').wait_for_provision if interface.template.operating_system == 'freebsd'
-    disk('primary').wait_for_provision if interface.template.operating_system != 'freebsd'
+    disk('swap').wait_for_build if template.allowed_swap
+    disk('swap').wait_for_provision if template.operating_system == 'freebsd'
+    disk('primary').wait_for_provision if template.operating_system != 'freebsd'
     wait_for_configure_operating_system
-    wait_for_provision_freebsd if interface.template.operating_system == 'freebsd'
-    wait_for_provision_win if interface.template.operating_system == 'windows'
+    wait_for_provision_freebsd if template.operating_system == 'freebsd'
+    wait_for_provision_win if template.operating_system == 'windows'
     wait_for_start if require_startup
     info_update
   end
@@ -103,14 +117,50 @@ class VirtualServer
     wait_for_stop
   end
 
+  def suspend
+    interface.post("#{route}/suspend")
+    wait_for_stop
+  end
+
+  def unsuspend
+    interface.post("#{route}/suspend")
+  end
+
   def start_up
-    interface.post("#{route}/startup")
+    response = interface.post("#{route}/startup")
+    return response if api_response_code == '422'
     wait_for_start
   end
 
-  def reboot
-    interface.post("#{route}/reboot")
+  def reboot(recovery: false)
+    if recovery
+      interface.post("#{route}/reboot",'','?mode=recovery')
+    else
+      interface.post("#{route}/reboot")
+    end
     wait_for_reboot
+  end
+
+  #Keyword arguments - label, cpus, cpu_shares, memory
+  def edit(**kwargs)
+    interface.put(route, {virtual_machine: kwargs})
+    diff_cpu = kwargs[:cpus] && kwargs[:cpus] != cpus
+    diff_mem = kwargs[:memory] && kwargs[:memory] != memory
+    def_cpu_shares = kwargs[:cpu_shares] && kwargs[:cpu_shares] != cpu_shares
+    if  diff_cpu || diff_mem || def_cpu_shares
+      template.allow_resize_without_reboot ? wait_for_resize_without_reboot : wait_for_resize
+    end
+    info_update
+  end
+
+  def exist_on_hv?
+    result = if hypervisor.hypervisor_type == 'kvm'
+               hypervisor.ssh_execute("virsh list | grep #{identifier}")
+             elsif hypervisor.hypervisor_type == 'xen'
+               hypervisor.ssh_execute("xm list | grep #{identifier}")
+             end
+    Log.info(result)
+    result.last.include?(identifier)
   end
 
   def update_os

@@ -4,8 +4,6 @@ describe 'VIRTUAL MACHINE REGRESSION AUTOTEST' do
   before :all do
     @vsa = VirtualServerActions.new.precondition
     @vm = @vsa.virtual_machine
-    @iso = @vsa.iso
-    (@vm.up?).should be true
   end
 
   after :all do
@@ -13,65 +11,125 @@ describe 'VIRTUAL MACHINE REGRESSION AUTOTEST' do
     @vm.wait_for_destroy
   end
 
+  let(:vm)  { @vsa.virtual_machine }
+  let(:iso) { @vsa.iso }
+
   describe 'VM power operations' do
+    describe 'After build' do
+      it { expect(vm.up?).to be true }
+
+      it { expect(vm.exist_on_hv?).to be true }
+    end
+
     it 'Stop/Start Virtual Machine' do
-      @vm.ssh_port_opened.should be_truthy
-      @vm.exist_on_hv?.should be_truthy
-      @vm.stop.should be_truthy
-      @vm.wait_for_stop.should be_truthy
-      @vm.exist_on_hv?.should be_falsey
-      @vm.start_up.should be_truthy
-      @vm.wait_for_start.should be_truthy
-      @vm.exist_on_hv?.should be_truthy
-      @vm.ssh_port_opened.should be_truthy
+      vm.stop
+      expect(vm.down?).to be false
+      vm.start_up
+      expect(vm.up? && vm.exist_on_hv?).to be true
     end
 
     it 'ShutDown/Start Virtual Machine' do
-      @vm.ssh_port_opened.should be_truthy
-      @vm.exist_on_hv?.should be_truthy
-      @vm.shut_down.should be_truthy
-      @vm.wait_for_stop.should be_truthy
-      @vm.exist_on_hv?.should be_falsey
-      @vm.start_up.should be_truthy
-      @vm.wait_for_start.should be_truthy
-      @vm.exist_on_hv?.should be_truthy
-      @vm.ssh_port_opened.should be_truthy
+      vm.shut_down
+      expect(vm.down?).to be true
+      vm.start_up
+      expect(vm.up? && vm.exist_on_hv?).to be true
     end
 
     it 'Reboot Virtual Machine' do
-      @vm.reboot.should be_truthy
-      @vm.wait_for_reboot
-      @vm.exist_on_hv?.should be_truthy
-      @vm.ssh_port_opened.should be_truthy
+      vm.reboot
+      expect(vm.up? && vm.exist_on_hv?).to be true
     end
 
     it 'Suspend/Unsuspend Virtual Machine' do
-      @vm.suspend.should be_truthy
-      @vm.wait_for_stop.should be_truthy
-      @vm.exist_on_hv?.should be_falsey
-      @vm.suspend.should be_truthy    #unsuspend VM before deleting
-      @vm.exist_on_hv?.should be_falsey
+      vm.suspend
+      expect(vm.down?).to be true
+      expect(vm.exist_on_hv?).to be false
+      vm.start_up
+      expect(vm.api_response_code).to eq '422'
+      vm.unsuspend
+      vm.start_up
+      expect(vm.up? && vm.exist_on_hv?).to be true
     end
   end
 
-  describe 'Migrate Virtual Machine operations' do
-    it 'Hot Migrate VM' do
-      skip ('VM Template do not support Hot migration') unless @vm.template['allowed_hot_migrate']
-      skip ('There is no available HV to migrate to') unless @vm.hv_to_migrate_exist?
-      @vm.hot_migrate
-      @vm.exist_on_hv?.should be_truthy
-      @vm.ssh_port_opened.should be_truthy
-    end
-
-    it 'Cold migration' do
-      skip ('There is no available HV to migrate to') unless @vm.hv_to_migrate_exist?
-      @vm.cold_migrate
-      @vm.exist_on_hv?.should be_truthy
-      @vm.ssh_port_opened.should be_truthy
-    end
-  end
+  # describe 'Migrate Virtual Machine operations' do
+  #   it 'Hot Migrate VM' do
+  #     skip ('VM Template do not support Hot migration') unless @vm.template['allowed_hot_migrate']
+  #     skip ('There is no available HV to migrate to') unless @vm.hv_to_migrate_exist?
+  #     @vm.hot_migrate
+  #     @vm.exist_on_hv?.should be_truthy
+  #     @vm.ssh_port_opened.should be_truthy
+  #   end
+  #
+  #   it 'Cold migration' do
+  #     skip ('There is no available HV to migrate to') unless @vm.hv_to_migrate_exist?
+  #     @vm.cold_migrate
+  #     @vm.exist_on_hv?.should be_truthy
+  #     @vm.ssh_port_opened.should be_truthy
+  #   end
+  # end
 
   describe 'Resize Virtual Server Operations' do
+    before :all do
+      @default = {
+        label: @vm.label,
+        cpus: @vm.cpus,
+        cpu_shares: @vm.cpu_shares,
+        memory: @vm.memory
+      }
+    end
+
+    describe 'Increase' do
+      before :all do
+        @increased_params = {
+          label: 'AutoTestChanged',
+          cpus: @vm.cpus + 1,
+          cpu_shares: @vm.cpu_shares + 10,
+          memory: @vm.memory + 256
+        }
+        @vm.edit(@increased_params)
+      end
+
+      it 'Lable has been changed' do
+        expect(vm.label).to eq @increased_params[:label]
+      end
+
+      it 'RAM' do
+
+      end
+
+      it 'CPUs' do
+
+      end
+
+      it 'CPU shares' do
+
+      end
+    end
+
+    describe 'Decrease' do
+      before :all do
+        @decreased_params = {
+            cpus: @vm.cpus - 1,
+            cpu_shares: @vm.cpu_shares - 10,
+            memory: @vm.memory - 256
+        }
+        @vm.edit(@decreased_params)
+      end
+
+      it 'RAM' do
+
+      end
+
+      it 'CPUs' do
+
+      end
+
+      it 'CPU shares' do
+
+      end
+    end
+
     it 'Resize RAM memory (Increase/Decrease)' do
       skip 'Unable to perform test without Template resize_without_reboot_policy policy' if @vm.resize_support?
       @vm.reboot.should be_truthy # To reset max_mem
@@ -126,29 +184,22 @@ describe 'VIRTUAL MACHINE REGRESSION AUTOTEST' do
 
   describe 'VM disks operations' do
     it 'Should be possible edit primary disk' do
-      @vm.edit_disk
+      skip
     end
   end
 
   describe 'Network operations' do
     it 'Should be possible to do something' do
-      true
+      skip
     end
   end
 
   describe 'Reboot in recovery operation' do
     it 'Reboot in recovery Operations' do
-      @vm.recovery_reboot
-      @vm.wait_for_reboot
-      @vm.exist_on_hv?.should be_truthy
-      @vm.ssh_port_opened.should be_truthy
-      @vm.recovery?.should be_truthy
-      # return to normal stance
-      @vm.reboot
-      @vm.wait_for_reboot
-      @vm.exist_on_hv?.should be_truthy
-      @vm.ssh_port_opened.should be_truthy
-      @vm.recovery?.should be_falsey
+      vm.reboot(recovery: true)
+      expect(vm.ssh_execute('hostname')).to include 'recovery'
+      vm.reboot
+      expect(vm.ssh_execute('hostname')).to include vm.hostname
     end
   end
 

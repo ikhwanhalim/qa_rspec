@@ -30,12 +30,8 @@ require 'timeout'
 class VirtualServerActions
   include FogOnapp, ApiClient, SshClient, TemplateManager, Log
 
-  attr_accessor :hypervisor
-  attr_reader   :virtual_machine, :template, :iso
-
-  def initialize
-    auth unless self.conn
-  end
+  attr_accessor :hypervisor, :template
+  attr_reader   :virtual_machine, :iso
 
   def precondition
     @iso = Iso.new(self)

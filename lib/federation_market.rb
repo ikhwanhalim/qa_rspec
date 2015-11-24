@@ -10,8 +10,6 @@ class FederationMarket
 
   def initialize(federation)
     @federation = federation
-    data = YAML::load_file('config/conf.yml')
-    auth url: data['market']['url'], user: data['market']['user'], pass: data['market']['pass']
   end
 
 
