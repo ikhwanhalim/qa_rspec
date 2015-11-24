@@ -1,33 +1,3 @@
-require 'helpers/api_client'
-require 'helpers/ssh_client'
-require 'helpers/logger'
-require 'helpers/template_manager'
-require 'helpers/transaction'
-require 'helpers/fog_onapp'
-require 'helpers/vm_operations_waiter'
-require 'helpers/ssh_commands'
-require 'helpers/waiter'
-require 'helpers/network'
-require 'helpers/disks_operations_waiters'
-require 'helpers/mysql'
-
-require 'image_template'
-require 'hypervisor'
-require 'virtual_server'
-require 'backup_server'
-require 'ip_address'
-require 'disk'
-require 'network_interface'
-
-require 'mechanize'
-require 'socket'
-require 'active_support/all'
-require 'hashie'
-require 'net/ssh'
-require 'fog-onapp'
-require 'fog/json'
-require 'timeout'
-
 class ReleaseTemplate
   include FogOnapp, ApiClient, SshClient, TemplateManager, Log, Mysql
 

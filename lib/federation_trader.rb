@@ -1,14 +1,3 @@
-require 'helpers/api_client'
-require 'helpers/waiter'
-require 'active_support/all'
-require 'mechanize'
-require 'hypervisor'
-require 'image_template'
-require 'helpers/vm_operations_waiter'
-require 'helpers/network'
-require 'helpers/ssh_commands'
-require 'virtual_server'
-
 class FederationTrader
   include ApiClient, Waiter
 
@@ -22,15 +11,16 @@ class FederationTrader
   end
 
   def subscribe(federation_id)
-    data = {'hypervisor_zone_namer' =>
-                {'hypervisor_group_label' => federation_id,
-                 'hypervisor_label' => federation_id,
-                 'data_store_group_label' => federation_id,
-                 'data_store_label' => federation_id,
-                 'network_group_label' => federation_id,
-                 'network_label' => federation_id,
-                 'image_template_group_label' => federation_id
-                }
+    data = {
+      'hypervisor_zone_namer' => {
+        'hypervisor_group_label' => federation_id,
+        'hypervisor_label' => federation_id,
+        'data_store_group_label' => federation_id,
+        'data_store_label' => federation_id,
+        'network_group_label' => federation_id,
+        'network_label' => federation_id,
+        'image_template_group_label' => federation_id
+      }
     }
     response = post("/federation/hypervisor_zones/#{federation_id}/subscribe", data)
     return response if @conn.page.code == '422'

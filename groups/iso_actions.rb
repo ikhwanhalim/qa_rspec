@@ -1,11 +1,3 @@
-require 'helpers/api_client'
-require 'helpers/logger'
-require 'helpers/transaction'
-require 'iso'
-require 'mechanize'
-require 'active_support/all'
-require 'hashie'
-
 class IsoActions
   include ApiClient, Log
 

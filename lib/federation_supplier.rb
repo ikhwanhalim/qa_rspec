@@ -1,9 +1,3 @@
-require 'helpers/api_client'
-require 'helpers/template_manager'
-require 'hypervisor'
-require 'helpers/waiter'
-require 'hashie'
-
 class FederationSupplier
   include ApiClient, TemplateManager, Waiter
 

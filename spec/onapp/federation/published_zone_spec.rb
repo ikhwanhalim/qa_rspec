@@ -1,4 +1,4 @@
-require './groups/federation'
+require 'spec_helper'
 
 describe "Market" do
   before :all do

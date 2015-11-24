@@ -1,4 +1,4 @@
-require './groups/federation'
+require 'spec_helper'
 
 describe "Zone has been subscribed" do
   before :all do

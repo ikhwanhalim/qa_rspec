@@ -1,7 +1,3 @@
-require 'helpers/api_client'
-require 'helpers/waiter'
-require 'logger'
-
 class FederationMarket
   include ApiClient, Waiter
 
