@@ -1,8 +1,8 @@
 class FederationSupplier
-  include ApiClient, TemplateManager, Waiter
+  include ApiClient, TemplateManager, Waiter, SshClient
 
-  attr_accessor :published_zone, :vm, :resources
-  attr_reader :federation
+  attr_accessor :published_zone, :vm, :resources, :hypervisor
+  attr_reader :federation, :template
 
   def initialize(federation)
     @federation = federation
@@ -32,7 +32,7 @@ class FederationSupplier
   end
 
   def add_to_federation(private: 0, label: nil)
-    get_template(ENV['TEMPLATE_MANAGER_ID'])
+    @template = ImageTemplate.new(self).find_by_manager_id(ENV['TEMPLATE_MANAGER_ID'])
     @resources ||= get_publishing_resources
     @data_store_group = @resources.data_store_group
     @network_group = @resources.network_group
@@ -117,19 +117,25 @@ class FederationSupplier
   end
 
   # VM operations
-  def find_vm(label)
-    auth_data = Hashie::Mash.new({'url' => @url, 'user' => @user, 'pass' => @pass})
-    @vm = VirtualMachine.new(federation: auth_data)
-    @vm.find_by_label(label)
-    @vm.info_update
+  def vm
+    @vm ||= -> {
+      server = VirtualServer.new(self)
+      virtual_machine = server.all.detect do |s|
+        s.virtual_machine.ip_addresses.first.ip_address.address == federation.trader.vm.ip_address
+      end.virtual_machine
+      server.find(virtual_machine.id)
+    }.call
   end
 
   #Announcements
   def generate_announcement
-    data = {announcement: {text: 'Autotest message',
-                           start_at: 10.second.from_now,
-                           finish_at: 1.day.from_now
-    }}
+    data = {
+      announcement: {
+        text: 'Autotest message',
+        start_at: 10.second.from_now,
+        finish_at: 1.day.from_now
+      }
+    }
     post("/federation/hypervisor_zones/#{published_zone.id}/announcements", data)
   end
 
@@ -165,6 +171,6 @@ class FederationSupplier
 
   #Transactions
   def get_last_transaction_id
-    @last_transaction_id = get('/transactions', {page: 1, per_page: 1}).first.transaction.id
+    @last_transaction_id = get('/transactions', {page: 1, per_page: 10}).first.transaction.id
   end
 end

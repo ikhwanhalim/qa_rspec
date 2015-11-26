@@ -27,7 +27,8 @@ class VirtualServer
   end
 
   def create
-    hash ={'virtual_machine' => {
+    hash = {
+      'virtual_machine' => {
         'hypervisor_id' => hypervisor.id,
         'template_id' => template.id,
         'label' => template.label,
@@ -39,7 +40,7 @@ class VirtualServer
         'required_ip_address_assignment' => '1',
         'rate_limit' => '0',
         'required_virtual_machine_startup' => '1'
-    }
+      }
     }
     hash['virtual_machine']['cpu_shares'] = '1' if !(hypervisor.hypervisor_type == 'kvm' && hypervisor.distro == 'centos5')
     hash['virtual_machine']['swap_disk_size'] = '1' if template.allowed_swap
@@ -55,13 +56,19 @@ class VirtualServer
     @identifier = identifier
     update_last_transaction
     info_update
-    interface.hypervisor ||= Hypervisor.new(interface).find_by_id(hypervisor_id)
-    interface.template ||= ImageTemplate.new(interface).find_by_id(template_id)
     self
   end
 
+  def find_by_label(label)
+    interface.get('/virtual_machines').select { |vm| vm.label == label }
+  end
+
+  def all
+    interface.get('/virtual_machines')
+  end
+
   def update_last_transaction
-    @last_transaction_id = interface.get("#{route}/transactions", {page: 1, per_page: 1}).first['transaction']['id']
+    @last_transaction_id = interface.get("#{route}/transactions", {page: 1, per_page: 10}).first['transaction']['id']
   end
 
   def wait_for_build(require_startup = true)
@@ -180,6 +187,8 @@ class VirtualServer
   def info_update(data=nil)
     data ||= interface.get(route)
     data.virtual_machine.each { |k,v| instance_variable_set("@#{k}", v) }
+    interface.hypervisor ||= Hypervisor.new(interface).find_by_id(hypervisor_id)
+    interface.template ||= ImageTemplate.new(interface).find_by_id(template_id)
     disk_info_update
     network_interface_info_update
     self
@@ -203,14 +212,20 @@ class VirtualServer
   end
 
   def disk_info_update
-    @disks = interface.get("#{route}/disks")
+    wait_until do
+      @disks = interface.get("#{route}/disks")
+      @disks.any?
+    end
     @disks.map! do |x|
       Disk.new(interface).info_update(x['disk'])
     end
   end
 
   def network_interface_info_update
-    @network_interfaces = interface.get("#{route}/network_interfaces")
+    wait_until do
+      @network_interfaces = interface.get("#{route}/network_interfaces")
+      @network_interfaces.any?
+    end
     @network_interfaces.map! do |x|
       NetworkInterface.new(interface, route).info_update(x['network_interface'])
     end

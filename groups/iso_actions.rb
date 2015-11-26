@@ -3,10 +3,6 @@ class IsoActions
 
   attr_reader :iso
 
-  def initialize
-    auth unless self.conn
-  end
-
   def precondition
     @iso = Iso.new(self)
     data = {'label' => 'iso_api_test',

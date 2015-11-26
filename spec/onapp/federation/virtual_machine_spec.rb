@@ -1,5 +1,4 @@
-require 'federation'
-require 'virtual_machine/vm_base'
+require 'spec_helper'
 
 describe "Federation Virtual Machine" do
   before :all do
@@ -9,7 +8,8 @@ describe "Federation Virtual Machine" do
     @federation.market.set_preflight
     @federation.trader.zone_appeared?(federation_id)
     @federation.trader.subscribe(federation_id)
-    @federation.trader.create_vm(@federation.supplier.template.label, federation_id)
+    require 'pry';binding.pry
+    @federation.trader.create_vm(@federation.supplier.template.label)
     @federation.supplier.find_vm(federation_id)
   end
 
@@ -26,7 +26,7 @@ describe "Federation Virtual Machine" do
   let(:market) { @federation.market }
 
   it "should pinged after booting" do
-    expect(trader.vm.pinged? && trader.vm.ssh_port_opened).to be true
+    expect(trader.vm.up?).to be true
   end
 
   it "should be created on supplier HV" do

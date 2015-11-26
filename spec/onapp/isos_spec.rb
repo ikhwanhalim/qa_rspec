@@ -1,3 +1,4 @@
+requrie 'spec_helper'
 require './groups/iso_actions'
 
 describe 'ISO functionality tests' do

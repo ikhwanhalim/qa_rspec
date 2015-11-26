@@ -5,12 +5,10 @@ describe 'VIRTUAL MACHINE REGRESSION AUTOTEST' do
   before :all do
     @vsa = VirtualServerActions.new.precondition
     @vm = @vsa.virtual_machine
-    require 'pry';binding.pry
   end
 
   after :all do
     @vm.destroy
-    @vm.wait_for_destroy
   end
 
   let(:vm)  { @vsa.virtual_machine }
