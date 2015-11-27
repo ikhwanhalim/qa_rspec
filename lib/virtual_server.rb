@@ -85,6 +85,7 @@ class VirtualServer
 
   def destroy
     interface.delete("#{route}")
+    return false if api_response_code  == '404'
     wait_for_destroy
   end
 
@@ -104,6 +105,13 @@ class VirtualServer
     elsif type == 'additional'
       return (@network_interfaces.select { |d| !d.primary })[number-1]
     end
+  end
+
+  def rebuild_network(**params)
+    data = params || { is_shutdown_required: true, shutdown_type: 'graceful', required_startup: 1 }
+    interface.post("#{route}/rebuild_network", data)
+    return false if api_response_code  == '404'
+    wait_for_rebuild_network
   end
 
   def ssh_execute(script)
@@ -146,6 +154,29 @@ class VirtualServer
       interface.post("#{route}/reboot")
     end
     wait_for_reboot
+  end
+
+  def rebuild(template: template)
+    interface.post("#{route}/build", {template_id: template.id, required_startup: '1'})
+    return false if api_response_code  == '404'
+    disk('primary').wait_for_format
+    disk('swap').wait_for_format if template.allowed_swap
+    disk('swap').wait_for_provision if template.operating_system == 'freebsd'
+    disk('primary').wait_for_provision if template.operating_system != 'freebsd'
+    wait_for_configure_operating_system
+    wait_for_provision_freebsd if template.operating_system == 'freebsd'
+    wait_for_provision_win if template.operating_system == 'windows'
+    wait_for_start if require_startup
+    info_update
+  end
+
+  def reset_root_password
+    interface.post("#{route}/reset_password")
+    return false if api_response_code  == '404'
+    wait_for_stop
+    wait_for_reset_root_password
+    wait_for_start
+    info_update
   end
 
   #Keyword arguments - label, cpus, cpu_shares, memory
