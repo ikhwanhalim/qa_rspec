@@ -1,4 +1,4 @@
-require './groups/release_template'
+require 'spec_helper'
 
 describe 'Templates Tests' do
   before :all do
@@ -48,6 +48,7 @@ describe 'Templates Tests' do
   end
 
   it 'Hot resize fot template' do
+    skip
     template.db_enable_hotresize
   end
 end

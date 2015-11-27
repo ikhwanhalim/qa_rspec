@@ -156,8 +156,8 @@ class VirtualServer
     wait_for_reboot
   end
 
-  def rebuild(template: template)
-    interface.post("#{route}/build", {template_id: template.id, required_startup: '1'})
+  def rebuild(template: template, required_startup: 1)
+    interface.post("#{route}/build", {template_id: template.id, required_startup: required_startup.to_s})
     return false if api_response_code  == '404'
     disk('primary').wait_for_format
     disk('swap').wait_for_format if template.allowed_swap
@@ -166,7 +166,7 @@ class VirtualServer
     wait_for_configure_operating_system
     wait_for_provision_freebsd if template.operating_system == 'freebsd'
     wait_for_provision_win if template.operating_system == 'windows'
-    wait_for_start if require_startup
+    wait_for_start if required_startup == 1
     info_update
   end
 
@@ -206,9 +206,14 @@ class VirtualServer
                 when 'rhel' then RHEL.update_os
                 when 'ubuntu' then UBUNTU.update_os
               end
+    Log.error('DNS resolvers has not set') if ssh_execute('ping -c1 google.com;echo $?').last.to_i != 0
     result = ssh_execute(command)
     status = result.last.to_i
-    Log.error("Update has failed for #{operating_system_distro}\n#{command}\n#{result.join('\n')}") if status != 0
+    if status != 0
+      Log.error("Update has failed for #{operating_system_distro}\n#{command}\n#{result.join('\n')}")
+    else
+      result[-5..-1].each { |line| Log.info(line) }
+    end
   end
 
   def ip_address
@@ -239,7 +244,7 @@ class VirtualServer
   private
 
   def route
-    @route ||= "/virtual_machines/#{identifier}"
+    "/virtual_machines/#{identifier}"
   end
 
   def disk_info_update
