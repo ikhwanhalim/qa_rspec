@@ -10,6 +10,10 @@ class FederationTrader
     @federation = federation
   end
 
+  def interface
+    self
+  end
+
   def subscribe(federation_id)
     data = {
       'hypervisor_zone_namer' => {
