@@ -33,7 +33,7 @@ class BackupServer
 
   def scan_disk
     ssh_execute('freshclam')
-    log = ssh_execute("clamscan -r --bell -i /mnt/onapp-tmp-#{@di}").first
+    log = ssh_execute("clamscan -r --bell -i /mnt/onapp-tmp-#{@di}").last
     if log && log.to_s.include?('Scanned files: 0')
       Log.error('Disk has not been mounted')
     elsif log && log.to_s.include?('Infected files: 0')

@@ -85,6 +85,7 @@ class VirtualServer
 
   def destroy
     interface.delete("#{route}")
+    return false if api_response_code  == '404'
     wait_for_destroy
   end
 
@@ -104,6 +105,13 @@ class VirtualServer
     elsif type == 'additional'
       return (@network_interfaces.select { |d| !d.primary })[number-1]
     end
+  end
+
+  def rebuild_network(**params)
+    data = params || { is_shutdown_required: true, shutdown_type: 'graceful', required_startup: 1 }
+    interface.post("#{route}/rebuild_network", data)
+    return false if api_response_code  == '404'
+    wait_for_rebuild_network
   end
 
   def ssh_execute(script)
@@ -148,6 +156,29 @@ class VirtualServer
     wait_for_reboot
   end
 
+  def rebuild(template: template, required_startup: 1)
+    interface.post("#{route}/build", {template_id: template.id, required_startup: required_startup.to_s})
+    return false if api_response_code  == '404'
+    disk('primary').wait_for_format
+    disk('swap').wait_for_format if template.allowed_swap
+    disk('swap').wait_for_provision if template.operating_system == 'freebsd'
+    disk('primary').wait_for_provision if template.operating_system != 'freebsd'
+    wait_for_configure_operating_system
+    wait_for_provision_freebsd if template.operating_system == 'freebsd'
+    wait_for_provision_win if template.operating_system == 'windows'
+    wait_for_start if required_startup == 1
+    info_update
+  end
+
+  def reset_root_password
+    interface.post("#{route}/reset_password")
+    return false if api_response_code  == '404'
+    wait_for_stop
+    wait_for_reset_root_password
+    wait_for_start
+    info_update
+  end
+
   #Keyword arguments - label, cpus, cpu_shares, memory
   def edit(**kwargs)
     interface.put(route, {virtual_machine: kwargs})
@@ -175,9 +206,14 @@ class VirtualServer
                 when 'rhel' then RHEL.update_os
                 when 'ubuntu' then UBUNTU.update_os
               end
+    Log.error('DNS resolvers has not set') if ssh_execute('ping -c1 google.com;echo $?').last.to_i != 0
     result = ssh_execute(command)
     status = result.last.to_i
-    Log.error("Update has failed for #{operating_system_distro}\n#{command}\n#{result.join('\n')}") if status != 0
+    if status != 0
+      Log.error("Update has failed for #{operating_system_distro}\n#{command}\n#{result.join('\n')}")
+    else
+      result[-5..-1].each { |line| Log.info(line) }
+    end
   end
 
   def ip_address
@@ -213,7 +249,7 @@ class VirtualServer
   private
 
   def route
-    @route ||= "/virtual_machines/#{identifier}"
+    "/virtual_machines/#{identifier}"
   end
 
   def disk_info_update

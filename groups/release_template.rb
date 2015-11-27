@@ -1,8 +1,12 @@
 class ReleaseTemplate
   include FogOnapp, ApiClient, SshClient, TemplateManager, Log, Mysql
 
-  attr_accessor :hypervisor
-  attr_reader   :virtual_machine, :backup_server, :template
+  attr_accessor :hypervisor, :template
+  attr_reader   :virtual_machine, :backup_server
+
+  def interface
+    self
+  end
 
   def precondition
     @template = ImageTemplate.new(self)

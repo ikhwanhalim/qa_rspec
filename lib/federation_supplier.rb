@@ -8,6 +8,10 @@ class FederationSupplier
     @federation = federation
   end
 
+  def interface
+    self
+  end
+
   def get_publishing_resources
     hv = Hypervisor.new(self).find_by_virt(ENV['VIRT_TYPE'])
     if hv
@@ -74,7 +78,11 @@ class FederationSupplier
     get_last_transaction_id
     disable_zone(id)
     delete("/federation/hypervisor_zones/#{id}/schedule_unpublish")
-    wait_for_transaction(id, "Pack", "clean_federated_zone")
+    if conn.page.code == '404'
+      delete("/federation/hypervisor_zones/#{id}/remove")
+    else
+      wait_for_transaction(id, "Pack", "clean_federated_zone")
+    end
     @published_zone = nil if all_federated.empty?
   end
 
@@ -161,7 +169,7 @@ class FederationSupplier
   end
 
   def get_token(receiver)
-    wait_until do
+    wait_until(300) do
       token = get("/federation/hypervisor_zones/#{@hvz_id}/supplier_tokens").detect do |t|
         t.token.receiver == receiver
       end

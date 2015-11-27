@@ -1,5 +1,5 @@
 class FederationTrader
-  include ApiClient, Waiter
+  include ApiClient, Waiter, SshClient
 
   attr_accessor :subscribed_zone, :vm, :template_store
   attr_reader :federation, :template, :hypervisor
@@ -8,6 +8,10 @@ class FederationTrader
 
   def initialize(federation)
     @federation = federation
+  end
+
+  def interface
+    self
   end
 
   def subscribe(federation_id)
