@@ -16,7 +16,9 @@ class Iso
       @data = response['image_template_iso']
       wait_for_downloading(iso_id)
     else
+      Log.warn(response['errors'])
       @data = response['errors']
+
     end
   end
 
@@ -46,7 +48,8 @@ class Iso
   end
 
   def remove
-    interface.delete("/template_isos/#{@iso_id}")
+     interface.delete("/template_isos/#{@iso_id}")
+     Log.error('ISO has not been deleted') if api_response_code != '204'
   end
 
   def wait_for_downloading (iso_id)
@@ -56,4 +59,9 @@ class Iso
   def api_response_code
     interface.conn.page.code
   end
+
+  def min_memory_size
+    data['min_memory_size']
+  end
+
 end

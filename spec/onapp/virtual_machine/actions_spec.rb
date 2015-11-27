@@ -9,6 +9,7 @@ describe 'VIRTUAL MACHINE REGRESSION AUTOTEST' do
 
   after :all do
     @vm.destroy
+    @vsa.iso.remove
   end
 
   let(:vm)  { @vsa.virtual_machine }
@@ -203,23 +204,36 @@ describe 'VIRTUAL MACHINE REGRESSION AUTOTEST' do
     end
   end
 
-  #Reboot VS from ISO
-  describe "Reboot VS from ISO" do
-    after :all do
-      @iso.remove
+#Reboot VS from ISO
+  describe 'Reboot VS from ISO' do
+
+    it 'Reboot VS from ISO' do
+     if vm.can_be_booted_from_iso?
+        @vm.reboot_from_iso(iso.iso_id)
+        expect(vm.exist_on_hv?).to be true
+     else
+        @vm.reboot_from_iso(iso.iso_id)
+        skip('Virtual Server cannot be booted from this ISO')
+     end
     end
 
     it 'Reboot VS from ISO if not enough memory' do
-      @vm.reboot_from_iso(@iso.iso_id)
-      expect(@vm.api_response_code).to eq '422'
+
+      if !vm.can_be_booted_from_iso?
+        @vm.reboot_from_iso(iso.iso_id)
+        expect(vm.exist_on_hv?).to be true
+        expect(@vm.api_response_code).to eq '422'
+      else
+        skip('Virtual Server can be booted from this ISO')
+      end
     end
 
-    it 'ISO id should be nil' do
-      expect(@vm.iso_id).to eq nil
-    end
+#    it 'ISO id should be nil' do
+#      expect(@vm.iso_id).to eq nil
+#    end
 
-    it 'Reboot VS from ISO' do
-      skip
-    end
+#    it 'Reboot VS from ISO' do
+#      skip
+#    end
   end
 end

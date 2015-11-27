@@ -194,11 +194,16 @@ class VirtualServer
     self
   end
 
+  def can_be_booted_from_iso?
+    memory >= interface.iso.min_memory_size
+  end
+
   def reboot_from_iso(iso_id)
     params = {}
     params[:iso_id] = iso_id
     interface.post("#{route}/reboot", params)
-    return interface.conn.page.body.error if api_response_code != '201'
+    return Log.warn(interface.conn.page.body.error) if api_response_code != '201'
+    wait_for_reboot
   end
 
   def api_response_code

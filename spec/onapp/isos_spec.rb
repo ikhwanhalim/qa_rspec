@@ -1,4 +1,4 @@
-requrie 'spec_helper'
+require 'spec_helper'
 require './groups/iso_actions'
 
 describe 'ISO functionality tests' do
@@ -19,7 +19,6 @@ describe 'ISO functionality tests' do
 
   after(:all) do
     @iso.remove
-    Log.error('ISO has not been deleted') if @iso.api_response_code != '204'
   end
 
   describe 'Create ISO negative tests' do
