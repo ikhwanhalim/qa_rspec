@@ -1,3 +1,5 @@
+### For master branch:
+ ###
 To install rvm:
 sudo apt-get update
 \curl -L https://get.rvm.io | bash -s stable
@@ -24,3 +26,9 @@ rails s
 Do not forget to add your own conf.yml and database.yml files according to the provided examples in the config folder.
 
 After installation go to your web browser and open the http://0.0.0.0:3000/ page. To login use credentials generated while running rake db:seed.
+
+### For production branch:
+ ###
+Install rvm and ruby 2.0.0 put conf.yml into config directory
+
+!!!Don't forget put own ssh public key into control panel server for user onapp
