@@ -1,3 +1,5 @@
+require_relative 'waiter'
+
 module Network
   include Waiter
 

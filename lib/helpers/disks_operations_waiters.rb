@@ -1,3 +1,5 @@
+require_relative 'transaction'
+
 module DiskOperationsWaiters
   include Transaction
 
