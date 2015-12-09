@@ -157,7 +157,8 @@ class VirtualServer
   end
 
   def rebuild(template: template, required_startup: 1)
-    interface.post("#{route}/build", {template_id: template.id, required_startup: required_startup.to_s})
+    params = { virtual_machine: {template_id: template.id, required_startup: required_startup.to_s}}
+    interface.post("#{route}/build", params)
     return false if api_response_code  == '404'
     disk('primary').wait_for_format
     disk('swap').wait_for_format if template.allowed_swap
@@ -253,7 +254,7 @@ class VirtualServer
   end
 
   def disk_info_update
-    wait_until do
+    wait_until(300) do
       @disks = interface.get("#{route}/disks")
       @disks.any?
     end
@@ -263,7 +264,7 @@ class VirtualServer
   end
 
   def network_interface_info_update
-    wait_until do
+    wait_until(300) do
       @network_interfaces = interface.get("#{route}/network_interfaces")
       @network_interfaces.any?
     end

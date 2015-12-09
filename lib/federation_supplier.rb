@@ -55,7 +55,7 @@ class FederationSupplier
     response = post("/federation/hypervisor_zones/#{@hvz_id}/add", data)
     Log.error(response.values.join("\n")) if response['errors'].any?
     @published_zone = get("/settings/hypervisor_zones/#{@hvz_id}").values.first
-    sleep 5 #Wait for TemplateTracker and Zabbix tasks
+    sleep 15 #Wait for TemplateTracker and Zabbix tasks
   end
 
   def make_public
@@ -129,7 +129,8 @@ class FederationSupplier
     @vm ||= -> {
       server = VirtualServer.new(self)
       virtual_machine = server.all.detect do |s|
-        s.virtual_machine.ip_addresses.first.ip_address.address == federation.trader.vm.ip_address
+        vm_primary_ip = s.virtual_machine.ip_addresses.first
+        vm_primary_ip && vm_primary_ip.ip_address.address == federation.trader.vm.ip_address
       end.virtual_machine
       server.find(virtual_machine.id)
     }.call

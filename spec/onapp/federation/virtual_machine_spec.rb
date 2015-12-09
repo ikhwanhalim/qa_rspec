@@ -12,12 +12,12 @@ describe "Federation Virtual Machine" do
   end
 
   after :all do
-    @federation.trader.vm.destroy
+    @federation.trader.vm.destroy if @federation.trader.vm
     @federation.trader.unsubscribe_all
     @federation.supplier.remove_from_federation
   end
 
-  let(:federation_id) { trader.subscribed_zone.federation_id }
+  let(:federation_id) { @trader.subscribed_zone.federation_id }
   let(:supplier) { @federation.supplier }
   let(:trader) { @federation.trader }
   let(:market) { @federation.market }
@@ -40,12 +40,12 @@ describe "Federation Virtual Machine" do
   describe 'Trader should be able' do
     it "trader should be able reboot" do
       expect(trader.vm.reboot).to be true
-      expect(trader.vm.pinged? && trader.vm.ssh_port_opened).to be true
+      expect(trader.vm.pinged? && trader.vm.port_opened?).to be true
     end
 
     it "trader should be able rebuild vm" do
-      expect(trader.vm.rebuild).to be true
-      expect(trader.vm.execute_with_pass('hostname')).to include(trader.vm.hostname)
+      trader.vm.rebuild
+      expect(trader.vm.ssh_execute('hostname')).to include(trader.vm.hostname)
     end
 
     it 'reset root password' do
@@ -54,6 +54,11 @@ describe "Federation Virtual Machine" do
       trader.vm.reset_root_password
       expect(trader.vm.initial_root_password).not_to eq old_password
       expect(trader.vm.execute_with_pass('hostname')).to include(trader.vm.hostname)
+    end
+
+    it 'rebuild network' do
+      expect(trader.vm.rebuild_network).to be true
+      expect(trader.vm.up?).to be true
     end
   end
 
@@ -72,7 +77,6 @@ describe "Federation Virtual Machine" do
 
     it "add firewall rule" do
       skip
-      expect(supplier.vm.create_firewall_rule).to be false
     end
 
     it "rebuild network" do
@@ -81,17 +85,14 @@ describe "Federation Virtual Machine" do
 
     it "add disk" do
       skip
-      supplier.vm.add_disk
     end
 
     it "destroy swap disk" do
       skip
-      supplier.vm.destroy_disk(id)
     end
 
     it "allocate IP address" do
       skip
-      expect(supplier.vm.allocate_new_ip).to be false
     end
   end
 

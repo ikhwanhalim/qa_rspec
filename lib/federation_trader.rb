@@ -27,7 +27,10 @@ class FederationTrader
       }
     }
     response = post("/federation/hypervisor_zones/#{federation_id}/subscribe", data)
-    return response if @conn.page.code == '422'
+    if @conn.page.code == '422'
+      Log.warn(response)
+      return response
+    end
     @subscribed_zone = all_subscribed.detect { |z| z.federation_id == federation_id }
     template_store
   end
