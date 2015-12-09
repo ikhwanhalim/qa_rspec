@@ -3,7 +3,7 @@ module Transaction
     Log.info("Waiting for #{parent_type} (#{parent_id}) transaction: #{action}")
     result = []
     @last_transaction_id = 0 if !defined?(@last_transaction_id)
-    10.times do
+    60.times do
       result = interface.get("/transactions", {page: 1, per_page: 1000})
       result.select! do |t|
           t['transaction']['parent_id'] == parent_id &&
