@@ -221,6 +221,10 @@ class VirtualServer
     network_interface.ip_address.address
   end
 
+  def ip_addresses
+    network_interface.ip_addresses
+  end
+
   def info_update(data=nil)
     data ||= interface.get(route)
     data.virtual_machine.each { |k,v| instance_variable_set("@#{k}", v) }
