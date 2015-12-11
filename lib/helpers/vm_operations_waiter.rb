@@ -62,11 +62,11 @@ module VmOperationsWaiters
   end
 
   def wait_for_update_custom_firewall_rule
-    wait_for_transaction(network_interface_id, 'VirtualMachine', 'update_custom_firewall_rule')
+    wait_for_transaction(id, 'VirtualMachine', 'update_custom_firewall_rule')
   end
 
   def wait_for_rebuild_network
-    wait_for_transaction(network_interface_id, 'VirtualMachine', 'rebuild_network')
+    wait_for_transaction(id, 'VirtualMachine', 'rebuild_network')
   end
 
   def set_max_mem

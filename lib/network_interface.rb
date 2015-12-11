@@ -1,7 +1,7 @@
 class NetworkInterface
   include VmOperationsWaiters
 
-  attr_reader :interface, :ip_addresses, :connected, :created_at, :default_firewall_rule, :id, :identifier, :label, :mac_address, :network_join_id,
+  attr_reader :interface, :ip_addresses, :firewall_rules, :connected, :created_at, :default_firewall_rule, :id, :identifier, :label, :mac_address, :network_join_id,
               :primary, :rate_limit, :updated_at, :usage, :usage_last_reset_at, :usage_month_rolled_at, :virtual_machine_id
 
   alias network_interface_id id
@@ -11,21 +11,35 @@ class NetworkInterface
     @vm_route = vm_route
   end
 
-  def info_update(network_interface)
+  def info_update(network_interface=nil)
+    network_interface ||= interface.get("#{@vm_route}/network_interfaces/#{id}").network_interface
     network_interface.each { |k,v| instance_variable_set("@#{k}", v) }
     ip_addresses_info_update
     self
   end
 
-  def ip_address_route
+  def ip_addresses_route
     "#{@vm_route}/ip_addresses"
+  end
+
+  def firewall_rules_route
+    "#{@vm_route}/firewall_rules"
   end
 
   def ip_addresses_info_update
     @ip_addresses = []
-    interface.get(ip_address_route).each do |ip_join|
+    interface.get(ip_addresses_route).each do |ip_join|
       if ip_join.ip_address_join.network_interface_id.to_s == id.to_s
-        @ip_addresses << IpAddress.new(interface, ip_address_route).info_update(ip_join.ip_address_join)
+        @ip_addresses << IpAddress.new(interface, ip_addresses_route).info_update(ip_join.ip_address_join)
+      end
+    end
+  end
+
+  def firewall_rules_info_update
+    @firewall_rules = []
+    interface.get(firewall_rules_route).each do |rule|
+      if rule.firewall_rule.network_interface_id.to_s == id.to_s
+        @firewall_rules << FirewallRule.new(interface, firewall_rules_route).info_update(rule.firewall_rule)
       end
     end
   end
@@ -39,7 +53,7 @@ class NetworkInterface
   end
 
   def allocate_new_ip
-    IpAddress.new(interface, ip_address_route).attach(id)
+    IpAddress.new(interface, ip_addresses_route).attach(id)
     wait_for_update_firewall
     ip_addresses_info_update
   end
@@ -48,5 +62,28 @@ class NetworkInterface
     ip_address(number).detach(rebuild_network)
     wait_for_update_firewall
     ip_addresses_info_update
+  end
+
+  def set_default_firewall_rule(command='ACCEPT')
+    data = {:network_interfaces => { id => {:default_firewall_rule => command}}}
+    interface.put("#{firewall_rules_route}/update_defaults", data)
+    firewall_rules_info_update
+  end
+
+  def add_custom_firewall_rule(**params)
+    data = {
+      network_interface_id: id,
+      port: params[:port].to_s,
+      address: params[:address],
+      command: params[:command] || 'ACCEPT',
+      protocol: params[:protocol] || 'TCP'
+    }
+    FirewallRule.new(interface, firewall_rules_route).create(data)
+    firewall_rules_info_update
+  end
+
+  def reset_firewall_rules
+    @firewall_rules.map &:remove
+    set_default_firewall_rule
   end
 end

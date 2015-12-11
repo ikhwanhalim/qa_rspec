@@ -3,15 +3,15 @@ class IpAddress
               :id, :ip_address_pool_id, :network_address, :network_id, :pxe, :updated_at, :user_id, :free, :netmask,
               :join_id
 
-  def initialize(interface, ip_address_route)
+  def initialize(interface, ip_addresses_route)
     @interface = interface
-    @ip_address_route = ip_address_route
+    @ip_address_route = ip_addresses_route
   end
 
   def info_update(join)
     @join_id = join.id
     join.ip_address.each { |k,v| instance_variable_set("@#{k}", v) }
-    @ip_address_join_route = "#{@ip_address_route}/#{join.id}"
+    @ip_address_join_route = "#{@ip_addresses_route}/#{join.id}"
     self
   end
 
@@ -20,6 +20,6 @@ class IpAddress
   end
 
   def detach(rebuild_network = false)
-    interface.delete("#{@ip_address_route}/#{join_id}", {ip_address_join: {rebuild_network: rebuild_network}})
+    interface.delete(@ip_addresses_route, {ip_address_join: {rebuild_network: rebuild_network}})
   end
 end

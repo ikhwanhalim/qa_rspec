@@ -225,6 +225,11 @@ class VirtualServer
     network_interface.ip_addresses
   end
 
+  def update_firewall_rules
+    interface.post("#{route}/update_firewall_rules")
+    wait_for_update_custom_firewall_rule
+  end
+
   def info_update(data=nil)
     data ||= interface.get(route)
     data.virtual_machine.each { |k,v| instance_variable_set("@#{k}", v) }
