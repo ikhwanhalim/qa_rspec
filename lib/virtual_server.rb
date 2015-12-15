@@ -27,29 +27,32 @@ class VirtualServer
   end
 
   def create
-    hash = {
-      'virtual_machine' => {
-        'hypervisor_id' => hypervisor.id,
-        'template_id' => template.id,
-        'label' => template.label,
-        'memory' => template.min_memory_size,
-        'cpus' => '1',
-        'primary_disk_size' => template.min_disk_size,
-        'hostname' => 'auto.interface',
-        'required_virtual_machine_build' => '1',
-        'required_ip_address_assignment' => '1',
-        'rate_limit' => '0',
-        'required_virtual_machine_startup' => '1'
-      }
-    }
-    hash['virtual_machine']['cpu_shares'] = '1' if !(hypervisor.hypervisor_type == 'kvm' && hypervisor.distro == 'centos5')
-    hash['virtual_machine']['swap_disk_size'] = '1' if template.allowed_swap
-    data = interface.post('/virtual_machines', hash)
+    data = interface.post('/virtual_machines', build_params)
     return data.errors if data.errors
     info_update(data)
     wait_for_build
     info_update
     self
+  end
+
+  def build_params
+    {
+      virtual_machine: {
+        hypervisor_id: hypervisor.id,
+        template_id: template.id,
+        label: template.label,
+        memory: template.min_memory_size,
+        cpus: '1',
+        primary_disk_size: template.min_disk_size,
+        hostname: 'auto.interface',
+        required_virtual_machine_build: '1',
+        required_ip_address_assignment: '1',
+        rate_limit: '0',
+        required_virtual_machine_startup: '1',
+        cpu_shares: ('1' if !(hypervisor.hypervisor_type == 'kvm' && hypervisor.distro == 'centos5')),
+        swap_disk_size: ('1' if template.allowed_swap)
+      }
+    }
   end
 
   def find(identifier)
@@ -91,11 +94,18 @@ class VirtualServer
 
   def disk(type = 'primary', number = 1)
     if type == 'primary'
-      return (@disks.select { |d| d.primary }).first
+      return (disks.select { |d| d.primary }).first
     elsif type == 'swap'
-      return (@disks.select { |d| d.is_swap })[number-1]
+      return (disks.select { |d| d.is_swap })[number-1]
     elsif type == 'additional'
-      return (@disks.select { |d| !d.is_swap && !d.primary })[number-1]
+      return (disks.select { |d| !d.is_swap && !d.primary })[number-1]
+    end
+  end
+
+  def add_disk
+    Disk.new(interface, route).tap do |d|
+      d.create(data_store_id: disk.data_store_id)
+      disks
     end
   end
 
@@ -235,8 +245,8 @@ class VirtualServer
     data.virtual_machine.each { |k,v| instance_variable_set("@#{k}", v) }
     interface.hypervisor ||= Hypervisor.new(interface).find_by_id(hypervisor_id)
     interface.template ||= ImageTemplate.new(interface).find_by_id(template_id)
-    disk_info_update
-    network_interface_info_update
+    disks
+    network_interfaces
     self
   end
 
@@ -256,23 +266,21 @@ class VirtualServer
     interface.conn.page.code
   end
 
-  private
-
   def route
     "/virtual_machines/#{identifier}"
   end
 
-  def disk_info_update
+  def disks
     wait_until(300) do
       @disks = interface.get("#{route}/disks")
       @disks.any?
     end
     @disks.map! do |x|
-      Disk.new(interface).info_update(x['disk'])
+      Disk.new(interface, route).info_update(x['disk'])
     end
   end
 
-  def network_interface_info_update
+  def network_interfaces
     wait_until(300) do
       @network_interfaces = interface.get("#{route}/network_interfaces")
       @network_interfaces.any?

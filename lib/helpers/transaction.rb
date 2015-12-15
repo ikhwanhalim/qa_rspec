@@ -1,22 +1,27 @@
 module Transaction
   def wait_for_transaction(parent_id, parent_type, action)
     Log.info("Waiting for #{parent_type} (#{parent_id}) transaction: #{action}")
+    begin
+      interface.last_transaction_id
+    rescue NoMethodError
+      interface.class_eval{attr_accessor :last_transaction_id}
+    end
     result = []
-    @last_transaction_id = 0 if !defined?(@last_transaction_id)
+    interface.last_transaction_id ||= 0
     60.times do
       result = interface.get("/transactions", {page: 1, per_page: 1000})
       result.select! do |t|
           t['transaction']['parent_id'] == parent_id &&
             t['transaction']['parent_type'] == parent_type &&
             t['transaction']['action'] == action &&
-            t['transaction']['id'] > @last_transaction_id
+            t['transaction']['id'] > interface.last_transaction_id
       end
       break if result.any?
       sleep 5
     end
     Log.error("Unable to find transaction according to credentials") if result.empty?
-    transaction = result.last     
-    @last_transaction_id = transaction_id = transaction['transaction']['id']
+    transaction = result.last
+    interface.last_transaction_id = transaction_id = transaction['transaction']['id']
     loop do
       sleep 10 
       status = interface.get("/transactions/#{transaction_id}")['transaction']['status']

@@ -17,4 +17,19 @@ module DiskOperationsWaiters
     wait_for_transaction(id, 'Disk', 'format_disk')
     info_update
   end
+
+  def wait_for_destroy
+    wait_for_transaction(id, 'Disk', 'destroy_disk')
+    info_update
+  end
+
+  def wait_for_resize
+    wait_for_transaction(id, 'Disk', 'resize_disk')
+    info_update
+  end
+
+  def wait_for_update_fstab
+    wait_for_transaction(id, 'Disk', 'update_fstab')
+    info_update
+  end
 end
