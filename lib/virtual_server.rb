@@ -26,8 +26,8 @@ class VirtualServer
     interface.template
   end
 
-  def create
-    data = interface.post('/virtual_machines', build_params)
+  def create(**params)
+    data = interface.post('/virtual_machines', {virtual_machine: build_params.merge(params)})
     return data.errors if data.errors
     info_update(data)
     wait_for_build
@@ -36,24 +36,22 @@ class VirtualServer
   end
 
   def build_params
-    {
-      virtual_machine: {
-        hypervisor_id: hypervisor.id,
-        template_id: template.id,
-        label: template.label,
-        memory: template.min_memory_size,
-        cpus: '1',
-        primary_disk_size: template.min_disk_size,
-        hostname: 'auto.interface',
-        required_virtual_machine_build: '1',
-        required_ip_address_assignment: '1',
-        rate_limit: '0',
-        required_virtual_machine_startup: '1',
-        cpu_shares: ('1' if !(hypervisor.hypervisor_type == 'kvm' && hypervisor.distro == 'centos5')),
-        swap_disk_size: ('1' if template.allowed_swap)
-      }
+     {
+      hypervisor_id: hypervisor.id,
+      template_id: (template.id if defined?(template.id)),
+      label: template.label,
+      memory: template.min_memory_size,
+      cpus: '1',
+      primary_disk_size: template.min_disk_size,
+      hostname: 'auto.interface',
+      required_virtual_machine_build: '1',
+      required_ip_address_assignment: '1',
+      rate_limit: '0',
+      required_virtual_machine_startup: '1',
+      cpu_shares: ('1' if !(hypervisor.hypervisor_type == 'kvm' && hypervisor.distro == 'centos5')),
+      swap_disk_size: ('1' if template.allowed_swap)
     }
-  end
+end
 
   def find(identifier)
     @identifier = identifier
