@@ -35,12 +35,10 @@ module TemplateManager
   end
 
   def installed_template
-    templates = get("/templates/all").select { |t| t['image_template']['manager_id'] == @manager_id }
-    if templates.any?
-      return templates.first['image_template']
-    else
-      return nil
+    templates = (get("/templates/all") + get('/templates/installs')).select do |t|
+      t['image_template']['manager_id'] == @manager_id
     end
+    return templates.first['image_template'] if templates.any?
   end
 
   def download_template
