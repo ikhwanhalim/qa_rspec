@@ -9,48 +9,22 @@ module TemplateManager
   def get_template(manager_id)
     Log.error('Template manager_id is empty') unless manager_id
     @manager_id = manager_id
-    template = installed_template || download_template
+    template = download_template
     Log.error('Template does not exist') unless template
     wait_for_download_template(template.id) if template.state != 'active'
     add_to_template_store(template.id)
     template
   end
 
-  def installed_templates
-    get("/templates/all").map {|t| t['image_template'] if t['image_template']['manager_id']}.compact
-  end
-
-  def available_templates
-    get("/templates/available").map {|t| t['remote_template']}
-  end
-
-  def dev_templates
-    templates = get_from_url('http://templates-manager.onappdev.com/')
-    templates.map { |t| t.release.label += '(dev)'; t.release }
-  end
-
-  def released_templates
-    templates = get_from_url('http://templates-manager.onapp.com/')
-    templates.map &:release
-  end
-
-  def installed_template
-    templates = (get("/templates/all") + get('/templates/installs')).select do |t|
+  def download_template
+    installed = (get("/templates/all") + get('/templates/installs')).select do |t|
       t['image_template']['manager_id'] == @manager_id
     end
-    return templates.first['image_template'] if templates.any?
-  end
-
-  def download_template
-    templates = get("/templates/available").select { |t| t['remote_template']['manager_id'] == @manager_id }
-    for_upgrade = get("/templates/upgrades").select { |t| t['remote_template']['manager_id'] == @manager_id }
-    if templates.any?
-      return post( "/templates", {'image_template' => {'manager_id' => @manager_id}})["image_template"]
-    elsif for_upgrade.any?
-      id = for_upgrade.first['remote_template']['id']
-      return put("/templates/#{id}/upgrade")["image_template"]
-    else
-      return nil
+    available = get("/templates/available").select { |t| t['remote_template']['manager_id'] == @manager_id }
+    if installed.any?
+      installed.max_by { |t| t['image_template']['version'].to_f }['image_template']
+    elsif available.any?
+      post("/templates", {'image_template' => {'manager_id' => @manager_id}})["image_template"]
     end
   end
 
@@ -59,10 +33,10 @@ module TemplateManager
     template_store_list = get("/template_store").select do |s|
       !s.system_group && (s.relations.any? ? !s.relations.first.image_template.remote_id : true)
     end
-    if template_store_list
-      @template_store = template_store_list.first
+    @template_store = if template_store_list
+      template_store_list.first
     else
-      @template_store = post("/settings/image_template_groups", {"image_template_group"=>{"label"=>"AutoTests"}})
+      post("/settings/image_template_groups", {"image_template_group"=>{"label"=>"AutoTests"}})
     end
     post("/settings/image_template_groups/#{@template_store['id']}/relation_group_templates", data)
   end
