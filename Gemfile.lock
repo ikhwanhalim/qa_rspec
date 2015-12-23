@@ -1,19 +1,21 @@
 GIT
-  remote: git@bitbucket.org:onappcore/marketapi.git
-  revision: 0fa700b175a0b448f6ed7ec04536124e6b976d09
+  remote: git@bitbucket.org:onappcore/fog-onapp.git
+  revision: fda65d9b8ea7e4598907bbb51e64765ba4c25b4d
   branch: master
-  specs:
-    onapp_market (1.8.0)
-      rest-client (~> 1.6.7)
-
-PATH
-  remote: /home/roman/fog-onapp
   specs:
     fog-onapp (1.9.0)
       fog-core (~> 1.21)
       fog-json
       ipaddress
       nokogiri
+
+GIT
+  remote: git@bitbucket.org:onappcore/marketapi.git
+  revision: 0fa700b175a0b448f6ed7ec04536124e6b976d09
+  branch: master
+  specs:
+    onapp_market (1.8.0)
+      rest-client (~> 1.6.7)
 
 GEM
   remote: https://rubygems.org/
