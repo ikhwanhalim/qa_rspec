@@ -106,7 +106,7 @@ class FederationTrader
 
   #Announcements
   def find_announcement(market_id)
-    wait_until(300) do
+    wait_until do
       announcement = all_announcements.detect { |a| a.announcement.federation_id == market_id }
       announcement ? announcement : false
     end
@@ -117,7 +117,7 @@ class FederationTrader
   end
 
   def announcement_removed?(announcement)
-    wait_until(300) do
+    wait_until do
       !all_announcements.include?(announcement)
     end
   end

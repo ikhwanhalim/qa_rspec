@@ -60,6 +60,53 @@ describe "Federation Virtual Machine" do
       expect(trader.vm.rebuild_network).to be true
       expect(trader.vm.up?).to be true
     end
+
+    describe 'Perform disk action' do
+      before :all do
+        @disk = @federation.trader.vm.add_disk
+        @federation.supplier.vm.disks(label: @disk.label).first.wait_for_build
+      end
+
+      let(:suppliers_disk) { @federation.supplier.vm.disks(label: @disk.label).first }
+      let(:traders_disk) { @federation.trader.vm.disks(label: @disk.label).first }
+
+      it 'add disk' do
+        expect(trader.vm.port_opened?).to be true
+        expect(trader.vm.disk_mounted?(suppliers_disk)).to be true
+      end
+
+      it 'edit disk' do
+        traders_disk.edit(disk_size: 2, add_to_linux_fstab: true)
+        expect(trader.vm.port_opened?).to be true
+        trader.vm.info_update
+        expect(trader.vm.total_disk_size).to eq 8
+      end
+
+      it 'remove disk' do
+        traders_disk.remove
+        expect(trader.vm.disks.count).to eq 2
+      end
+    end
+
+    describe 'Firewall rules' do
+      it 'set default firewall rule' do
+        trader.vm.network_interface.set_default_firewall_rule('DROP')
+        trader.vm.rebuild_network
+        expect(trader.vm.not_pinged?).to be true
+        trader.vm.network_interface.set_default_firewall_rule
+        trader.vm.rebuild_network
+        expect(trader.vm.pinged?).to be true
+      end
+
+      it 'add custom firewall rule' do
+        trader.vm.network_interface.add_custom_firewall_rule(command: 'DROP', protocol: 'ICMP')
+        trader.vm.rebuild_network
+        expect(trader.vm.not_pinged?).to be true
+        trader.vm.network_interface.reset_firewall_rules
+        trader.vm.rebuild_network
+        expect(trader.vm.pinged?).to be true
+      end
+    end
   end
 
   describe 'Supplier should not be able' do
@@ -76,7 +123,7 @@ describe "Federation Virtual Machine" do
     end
 
     it "add firewall rule" do
-      skip
+      expect(!!supplier.vm.network_interface.add_custom_firewall_rule).to be false
     end
 
     it "rebuild network" do
@@ -84,90 +131,19 @@ describe "Federation Virtual Machine" do
     end
 
     it "add disk" do
-      skip
+      expect(!!supplier.vm.add_disk).to be false
     end
 
     it "destroy swap disk" do
-      skip
+      expect(!!supplier.vm.disk('swap').remove).to be false
     end
 
     it "allocate IP address" do
-      skip
+      expect(!!supplier.vm.network_interface.allocate_new_ip).to be false
+    end
+
+    it "remove IP address" do
+      expect(!!supplier.vm.network_interface.remove_ip).to be false
     end
   end
-
-  # TODO
-  # describe 'Firewall rules' do
-  #   before { @federation.trader.vm.destroy_all_firewall_rules }
-  #
-  #   describe "Default firewall rules" do
-  #     it "should be ACCEPT" do
-  #       expect(@federation.trader.vm.network_interfaces.first.network_interface.default_firewall_rule).to eq 'ACCEPT'
-  #     end
-  #
-  #     it "set default firewall rule" do
-  #       trader.vm.set_default_firewall_rule(command: 'DROP')
-  #       expect(trader.vm.pinged?(attemps: 3)).to be false
-  #       expect(trader.vm.is_port_opened?(port: 22, time: 1)).to be false
-  #       trader.vm.set_default_firewall_rule(command: 'ACCEPT')
-  #       expect(trader.vm.pinged?(attemps: 3)).to be true
-  #       expect(trader.vm.is_port_opened?(port: 22, time: 1)).to be true
-  #     end
-  #   end
-  #
-  #   it "should be able create DROP rule to 22 port" do
-  #     trader.vm.create_firewall_rule(port: 22, command: 'DROP')
-  #     trader.vm.update_firewall_rules
-  #     expect(trader.vm.is_port_opened?(port: 22, time: 1)).to be false
-  #   end
-  #
-  #   it "create DROP rule for ICMP" do
-  #     trader.vm.create_firewall_rule(protocol: 'ICMP', command: 'DROP')
-  #     trader.vm.update_firewall_rules
-  #     expect(trader.vm.pinged?(attemps: 3)).to be false
-  #   end
-  #
-  #   it "should be able edit firewall rule" do
-  #     trader.vm.create_firewall_rule(port: 22, command: 'DROP')
-  #     trader.vm.update_firewall_rules
-  #     expect(trader.vm.is_port_opened?(port: 22, time: 1)).to be false
-  #     id = trader.vm.firewall_rules.first.firewall_rule.id
-  #     trader.vm.edit_firewall_rule(id, {command: 'ACCEPT'})
-  #     trader.vm.update_firewall_rules
-  #     expect(trader.vm.is_port_opened?(port: 22, time: 1)).to be true
-  #   end
-  #
-  #   it "should be able remove firewall rule" do
-  #     trader.vm.create_firewall_rule(port: 22, command: 'DROP')
-  #     trader.vm.update_firewall_rules
-  #     id = trader.vm.firewall_rules.first.firewall_rule.id
-  #     trader.vm.delete_firewall_rule(id)
-  #     trader.vm.update_firewall_rules
-  #     expect(trader.vm.firewall_rules.empty?).to be true
-  #   end
-  # end
-  #
-  # describe "Normal backup" do
-  #   it { skip }
-  # end
-  #
-  # describe "New IP address" do
-  #   before :all do
-  #     @ip_join = @federation.trader.vm.allocate_new_ip
-  #   end
-  #
-  #   after :all do
-  #     @federation.trader.vm.delete_ip(@ip_join.id)
-  #   end
-  #
-  #   it 'should pinged' do
-  #     expect(trader.vm.pinged?(ip_address_number: 1)).to be true
-  #     expect(trader.vm.pinged?(ip_address_number: 2)).to be true
-  #   end
-  #
-  #   it 'SSH port should be opened' do
-  #     expect(trader.vm.is_port_opened?(ip: @ip_join.ip_address.address)).to be true
-  #     expect(trader.vm.ssh_port_opened).to be true
-  #   end
-  # end
 end

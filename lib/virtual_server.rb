@@ -100,11 +100,13 @@ end
     end
   end
 
-  def add_disk
-    Disk.new(interface, route).tap do |d|
-      d.create(data_store_id: disk.data_store_id)
-      disks
-    end
+  def add_disk(**attributes)
+    new_disk = Disk.new(interface, route)
+    new_disk.create({data_store_id: disk.data_store_id}.merge(attributes))
+  end
+
+  def disk_mounted?(disk)
+    !!ssh_execute('mount').detect { |out| out.include? disk.identifier }
   end
 
   def network_interface(type = 'primary', number = 1)
@@ -211,12 +213,8 @@ end
   end
 
   def update_os
-    command = case operating_system_distro
-                when 'rhel' then RHEL.update_os
-                when 'ubuntu' then UBUNTU.update_os
-              end
     Log.error('DNS resolvers has not set') if ssh_execute('ping -c1 google.com;echo $?').last.to_i != 0
-    result = ssh_execute(command)
+    result = ssh_execute(OnVirtualServer.update_os(operating_system_distro))
     status = result.last.to_i
     if status != 0
       Log.error("Update has failed for #{operating_system_distro}\n#{command}\n#{result.join('\n')}")
@@ -268,18 +266,19 @@ end
     "/virtual_machines/#{identifier}"
   end
 
-  def disks
-    wait_until(300) do
-      @disks = interface.get("#{route}/disks")
+  def disks(**attributes)
+    wait_until do
+      all = interface.get("#{route}/disks")
+      @disks = attributes[:label] ? all.select { |d| d.disk.label == attributes[:label] } : all
       @disks.any?
     end
     @disks.map! do |x|
-      Disk.new(interface, route).info_update(x['disk'])
+      Disk.new(interface, route).info_update(x.disk)
     end
   end
 
   def network_interfaces
-    wait_until(300) do
+    wait_until do
       @network_interfaces = interface.get("#{route}/network_interfaces")
       @network_interfaces.any?
     end

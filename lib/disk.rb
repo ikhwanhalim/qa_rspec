@@ -1,5 +1,5 @@
 class Disk
-  include DiskOperationsWaiters
+  include DiskOperationsWaiters, Waiter
   attr_reader :interface, :add_to_freebsd_fstab, :add_to_linux_fstab,:built,:burst_bw,:burst_iops,:created_at,:data_store_id,
               :disk_size,:disk_vm_number,:file_system,:id,:identifier, :iqn,:is_swap, :label,:locked,:max_bw,
               :max_iops, :min_iops, :mount_point, :primary, :updated_at,:virtual_machine_id, :volume_id,:has_autobackups
@@ -26,29 +26,31 @@ class Disk
 
   def create(**params)
     data = interface.post(disks_route, {disk: build_params.merge(params)})
+    return if interface.conn.page.code != '201'
     info_update(data.disk)
-    wait_for_build
-    self
   end
 
   def edit(**params)
+    params[:label] ||= label
     interface.put(@route, {disk: params})
-    return false if interface.conn.page.code != '204'
+    return if interface.conn.page.code != '204'
     if params[:disk_size] && params[:disk_size] != disk_size
       wait_for_resize
     elsif params[:mount_point]
       wait_for_update_fstab
     end
-    self
+    info_update(params)
   end
 
   def remove
     interface.delete(@route)
+    return if interface.conn.page.code != '204'
     wait_for_destroy
   end
 
   def build_params
     {
+      label: "Disk-#{SecureRandom.hex(4)}",
       disk_size: 1,
       is_swap: false,
       require_format_disk: true,

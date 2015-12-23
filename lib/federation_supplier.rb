@@ -153,7 +153,7 @@ class FederationSupplier
   end
 
   def wait_announcement_id(local_id)
-    wait_until(300) do
+    wait_until do
       announcement = all_announcements.detect { |a| a.announcement.id == local_id && a.announcement.federation_id }
       announcement ? announcement : false
     end
@@ -170,7 +170,7 @@ class FederationSupplier
   end
 
   def get_token(receiver)
-    wait_until(300) do
+    wait_until do
       token = get("/federation/hypervisor_zones/#{@hvz_id}/supplier_tokens").detect do |t|
         t.token.receiver == receiver
       end

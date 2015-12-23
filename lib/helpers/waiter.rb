@@ -1,5 +1,5 @@
 module Waiter
-  def wait_until(max = 30)
+  def wait_until(max = 300)
     Timeout.timeout(max) do
       until value = yield
         sleep(1)

@@ -14,7 +14,8 @@ class NetworkInterface
   def info_update(network_interface=nil)
     network_interface ||= interface.get("#{@vm_route}/network_interfaces/#{id}").network_interface
     network_interface.each { |k,v| instance_variable_set("@#{k}", v) }
-    ip_addresses_info_update
+    ip_addresses
+    firewall_rules
     self
   end
 
@@ -26,48 +27,49 @@ class NetworkInterface
     "#{@vm_route}/firewall_rules"
   end
 
-  def ip_addresses_info_update
-    @ip_addresses = []
-    interface.get(ip_addresses_route).each do |ip_join|
+  def ip_addresses
+    interface.get(ip_addresses_route).map do |ip_join|
       if ip_join.ip_address_join.network_interface_id.to_s == id.to_s
-        @ip_addresses << IpAddress.new(interface, ip_addresses_route).info_update(ip_join.ip_address_join)
+        IpAddress.new(interface, ip_addresses_route).info_update(ip_join.ip_address_join)
       end
     end
   end
 
-  def firewall_rules_info_update
-    @firewall_rules = []
-    interface.get(firewall_rules_route).each do |rule|
+  def firewall_rules
+    interface.get(firewall_rules_route).map do |rule|
       if rule.firewall_rule.network_interface_id.to_s == id.to_s
-        @firewall_rules << FirewallRule.new(interface, firewall_rules_route).info_update(rule.firewall_rule)
+        FirewallRule.new(interface, firewall_rules_route).info_update(rule.firewall_rule)
       end
     end
   end
 
   def ip_address(order_number = 0)
-    if @ip_addresses.any?
-      @ip_addresses[order_number-1]
+    if ip_addresses.any?
+      ip_addresses[order_number-1]
     else
       Log.error("There is no ip addresses associated with #{@route} network interface")
     end
   end
 
   def allocate_new_ip
-    IpAddress.new(interface, ip_addresses_route).attach(id)
+    ip = IpAddress.new(interface, ip_addresses_route)
+    ip.attach(id)
+    return if interface.conn.page.code != '202'
     wait_for_update_firewall
-    ip_addresses_info_update
+    ip_addresses
   end
 
   def remove_ip(number = 0, rebuild_network = false)
     ip_address(number).detach(rebuild_network)
+    return if interface.conn.page.code != '204'
     wait_for_update_firewall
-    ip_addresses_info_update
+    ip_addresses
   end
 
   def set_default_firewall_rule(command='ACCEPT')
     data = {:network_interfaces => { id => {:default_firewall_rule => command}}}
     interface.put("#{firewall_rules_route}/update_defaults", data)
-    firewall_rules_info_update
+    firewall_rules
   end
 
   def add_custom_firewall_rule(**params)
@@ -79,11 +81,12 @@ class NetworkInterface
       protocol: params[:protocol] || 'TCP'
     }
     FirewallRule.new(interface, firewall_rules_route).create(data)
-    firewall_rules_info_update
+    return if interface.conn.page.code != '201'
+    firewall_rules
   end
 
   def reset_firewall_rules
-    @firewall_rules.map &:remove
+    firewall_rules.map &:remove
     set_default_firewall_rule
   end
 end

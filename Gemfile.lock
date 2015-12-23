@@ -1,21 +1,19 @@
 GIT
-  remote: git@bitbucket.org:onappcore/fog-onapp.git
-  revision: 3143c975c6c8f1da8191e18e18389adfe780fbf9
-  branch: master
-  specs:
-    fog-onapp (1.8.0)
-      fog-core (~> 1.21)
-      fog-json
-      ipaddress
-      nokogiri
-
-GIT
   remote: git@bitbucket.org:onappcore/marketapi.git
   revision: 0fa700b175a0b448f6ed7ec04536124e6b976d09
   branch: master
   specs:
     onapp_market (1.8.0)
       rest-client (~> 1.6.7)
+
+PATH
+  remote: /home/roman/fog-onapp
+  specs:
+    fog-onapp (1.9.0)
+      fog-core (~> 1.21)
+      fog-json
+      ipaddress
+      nokogiri
 
 GEM
   remote: https://rubygems.org/
@@ -133,7 +131,7 @@ DEPENDENCIES
   activesupport
   awesome_print
   fog-json
-  fog-onapp (= 1.8.0)!
+  fog-onapp (= 1.9.0)!
   hashie
   headless
   json
