@@ -4,9 +4,10 @@ class Disk
               :disk_size,:disk_vm_number,:file_system,:id,:identifier, :iqn,:is_swap, :label,:locked,:max_bw,
               :max_iops, :min_iops, :mount_point, :primary, :updated_at,:virtual_machine_id, :volume_id,:has_autobackups
 
-  def initialize(interface, vm_route)
-    @interface = interface
-    @vm_route = vm_route
+  def initialize(virtual_machine)
+    @virtual_machine = virtual_machine
+    @interface = virtual_machine.interface
+    @vm_route = virtual_machine.route
   end
 
   def disks_route
@@ -57,5 +58,14 @@ class Disk
       add_to_linux_fstab: true,
       file_system: 'ext3'
     }
+  end
+
+  def mount_point
+    primary ? '/' : @mount_point
+  end
+
+  def disk_size_on_vm
+    command = SshCommands::OnVirtualServer.disk_size(mount_point)
+    @virtual_machine.ssh_execute(command).first.to_i
   end
 end

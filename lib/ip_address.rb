@@ -3,9 +3,9 @@ class IpAddress
               :id, :ip_address_pool_id, :network_address, :network_id, :pxe, :updated_at, :user_id, :free, :netmask,
               :join_id
 
-  def initialize(interface, ip_addresses_route)
-    @interface = interface
-    @ip_address_route = ip_addresses_route
+  def initialize(network_interface)
+    @interface = network_interface.interface
+    @ip_address_route = network_interface.ip_addresses_route
   end
 
   def info_update(join)

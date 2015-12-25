@@ -6,9 +6,9 @@ class NetworkInterface
 
   alias network_interface_id id
 
-  def initialize(interface, vm_route)
-    @interface = interface
-    @vm_route = vm_route
+  def initialize(virtual_machine)
+    @interface = virtual_machine.interface
+    @vm_route = virtual_machine.route
   end
 
   def info_update(network_interface=nil)
@@ -30,7 +30,7 @@ class NetworkInterface
   def ip_addresses
     interface.get(ip_addresses_route).map do |ip_join|
       if ip_join.ip_address_join.network_interface_id.to_s == id.to_s
-        IpAddress.new(interface, ip_addresses_route).info_update(ip_join.ip_address_join)
+        IpAddress.new(self).info_update(ip_join.ip_address_join)
       end
     end
   end
@@ -38,7 +38,7 @@ class NetworkInterface
   def firewall_rules
     interface.get(firewall_rules_route).map do |rule|
       if rule.firewall_rule.network_interface_id.to_s == id.to_s
-        FirewallRule.new(interface, firewall_rules_route).info_update(rule.firewall_rule)
+        FirewallRule.new(self).info_update(rule.firewall_rule)
       end
     end
   end
@@ -52,7 +52,7 @@ class NetworkInterface
   end
 
   def allocate_new_ip
-    ip = IpAddress.new(interface, ip_addresses_route)
+    ip = IpAddress.new(self)
     ip.attach(id)
     return if interface.conn.page.code != '202'
     wait_for_update_firewall
@@ -80,7 +80,7 @@ class NetworkInterface
       command: params[:command] || 'ACCEPT',
       protocol: params[:protocol] || 'TCP'
     }
-    FirewallRule.new(interface, firewall_rules_route).create(data)
+    FirewallRule.new(self).create(data)
     return if interface.conn.page.code != '201'
     firewall_rules
   end

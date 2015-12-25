@@ -10,8 +10,8 @@ module SshCommands
       end
     end
 
-    def primary_disk
-      "df -h | awk '{if($6==\"/\") print $2}'"
+    def disk_size(mount_point)
+      "df -h | awk '{if($6==\"#{mount_point}\") print $2}'"
     end
 
     def mounted_disks

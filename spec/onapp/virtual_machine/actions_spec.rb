@@ -67,15 +67,13 @@ describe 'Virtual Server actions tests' do
     it 'disk should be edited' do
       @disk.edit(disk_size: 2, add_to_linux_fstab: true)
       expect(vm.port_opened?).to be true
-      vm.info_update
-      expect(vm.total_disk_size).to eq 8
+      expect(vm.disk('additional').disk_size_on_vm).to eq vm.disk('additional').disk_size
     end
 
     it 'primary disk should be edited on virtual server' do
       vm.disk.edit(disk_size: 6)
       expect(vm.port_opened?).to be true
-      command = SshCommands::OnVirtualServer.primary_disk
-      expect(vm.ssh_execute(command).first.to_i).to eq vm.disk.disk_size
+      expect(vm.disk.disk_size_on_vm).to eq vm.disk.disk_size
     end
 
     it 'disk should be removed' do
@@ -93,8 +91,10 @@ describe 'Virtual Server actions tests' do
   describe 'Reboot in recovery operation' do
     it 'Reboot in recovery Operations' do
       vm.reboot(recovery: true)
+      expect(vm.port_opened?).to be true
       expect(vm.ssh_execute('hostname')).to include 'recovery'
       vm.reboot
+      expect(vm.port_opened?).to be true
       expect(vm.ssh_execute('hostname')).to include vm.hostname
     end
   end

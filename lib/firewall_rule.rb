@@ -1,9 +1,9 @@
 class FirewallRule
   attr_reader :interface, :network_interface_id
 
-  def initialize(interface, firewall_rules_route)
-    @interface = interface
-    @firewall_rules_route = firewall_rules_route
+  def initialize(network_interface)
+    @interface = network_interface.interface
+    @firewall_rules_route = network_interface.firewall_rules_route
   end
 
   def info_update(rule=nil)

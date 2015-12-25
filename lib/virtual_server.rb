@@ -51,7 +51,7 @@ class VirtualServer
       cpu_shares: ('1' if !(hypervisor.hypervisor_type == 'kvm' && hypervisor.distro == 'centos5')),
       swap_disk_size: ('1' if template.allowed_swap)
     }
-end
+  end
 
   def find(identifier)
     @identifier = identifier
@@ -101,7 +101,7 @@ end
   end
 
   def add_disk(**attributes)
-    new_disk = Disk.new(interface, route)
+    new_disk = Disk.new(self)
     new_disk.create({data_store_id: disk.data_store_id}.merge(attributes))
   end
 
@@ -273,7 +273,7 @@ end
       @disks.any?
     end
     @disks.map! do |x|
-      Disk.new(interface, route).info_update(x.disk)
+      Disk.new(self).info_update(x.disk)
     end
   end
 
@@ -283,7 +283,7 @@ end
       @network_interfaces.any?
     end
     @network_interfaces.map! do |x|
-      NetworkInterface.new(interface, route).info_update(x['network_interface'])
+      NetworkInterface.new(self).info_update(x['network_interface'])
     end
   end
 end
