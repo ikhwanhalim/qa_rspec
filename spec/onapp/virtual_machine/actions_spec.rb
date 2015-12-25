@@ -102,24 +102,16 @@ describe 'Virtual Server actions tests' do
 #Reboot VS from ISO
   describe 'Reboot VS from ISO' do
     it 'Reboot VS from ISO' do
-     if vm.can_be_booted_from_iso?
-        @vm.reboot_from_iso(iso.iso_id)
-        expect(vm.exist_on_hv?).to be true
-     else
-        @vm.reboot_from_iso(iso.iso_id)
-        skip('Virtual Server cannot be booted from this ISO')
-     end
+      skip('Virtual Server cannot be booted from this ISO') if !vm.can_be_booted_from_iso?
+      vm.reboot_from_iso(iso.id)
+      expect(vm.exist_on_hv?).to be true
     end
 
     it 'Reboot VS from ISO if not enough memory' do
-
-      if !vm.can_be_booted_from_iso?
-        @vm.reboot_from_iso(iso.iso_id)
-        expect(vm.exist_on_hv?).to be true
-        expect(@vm.api_response_code).to eq '422'
-      else
-        skip('Virtual Server can be booted from this ISO')
-      end
+      skip('Virtual Server can be booted from this ISO') if vm.can_be_booted_from_iso?
+      vm.reboot_from_iso(iso.id)
+      expect(vm.exist_on_hv?).to be true
+      expect(vm.api_response_code).to eq '422'
     end
   end
 end
