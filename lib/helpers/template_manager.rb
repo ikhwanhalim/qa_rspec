@@ -17,10 +17,10 @@ module TemplateManager
   end
 
   def download_template
+    available = get("/templates/available").select { |t| t['remote_template']['manager_id'] == @manager_id }
     installed = (get("/templates/all") + get('/templates/installs')).select do |t|
       t['image_template']['manager_id'] == @manager_id
     end
-    available = get("/templates/available").select { |t| t['remote_template']['manager_id'] == @manager_id }
     if installed.any?
       installed.max_by { |t| t['image_template']['version'].to_f }['image_template']
     elsif available.any?
