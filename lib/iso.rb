@@ -1,7 +1,7 @@
 class Iso
   include Transaction
   attr_reader :interface, :errors, :id, :label, :min_memory_size, :version, :operating_system, :operating_system_distro,
-              :virtualization, :user_id
+              :virtualization, :user_id, :min_disk_size
 
   def initialize(interface)
     @interface = interface
@@ -32,12 +32,16 @@ class Iso
   end
 
   def make_public
-    interface.post("/template_isos/#{id}/make_public")
+    response = interface.post("/template_isos/#{id}/make_public")
+    response_handler response
   end
 
   def find(iso_id)
-    response = interface.get("/template_isos/#{iso_id}")
-    response_handler response
+    response_handler get(iso_id)
+  end
+
+  def get(iso_id)
+    interface.get("/template_isos/#{iso_id}")
   end
 
   def remove
@@ -65,11 +69,12 @@ class Iso
 
   def response_handler(response)
     @errors = response['errors']
-    if response['image_template_iso']
-      response['image_template_iso'].each { |k, v| instance_variable_set("@#{k}", v)}
-    else
-      Log.warn(@errors)
-      false
-    end
+    image_template_iso = if response['image_template_iso']
+                           response['image_template_iso']
+                         elsif !@errors
+                           get(id)['image_template_iso']
+                         end
+    return Log.warn(@errors) if @errors
+    image_template_iso.each { |k, v| instance_variable_set("@#{k}", v)}
   end
 end

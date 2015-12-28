@@ -2,7 +2,6 @@ require 'spec_helper'
 require './groups/iso_actions'
 
 describe 'ISO functionality tests' do
-
   before(:all) do
     @ia = IsoActions.new.precondition
     @iso = @ia.iso
@@ -15,66 +14,72 @@ describe 'ISO functionality tests' do
   let(:iso) { @ia.iso }
 
   describe 'Create ISO negative tests' do
+    after { expect(@iso.api_response_code).to eq '422' }
+
     it 'Create ISO with empty label' do
       iso.create(label: '')
       expect(iso.errors['label']).to eq(["can't be blank"])
-      expect(iso.api_response_code).to eq '422'
     end
 
     it 'Create ISO with incorrect min_memory_size' do
       iso.create(min_memory_size: 0)
       expect(iso.errors['min_memory_size']).to eq(["must be greater than or equal to 128"])
-      expect(iso.api_response_code).to eq '422'
+    end
+
+    it 'Create ISO with incorrect min_disk_size' do
+      skip('Fixed 4.2')
+      iso.create(min_disk_size: 0)
+      expect(iso.errors['min_disk_size']).to eq(["must be greater than or equal to 1"])
     end
 
     it 'Create ISO with empty version' do
       iso.create(version: '')
       expect(iso.errors['version']).to eq(["can't be blank"])
-      expect(iso.api_response_code).to eq '422'
     end
 
     it 'Create ISO with empty operating_system' do
       iso.create(operating_system: '')
       expect(iso.errors['operating_system']).to eq(["can't be blank"])
-      expect(iso.api_response_code).to eq '422'
     end
 
     it 'Create ISO with empty virtualization' do
       iso.create(virtualization: [])
       expect(iso.errors['virtualization']).to eq(["can't be blank"])
-      expect(iso.api_response_code).to eq '422'
     end
 
     it 'Create ISO with empty file_url' do
       iso.create(file_url: '')
       expect(iso.errors['file_url']).to eq(["can't be blank"])
-      expect(iso.api_response_code).to eq '422'
     end
   end
 
   describe 'Edit ISO negative tests' do
+    after { expect(@iso.api_response_code).to eq '422' }
+
     it 'Edit ISO with the min_memory_size less than 128' do
        iso.edit(min_memory_size: 100)
        expect(iso.errors['min_memory_size']).to eq(["must be greater than or equal to 128"])
-       expect(iso.api_response_code).to eq '422'
+    end
+
+    it 'Edit ISO with incorrect min_disk_size' do
+      skip('Fixed 4.2')
+      iso.edit(min_disk_size: 0)
+      expect(iso.errors['min_disk_size']).to eq(["must be greater than or equal to 1"])
     end
 
     it 'Edit ISO with the empty version' do
       iso.edit(version: '')
       expect(iso.errors['version']).to eq(["can't be blank"])
-      expect(iso.api_response_code).to eq '422'
     end
 
     it 'Edit ISO with empty operating_system' do
-      iso.create(operating_system: '')
+      iso.edit(operating_system: '')
       expect(iso.errors['operating_system']).to eq(["can't be blank"])
-      expect(iso.api_response_code).to eq '422'
     end
 
     it 'Edit ISO with incorrect virtualization type' do
-      iso.create(virtualization: ["xee"])
+      iso.edit(virtualization: ["xee"])
       expect(iso.errors['virtualization']).to eq(["type 'xee' is incompatible"])
-      expect(iso.api_response_code).to eq '422'
     end
   end
 
@@ -83,14 +88,13 @@ describe 'ISO functionality tests' do
       @data = {
         label: 'EditedISO',
         min_memory_size: 128,
+        min_disk_size: 20,
         version: '2.0',
         operating_system: 'Freebsd',
         operating_system_distro: 'Debian',
         virtualization: ["kvm", "kvm_virtio"]
       }
       @iso.edit(@data)
-      Log.error('ISO has not been updated') if @iso.api_response_code != '204'
-      @iso.find(@iso.id)
     end
 
     it 'Edit ISO label' do
@@ -99,6 +103,10 @@ describe 'ISO functionality tests' do
 
     it 'Edit ISO min memory size' do
       expect(iso.min_memory_size.to_i).to eq @data[:min_memory_size]
+    end
+
+    it 'Edit ISO min disk size' do
+      expect(iso.min_disk_size).to eq @data[:min_disk_size]
     end
 
     it 'Edit ISO version' do
@@ -121,7 +129,6 @@ describe 'ISO functionality tests' do
   it 'Make ISO public' do
     iso.make_public
     expect(iso.api_response_code).to eq '201'
-    iso.find(iso.id)
     expect(iso.user_id).to be_nil
   end
 end

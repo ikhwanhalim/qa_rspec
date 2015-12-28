@@ -24,6 +24,7 @@ module Log
   def write(formatted_message)
     log_file = ENV['LOG_FILE'] || 'autotests'
     File.open("log/#{log_file}.log", "a") { |f| f << formatted_message }
+    formatted_message
   end
 
   def formatted_message(message, message_type)

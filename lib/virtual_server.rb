@@ -22,6 +22,10 @@ class VirtualServer
     interface.hypervisor
   end
 
+  def hypervisor_type
+    hypervisor.hypervisor_type
+  end
+
   def template
     interface.template
   end
@@ -48,7 +52,7 @@ class VirtualServer
       required_ip_address_assignment: '1',
       rate_limit: '0',
       required_virtual_machine_startup: '1',
-      cpu_shares: ('1' if !(hypervisor.hypervisor_type == 'kvm' && hypervisor.distro == 'centos5')),
+      cpu_shares: ('1' if !(hypervisor_type == 'kvm' && hypervisor.distro == 'centos5')),
       swap_disk_size: ('1' if template.allowed_swap)
     }
   end
@@ -203,9 +207,9 @@ class VirtualServer
   end
 
   def exist_on_hv?
-    result = if hypervisor.hypervisor_type == 'kvm'
+    result = if hypervisor_type == 'kvm'
                hypervisor.ssh_execute("virsh list | grep #{identifier}")
-             elsif hypervisor.hypervisor_type == 'xen'
+             elsif hypervisor_type == 'xen'
                hypervisor.ssh_execute("xm list | grep #{identifier}")
              end
     Log.info(result)
@@ -247,11 +251,23 @@ class VirtualServer
   end
 
   def can_be_booted_from_iso?
-    memory >= interface.iso.min_memory_size
+    (memory >= interface.iso.min_memory_size) &&
+    (interface.iso.virtualization.include?(hypervisor_type)) &&
+    (min_disk_size >= interface.iso.min_disk_size)
+  end
+
+  def boot_from_iso(iso_id)
+    interface.post("#{route}/startup", {iso_id: iso_id})
+    if api_response_code != '201'
+      Log.warn(interface.conn.page.body.error)
+      false
+    else
+      wait_for_start
+    end
   end
 
   def reboot_from_iso(iso_id)
-    interface.post("#{route}/reboot", { iso_id: iso_id})
+    interface.post("#{route}/reboot", {iso_id: iso_id})
     if api_response_code != '201'
       Log.warn(interface.conn.page.body.error)
       false
