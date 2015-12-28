@@ -100,11 +100,12 @@ describe 'Virtual Server actions tests' do
 #Reboot VS from ISO
   describe 'Reboot VS from ISO' do
     before :all do
+      @iso = @vsa.iso
       Log.error('The data folder isn\'t mounted on HV') unless @iso.exists_on_hv?
     end
 
     after :all do
-      @vsa.iso.remove
+      @iso.remove
     end
 
     let(:iso) { @vsa.iso }
@@ -117,18 +118,14 @@ describe 'Virtual Server actions tests' do
 
     it 'Reboot VS from ISO if not enough memory' do
       iso.edit(min_memory_size: vm.memory.to_i + 10)
-      expect(iso.api_response_code).to eq '204'
       vm.reboot_from_iso(iso.id)
-      expect(vm.api_response_code).to eq '422'
       expect(vm.exist_on_hv?).to be true
     end
 
-    it 'Reboot VS from ISO if incorrect virtualization type' do    #test doesn't work as expected CORE-5721
+    it 'Reboot VS from ISO if incorrect virtualization type' do
       vm.hypervisor_type == 'xen' ? iso.edit(virtualization: 'kvm') : iso.edit(virtualization: 'xen')
-      expect(iso.api_response_code).to eq '204'
       vm.reboot_from_iso(iso.id)
       expect(vm.pinged?).to be true
-      expect(vm.api_response_code).to eq '422'
     end
 
     it 'Boot VS from ISO' do

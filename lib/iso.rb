@@ -65,6 +65,10 @@ class Iso
     interface.conn.page.code
   end
 
+  def exists_on_hv?
+    interface.hypervisor.ssh_execute("mount|grep data").last.include?("data")
+  end
+
   private
 
   def response_handler(response)
