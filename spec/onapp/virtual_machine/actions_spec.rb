@@ -86,10 +86,18 @@ describe 'Virtual Server actions tests' do
       expect(vm.disk.disk_size_compare_with_interface).to eq true
     end
 
-    it 'should be impossible to add second primary disk to VS' do
-      vm.add_disk(primary: true)
-      expect(vm.api_response_code).to eq '422' #bug core-3333 fixed in 4.2
+    it 'should be impossible to add second primary disk with template min_disk_size to VS' do
+      vm.add_disk(primary: true, primary_disk_size: vm.template.min_disk_size)
+      expect(vm.api_response_code).to eq '422'
       expect(vm.disks.count).to eq @disks_count_before_test+1
+    end
+
+
+    it 'should be impossible to add second primary disk with minimal available size to VS' do
+      skip("Uncomment this test in 4.2. This test brakes VM functionality rebuild VM is required if run it in 4.1")
+      # vm.add_disk(primary: true)
+      # expect(vm.api_response_code).to eq '422' #bug core-3333 fixed in 4.2
+      # expect(vm.disks.count).to eq @disks_count_before_test+1
     end
 
     it 'additional disk should be mounted' do
