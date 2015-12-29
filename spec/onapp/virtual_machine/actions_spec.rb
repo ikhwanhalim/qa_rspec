@@ -53,31 +53,62 @@ describe 'Virtual Server actions tests' do
 
   describe 'Perform disk action' do
     before :all do
+      @disks_count_before_test=vm.disks.count
       @disk = @vm.add_disk
       @disk.wait_for_build
     end
 
-    it 'disk should be mounted' do
+    it 'additional disk size should be increased' do
+      new_disk_size=@disk.disk_size+2
+      @disk.edit(disk_size: new_disk_size, add_to_linux_fstab: true)
+      expect(vm.port_opened?).to be true
+      expect(vm.disk('additional').disk_size_compare_with_interface).to eq true
+    end
+
+    it 'additional disk size should be decreased' do
+      new_disk_size=@disk.disk_size-1
+      @disk.edit(disk_size: new_disk_size, add_to_linux_fstab: true)
+      expect(vm.port_opened?).to be true
+      expect(vm.disk('additional').disk_size_compare_with_interface).to eq true
+    end
+
+    it 'primary disk size should be increased on virtual server' do
+      new_disk_size= vm.disk.disk_size+2
+      vm.disk.edit(disk_size: new_disk_size)
+      expect(vm.port_opened?).to be true
+      expect(vm.disk.disk_size_compare_with_interface).to eq true
+    end
+
+    it 'primary disk size should be decreased on virtual server' do
+      new_disk_size= vm.disk.disk_size-1
+      vm.disk.edit(disk_size: new_disk_size)
+      expect(vm.port_opened?).to be true
+      expect(vm.disk.disk_size_compare_with_interface).to eq true
+    end
+
+    it 'should be impossible to add second primary disk to VS' do
+      vm.add_disk(primary: true)
+      expect(vm.api_response_code).to eq '422' #bug core-3333 fixed in 4.2
+      expect(vm.disks.count).to eq @disks_count_before_test+1
+    end
+
+    it 'additional disk should be mounted' do
       expect(vm.port_opened?).to be true
       expect(vm.disk_mounted?(@disk)).to be true
     end
 
-    it 'disk should be edited' do
-      @disk.edit(disk_size: 2, add_to_linux_fstab: true)
-      expect(vm.port_opened?).to be true
-      expect(vm.disk('additional').disk_size_on_vm).to eq vm.disk('additional').disk_size
+    it 'additional disk should be migrated if there is additional DS' do
+      skip
     end
 
-    it 'primary disk should be edited on virtual server' do
-      vm.disk.edit(disk_size: 6)
-      expect(vm.port_opened?).to be true
-      expect(vm.disk.disk_size_on_vm).to eq vm.disk.disk_size
-    end
-
-    it 'disk should be removed' do
+    it 'additional disk should be removed' do
       @disk.remove
-      expect(vm.disks.count).to eq 2
+      expect(vm.disks.count).to eq @disks_count_before_test
     end
+
+
+
+
   end
 
   describe 'Network operations' do
