@@ -58,6 +58,7 @@ describe 'Virtual Server actions tests' do
       @disk.wait_for_build
     end
 
+
     it 'additional disk size should be increased' do
       new_disk_size=@disk.disk_size+2
       @disk.edit(disk_size: new_disk_size, add_to_linux_fstab: true)
@@ -109,13 +110,14 @@ describe 'Virtual Server actions tests' do
       skip
     end
 
+    it 'default swap disk size should be mounted and actual size should be equal to UI value' do
+      expect(vm.disk('swap').disk_size_compare_with_interface).to eq true
+    end
+
     it 'additional disk should be removed' do
       @disk.remove
       expect(vm.disks.count).to eq @disks_count_before_test
     end
-
-
-
 
   end
 
