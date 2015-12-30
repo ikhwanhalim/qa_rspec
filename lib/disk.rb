@@ -8,6 +8,7 @@ class Disk
     @virtual_machine = virtual_machine
     @interface = virtual_machine.interface
     @vm_route = virtual_machine.route
+    @acceptable_physycal_error_ratio=0.05
   end
 
   def disks_route
@@ -66,6 +67,16 @@ class Disk
 
   def disk_size_on_vm
     command = SshCommands::OnVirtualServer.disk_size(mount_point)
-    @virtual_machine.ssh_execute(command).first.to_i
+    @virtual_machine.ssh_execute(command).first.to_f
+  end
+
+  def disk_size_compare_with_interface
+    disk_size_inside_vm=disk_size_on_vm.to_f
+    disk_size_minus_ratio=disk_size-(disk_size.to_f*@acceptable_physycal_error_ratio)
+    disk_size_plus_ratio=disk_size+(disk_size.to_f*@acceptable_physycal_error_ratio)
+    Log.info("disk size inside VM: #{disk_size_inside_vm} in comparing with disk size in UI: #{disk_size} should be between acceptable values: #{disk_size_minus_ratio} and #{disk_size_plus_ratio}")
+     return true if disk_size_inside_vm >= disk_size_minus_ratio and disk_size_inside_vm <= disk_size_plus_ratio
+    Log.error("disk size inside VM: #{disk_size_inside_vm} in comparing with disk size in UI: #{disk_size} should be between acceptable values: #{disk_size_minus_ratio} and #{disk_size_plus_ratio}")
+     false
   end
 end
