@@ -111,6 +111,32 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'default swap disk size should be mounted and actual size should be equal to UI value' do
+      expect(vm.port_opened?).to be true
+      expect(vm.disk('swap').disk_size_compare_with_interface).to eq true
+    end
+
+    it 'should be possible to add and remove additional swap disk' do
+      additiona_swap_disk=vm.add_disk(is_swap: true, disk_size: 2)
+      additiona_swap_disk.wait_for_build
+      expect(vm.port_opened?).to be true
+      expect(vm.disk('swap').disk_size_compare_with_interface).to eq false #this can be refactored to determine each swap disk separately
+      additiona_swap_disk.remove
+      #additiona_swap_disk.wait_for_destroy
+      expect(vm.port_opened?).to be true
+      expect(vm.disk('swap').disk_size_compare_with_interface).to eq true
+    end
+
+    it 'should be possible increase size of swap disk' do
+      new_swap_disk_size=vm.disk('swap').disk_size+2
+      vm.disk('swap').edit(disk_size: new_swap_disk_size)
+      expect(vm.port_opened?).to be true
+      expect(vm.disk('swap').disk_size_compare_with_interface).to eq true
+    end
+
+    it 'should be possible decrease size of swap disk' do
+      new_swap_disk_size=vm.disk('swap').disk_size-1
+      vm.disk('swap').edit(disk_size: new_swap_disk_size)
+      expect(vm.port_opened?).to be true
       expect(vm.disk('swap').disk_size_compare_with_interface).to eq true
     end
 

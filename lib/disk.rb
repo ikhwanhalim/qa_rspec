@@ -66,8 +66,8 @@ class Disk
   end
 
   def disk_size_on_vm
-    command = SshCommands::OnVirtualServer.disk_size(mount_point)
-      if mount_point='swap'
+    command = SshCommands::OnVirtualServer.disk_size(mount_point, is_swap)
+      if is_swap
         @virtual_machine.ssh_execute(command).first.to_f/1024/1024
       else
         @virtual_machine.ssh_execute(command).first.to_f
@@ -78,9 +78,12 @@ class Disk
     disk_size_inside_vm=disk_size_on_vm.to_f
     disk_size_minus_ratio=disk_size-(disk_size.to_f*@acceptable_physycal_error_ratio)
     disk_size_plus_ratio=disk_size+(disk_size.to_f*@acceptable_physycal_error_ratio)
-    Log.info("disk size inside VM: #{disk_size_inside_vm} in comparing with disk size in UI: #{disk_size} should be between acceptable values: #{disk_size_minus_ratio} and #{disk_size_plus_ratio}")
-     return true if disk_size_inside_vm >= disk_size_minus_ratio and disk_size_inside_vm <= disk_size_plus_ratio
-    Log.error("disk size inside VM: #{disk_size_inside_vm} in comparing with disk size in UI: #{disk_size} should be between acceptable values: #{disk_size_minus_ratio} and #{disk_size_plus_ratio}")
-     false
+    if disk_size_inside_vm >= disk_size_minus_ratio and disk_size_inside_vm <= disk_size_plus_ratio
+      Log.info("disk size inside VM: #{disk_size_inside_vm} in comparing with disk size in UI: #{disk_size} should be between acceptable values: #{disk_size_minus_ratio} and #{disk_size_plus_ratio}")
+      true
+    else
+      Log.warn("disk size inside VM: #{disk_size_inside_vm} in comparing with disk size in UI: #{disk_size} should be between acceptable values: #{disk_size_minus_ratio} and #{disk_size_plus_ratio}")
+      false
+    end
   end
 end
