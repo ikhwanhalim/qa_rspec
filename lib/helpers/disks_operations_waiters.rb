@@ -28,6 +28,11 @@ module DiskOperationsWaiters
     info_update
   end
 
+  def wait_for_disk_migrate
+    wait_for_transaction(id, 'Disk', 'migrate_disk')
+    info_update
+  end
+
   def wait_for_update_fstab
     wait_for_transaction(id, 'Disk', 'update_fstab')
     info_update

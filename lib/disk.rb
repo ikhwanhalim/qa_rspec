@@ -19,6 +19,41 @@ class Disk
     interface.get("/settings/data_stores/#{data_store_id}").data_store.identifier
   end
 
+  #probably it make sense to move this method to another place? to hv class
+  def assigned_data_stores_to_hv
+    data_stores_ids=Array.new
+    ds_joins=interface.get("/settings/hypervisors/#{@virtual_machine.hypervisor_id}/data_store_joins")
+    Log.warn(ds_joins)
+    ds_joins.each do |join|
+      data_stores_ids << join["data_store_join"]["data_store_id"]
+    end
+    data_stores_ids
+  end
+
+  ##probably it make sense to move this method to another place? to hvz class?
+  def assigned_data_store_to_hv_group
+    data_stores_ids=Array.new
+    ds_joins=interface.get("/settings/hypervisor_zones/#{@virtual_machine.hypervisor_group_id}/data_store_joins")
+    ds_joins.each do |join|
+      data_stores_ids << join["data_store_join"]["data_store_id"]
+    end
+    data_stores_ids
+  end
+
+  def available_data_store_for_migration
+    ds_of_hv=assigned_data_stores_to_hv
+    ds_of_hvz=assigned_data_store_to_hv_group
+    all_available=(ds_of_hv+ds_of_hvz).uniq!
+    return (all_available-[data_store_id])[0] unless all_available==[]
+  end
+
+  def migrate(ds_id = available_data_store_for_migration)
+    interface.post("#{@route}/migrate",  {disk: {data_store_id: ds_id}})
+    return if interface.conn.page.code != '201'
+     wait_for_disk_migrate
+     info_update(data_store_id: ds_id)
+  end
+
   def info_update(info=false)
     info ||= interface.get(@route)
     info.each { |k,v| instance_variable_set("@#{k}", v) }
@@ -86,4 +121,6 @@ class Disk
       false
     end
   end
+
+
 end

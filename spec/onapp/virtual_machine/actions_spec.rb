@@ -106,9 +106,6 @@ describe 'Virtual Server actions tests' do
       expect(vm.disk_mounted?(@disk)).to be true
     end
 
-    it 'additional disk should be migrated if there is additional DS' do
-      skip
-    end
 
     it 'default swap disk size should be mounted and actual size should be equal to UI value' do
       expect(vm.port_opened?).to be true
@@ -138,6 +135,24 @@ describe 'Virtual Server actions tests' do
       vm.disk('swap').edit(disk_size: new_swap_disk_size)
       expect(vm.port_opened?).to be true
       expect(vm.disk('swap').disk_size_compare_with_interface).to eq true
+    end
+
+    it 'primary disk should be migrated if there is available DS on a cloud' do
+      if vm.disk.available_data_store_for_migration!=nil
+        vm.disk.migrate
+        expect(vm.port_opened?).to be true
+      else
+        skip("skipped because we have not found available data stores for migration.")
+      end
+    end
+
+    it 'additional disk should be migrated if there is additional DS' do
+      if @disk.available_data_store_for_migration!=nil
+        @disk.migrate
+        expect(vm.port_opened?).to be true
+      else
+        skip("skipped because we have not found available data stores for migration.")
+      end
     end
 
     it 'additional disk should be removed' do

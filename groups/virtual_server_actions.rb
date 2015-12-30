@@ -17,7 +17,7 @@ class VirtualServerActions
     @virtual_machine = VirtualServer.new(self)
     @virtual_machine.create
     #if needed run test separately on existed VM uncomment string below and comment all other strings except @virtual_machine = VirtualServer.new(self)
-    #@virtual_machine.find('wqic27fq6kz3fc')
+    #@virtual_machine.find('lrl9yyale5kpmu')
 
     self
   end

@@ -26,6 +26,10 @@ class VirtualServer
     hypervisor.hypervisor_type
   end
 
+  def hypervisor_group_id
+    hypervisor.hypervisor_group_id
+  end
+
   def template
     interface.template
   end
