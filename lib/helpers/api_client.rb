@@ -54,6 +54,8 @@ module ApiClient
       request
     else
       conn.page.body = convert_to_mash(JSON.parse(request.body))
+      Log.warn("Response on POST request is: #{request.body} and response code is: #{request.code.to_i}") if conn.agent.allowed_error_codes.include?(request.code.to_i)
+      conn.page.body
     end
   end
 
