@@ -11,7 +11,11 @@ module SshCommands
     end
 
     def disk_size(mount_point)
+      if mount_point='swap'
+      "grep SwapTotal /proc/meminfo |awk '{print $2}'"
+      else
       "df -h | awk '{if($6==\"#{mount_point}\") print $2}'"
+      end
     end
 
     def mounted_disks

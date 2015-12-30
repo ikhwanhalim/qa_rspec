@@ -67,7 +67,11 @@ class Disk
 
   def disk_size_on_vm
     command = SshCommands::OnVirtualServer.disk_size(mount_point)
-    @virtual_machine.ssh_execute(command).first.to_f
+      if mount_point='swap'
+        @virtual_machine.ssh_execute(command).first.to_f/1024/1024
+      else
+        @virtual_machine.ssh_execute(command).first.to_f
+      end
   end
 
   def disk_size_compare_with_interface
