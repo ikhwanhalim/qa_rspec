@@ -163,8 +163,31 @@ describe 'Virtual Server actions tests' do
   end
 
   describe 'Network operations' do
-    it 'Should be possible to do something' do
-      skip
+    describe 'Network interfaces' do
+
+    end
+
+    describe 'IP addresses' do
+      before :all do
+        vm.network_interface.allocate_new_ip
+        vm.rebuild_network
+      end
+
+      it 'Second IP address should be appeared in the interface' do
+        expect(vm.ip_addresses.count).to eq 2
+      end
+
+      it 'All IPs should be visible inside VM' do
+        expect(vm.ip_addresses.map &:exist_on_vm).to_not include false
+      end
+
+      it 'All IPs should pinged' do
+        expect(vm.ip_addresses.map &:pinged?).to_not include false
+      end
+    end
+
+    describe 'Firewall rules' do
+
     end
   end
 

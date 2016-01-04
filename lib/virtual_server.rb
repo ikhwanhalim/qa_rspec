@@ -126,7 +126,7 @@ class VirtualServer
   end
 
   def rebuild_network(**params)
-    data = params || { is_shutdown_required: true, shutdown_type: 'graceful', required_startup: 1 }
+    data = { is_shutdown_required: true, shutdown_type: 'graceful', required_startup: 1 }.merge(params)
     interface.post("#{route}/rebuild_network", data)
     return false if api_response_code  == '404'
     wait_for_rebuild_network

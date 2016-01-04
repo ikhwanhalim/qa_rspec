@@ -1,18 +1,19 @@
 class NetworkInterface
   include VmOperationsWaiters
 
-  attr_reader :interface, :ip_addresses, :firewall_rules, :connected, :created_at, :default_firewall_rule, :id, :identifier, :label, :mac_address, :network_join_id,
-              :primary, :rate_limit, :updated_at, :usage, :usage_last_reset_at, :usage_month_rolled_at, :virtual_machine_id
+  attr_reader :interface, :virtual_machine, :ip_addresses, :firewall_rules, :connected, :created_at, :default_firewall_rule,
+              :id, :identifier, :label, :mac_address, :network_join_id, :primary, :rate_limit, :updated_at, :usage,
+              :usage_last_reset_at, :usage_month_rolled_at, :virtual_machine_id
 
   alias network_interface_id id
 
   def initialize(virtual_machine)
     @interface = virtual_machine.interface
-    @vm_route = virtual_machine.route
+    @virtual_machine = virtual_machine
   end
 
   def info_update(network_interface=nil)
-    network_interface ||= interface.get("#{@vm_route}/network_interfaces/#{id}").network_interface
+    network_interface ||= interface.get("#{virtual_machine.route}/network_interfaces/#{id}").network_interface
     network_interface.each { |k,v| instance_variable_set("@#{k}", v) }
     ip_addresses
     firewall_rules
@@ -20,11 +21,11 @@ class NetworkInterface
   end
 
   def ip_addresses_route
-    "#{@vm_route}/ip_addresses"
+    "#{virtual_machine.route}/ip_addresses"
   end
 
   def firewall_rules_route
-    "#{@vm_route}/firewall_rules"
+    "#{virtual_machine.route}/firewall_rules"
   end
 
   def ip_addresses
@@ -43,7 +44,7 @@ class NetworkInterface
     end
   end
 
-  def ip_address(order_number = 0)
+  def ip_address(order_number = 1)
     if ip_addresses.any?
       ip_addresses[order_number-1]
     else
@@ -54,9 +55,8 @@ class NetworkInterface
   def allocate_new_ip
     ip = IpAddress.new(self)
     ip.attach(id)
-    return if interface.conn.page.code != '202'
-    wait_for_update_firewall
-    ip_addresses
+    wait_for_update_firewall if interface.conn.page.code == '202'
+    ip
   end
 
   def remove_ip(number = 0, rebuild_network = false)
