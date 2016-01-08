@@ -6,11 +6,11 @@ class VirtualServer
               :cores_per_socket, :cpu_shares, :cpu_sockets, :cpu_threads, :cpu_units, :cpus, :created_at,
               :customer_network_id, :deleted_at, :edge_server_type, :enable_autoscale, :enable_monitis,
               :firewall_notrack, :hostname, :hot_add_cpu, :hot_add_memory, :hypervisor_id,
-              :id, :identifier,:initial_root_password,:initial_root_password_encrypted,
-              :instance_type_id, :iso_id, :label,:local_remote_access_ip_address,:local_remote_access_port,
-              :locked,:memory, :min_disk_size, :note,:operating_system,:operating_system_distro,:preferred_hvs,
+              :id, :identifier, :initial_root_password,:initial_root_password_encrypted,
+              :instance_type_id, :iso_id, :label, :local_remote_access_ip_address, :local_remote_access_port,
+              :locked,:memory, :min_disk_size, :note, :operating_system, :operating_system_distro, :preferred_hvs,
               :recovery_mode, :remote_access_password, :service_password, :state, :storage_server_type,
-              :strict_virtual_machine_id, :suspended, :template_id, :template_label, :time_zone,:updated_at,
+              :strict_virtual_machine_id, :suspended, :template_id, :template_label, :time_zone, :updated_at,
               :user_id, :vip, :xen_id, :ip_addresses, :monthly_bandwidth_used, :total_disk_size, :price_per_hour,
               :price_per_hour_powered_off, :support_incremental_backups, :cpu_priority
 
@@ -118,11 +118,24 @@ class VirtualServer
   end
 
   def network_interface(type = 'primary', number = 1)
-    if type == 'primary'
-      return (@network_interfaces.select { |d| d.primary }).first
+    @network_interface ||= if type == 'primary'
+      network_interfaces.detect { |d| d.primary }
     elsif type == 'additional'
-      return (@network_interfaces.select { |d| !d.primary })[number-1]
+      network_interfaces.select { |d| !d.primary }[number-1]
     end
+  end
+
+  def attach_network_interface(**params)
+    nti = NetworkInterface.new(self)
+    nti.create({ network_join_id: available_network_join_ids.first }.merge(params))
+  end
+
+  def available_network_join_ids
+    all = interface.get("/settings/hypervisor_zones/#{hypervisor.hypervisor_group_id}/network_joins")
+    all += interface.get("/settings/hypervisors/#{hypervisor.id}/network_joins")
+    all.map do |i|
+      i.network_join.id if i.network_join.id != network_interface.network_join_id
+    end.uniq.compact
   end
 
   def rebuild_network(**params)
@@ -302,6 +315,7 @@ class VirtualServer
   def network_interfaces
     wait_until do
       @network_interfaces = interface.get("#{route}/network_interfaces")
+      return [] if @network_interface && @network_interfaces.empty?
       @network_interfaces.any?
     end
     @network_interfaces.map! do |x|

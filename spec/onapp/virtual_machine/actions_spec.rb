@@ -164,13 +164,38 @@ describe 'Virtual Server actions tests' do
 
   describe 'Network operations' do
     describe 'Network interfaces' do
+      before :all do
+        @ids = vm.available_network_join_ids
+      end
 
+      before { skip('Additional network has not been attached to HV or HVZ') if @ids.empty?}
+
+      it 'Attach new' do
+        amount = vm.network_interface.amount
+        vm.attach_network_interface
+        expect(vm.network_interface.amount).to eq amount + 1
+      end
+
+      it 'Detach' do
+        amount = vm.network_interface.amount
+        vm.network_interface('additional').remove
+        expect(vm.network_interface.amount).to eq amount - 1
+      end
+
+      it 'Detach primary network interface and attach again' do
+        vm.network_interface.remove
+        vm.not_pinged?
+      end
+
+      it 'Ability create two primary interfaces should be blocked' do
+
+      end
     end
 
     describe 'IP addresses' do
       before :all do
-        vm.network_interface.allocate_new_ip
-        vm.rebuild_network
+        @vm.network_interface.allocate_new_ip
+        @vm.rebuild_network
       end
 
       it 'Second IP address should be appeared in the interface' do
@@ -184,10 +209,24 @@ describe 'Virtual Server actions tests' do
       it 'All IPs should pinged' do
         expect(vm.ip_addresses.map &:pinged?).to_not include false
       end
+
+      it 'Allocate used IP' do
+
+      end
     end
 
     describe 'Firewall rules' do
+      it 'Set DROP default rule' do
 
+      end
+
+      it 'Set DROP rule for TCP custom port' do
+
+      end
+
+      it 'Set DROP rule for ICMP' do
+
+      end
     end
   end
 

@@ -27,17 +27,17 @@ module Network
     end
   end
 
-  def pinged?
-    Log.info("Ping IP address: #{ip_address}")
+  def pinged?(remote_ip = nil)
+    Log.info("Ping IP address: #{remote_ip || ip_address}")
     wait_until do
-      system("ping -c1 #{ip_address}")
+      system("ping -c1 #{remote_ip || ip_address}")
     end
   end
 
-  def not_pinged?
-    Log.info("Ping IP address: #{ip_address}")
+  def not_pinged?(remote_ip = nil)
+    Log.info("Ping IP address: #{remote_ip || ip_address}")
     wait_until do
-      system("ping -c1 #{ip_address}") ? false : true
+      system("ping -c1 #{remote_ip || ip_address}") ? false : true
     end
   end
 

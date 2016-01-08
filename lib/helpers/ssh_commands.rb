@@ -51,12 +51,16 @@ module SshCommands
       "ip route get 8.8.8.8 | awk '{if($1==\"8.8.8.8\") print $5}'"
     end
 
+    def network_interfaces_amount
+      "ip -o link show | awk '{print $1}' | wc -l"
+    end
+
     def primary_network_ip
       "ip route get 8.8.8.8 | awk '{if($1==\"8.8.8.8\") print $7}'"
     end
 
     def ip_addresses
-      "ifconfig | awk -F \"[: ]+\" '/inet addr:/ { if ($4 != \"127.0.0.1\") print $4 }'"
+      "ifconfig -a | awk -F \"[: ]+\" '/inet addr:/ { if ($4 != \"127.0.0.1\") print $4 }'"
     end
   end
 

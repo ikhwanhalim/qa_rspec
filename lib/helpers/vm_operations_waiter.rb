@@ -61,6 +61,14 @@ module VmOperationsWaiters
     wait_for_transaction(network_interface_id, 'NetworkInterface', 'update_firewall')
   end
 
+  def wait_for_attach_network_interface
+    wait_for_transaction(network_interface_id, 'NetworkInterface', 'attach_network_interface')
+  end
+
+  def wait_for_detach_network_interface
+    wait_for_transaction(network_interface_id, 'NetworkInterface', 'detach_network_interface')
+  end
+
   def wait_for_update_custom_firewall_rule
     wait_for_transaction(id, 'VirtualMachine', 'update_custom_firewall_rule')
   end

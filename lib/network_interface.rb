@@ -15,9 +15,35 @@ class NetworkInterface
   def info_update(network_interface=nil)
     network_interface ||= interface.get("#{virtual_machine.route}/network_interfaces/#{id}").network_interface
     network_interface.each { |k,v| instance_variable_set("@#{k}", v) }
+    @route = "#{interfaces_route}/#{id}"
     ip_addresses
     firewall_rules
     self
+  end
+
+  def interfaces_route
+    "#{virtual_machine.route}/network_interfaces"
+  end
+
+  def create(**params)
+    data = {network_interface: build_params.merge(params)}
+    network_interface = interface.post("#{interfaces_route}", data).network_interface
+    return if interface.conn.page.code != '201'
+    info_update(network_interface)
+    wait_for_attach_network_interface
+  end
+
+  def remove
+    interface.delete("#{@route}")
+    return if interface.conn.page.code != '204'
+    wait_for_detach_network_interface
+  end
+
+  def build_params
+    {
+      label: 'eth2',
+      rate_limit: 0
+    }
   end
 
   def ip_addresses_route
@@ -48,7 +74,8 @@ class NetworkInterface
     if ip_addresses.any?
       ip_addresses[order_number-1]
     else
-      Log.error("There is no ip addresses associated with #{@route} network interface")
+      Log.info("There is no ip addresses associated with #{@route} network interface")
+      nil
     end
   end
 
@@ -83,6 +110,11 @@ class NetworkInterface
     FirewallRule.new(self).create(data)
     return if interface.conn.page.code != '201'
     firewall_rules
+  end
+
+  def amount
+    command = SshCommands::OnVirtualServer.network_interfaces_amount
+    virtual_machine.ssh_execute(command).first.to_i
   end
 
   def reset_firewall_rules
