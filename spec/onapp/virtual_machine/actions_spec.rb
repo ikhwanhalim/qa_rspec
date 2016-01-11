@@ -53,7 +53,7 @@ describe 'Virtual Server actions tests' do
 
   describe 'Perform disk action' do
     before :all do
-      @disks_count_before_test=vm.disks.count
+      @disks_count_before_test = @vm.disks.count
       @disk = @vm.add_disk
       @disk.wait_for_build
     end
@@ -74,14 +74,14 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'primary disk size should be increased on virtual server' do
-      new_disk_size= vm.disk.disk_size+2
+      new_disk_size = vm.disk.disk_size + 2
       vm.disk.edit(disk_size: new_disk_size)
       expect(vm.port_opened?).to be true
       expect(vm.disk.disk_size_compare_with_interface).to eq true
     end
 
     it 'primary disk size should be decreased on virtual server' do
-      new_disk_size= vm.disk.disk_size-1
+      new_disk_size = vm.disk.disk_size - 1
       vm.disk.edit(disk_size: new_disk_size)
       expect(vm.port_opened?).to be true
       expect(vm.disk.disk_size_compare_with_interface).to eq true
@@ -113,7 +113,7 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'should be possible to add and remove additional swap disk' do
-      additiona_swap_disk=vm.add_disk(is_swap: true, disk_size: 2)
+      additiona_swap_disk = vm.add_disk(is_swap: true, disk_size: 2)
       additiona_swap_disk.wait_for_build
       expect(vm.port_opened?).to be true
       expect(vm.disk('swap').disk_size_compare_with_interface).to eq false #this can be refactored to determine each swap disk separately
@@ -138,7 +138,7 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'primary disk should be migrated if there is available DS on a cloud' do
-      if vm.disk.available_data_store_for_migration!=nil
+      if !vm.disk.available_data_store_for_migration.nil?
         vm.disk.migrate
         expect(vm.port_opened?).to be true
       else
@@ -159,16 +159,15 @@ describe 'Virtual Server actions tests' do
       @disk.remove
       expect(vm.disks.count).to eq @disks_count_before_test
     end
-
   end
 
   describe 'Network operations' do
     describe 'Network interfaces' do
       before :all do
-        @ids = vm.available_network_join_ids
+        @ids = @vm.available_network_join_ids
       end
 
-      before { skip('Additional network has not been attached to HV or HVZ') if @ids.empty?}
+      before { skip('Additional network has not been attached to HV or HVZ') if @ids.empty? }
 
       it 'Attach new' do
         amount = vm.network_interface.amount
@@ -183,12 +182,17 @@ describe 'Virtual Server actions tests' do
       end
 
       it 'Detach primary network interface and attach again' do
+        ip = vm.ip_address
         vm.network_interface.remove
-        vm.not_pinged?
+        expect(vm.not_pinged?(ip)).to be true
+        vm.attach_network_interface(primary: true)
+        vm.network_interface.allocate_new_ip
+        vm.rebuild_network
+        expect(vm.pinged?).to be true
       end
 
       it 'Ability create two primary interfaces should be blocked' do
-
+        skip
       end
     end
 
@@ -211,21 +215,21 @@ describe 'Virtual Server actions tests' do
       end
 
       it 'Allocate used IP' do
-
+        skip
       end
     end
 
     describe 'Firewall rules' do
       it 'Set DROP default rule' do
-
+        skip
       end
 
       it 'Set DROP rule for TCP custom port' do
-
+        skip
       end
 
       it 'Set DROP rule for ICMP' do
-
+        skip
       end
     end
   end
@@ -244,13 +248,16 @@ describe 'Virtual Server actions tests' do
 #Reboot VS from ISO
   describe 'Reboot VS from ISO' do
     before :all do
-      @iso = @vsa.iso
-      Log.error('The data folder isn\'t mounted on HV') unless @iso.exists_on_hv?
+      @vsa.iso = Iso.new(@vsa)
+      @vsa.iso.create
+      @is_folder_mounted = @vsa.iso.exists_on_hv?
     end
 
     after :all do
-      @iso.remove
+      @vsa.iso.remove
     end
+
+    before { skip('The data folder isn\'t mounted on HV') unless @is_folder_mounted }
 
     let(:iso) { @vsa.iso }
 

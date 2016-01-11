@@ -118,8 +118,8 @@ class VirtualServer
   end
 
   def network_interface(type = 'primary', number = 1)
-    @network_interface ||= if type == 'primary'
-      network_interfaces.detect { |d| d.primary }
+    @network_interface = if type == 'primary'
+      network_interfaces.detect { |d| d.primary } || @network_interface
     elsif type == 'additional'
       network_interfaces.select { |d| !d.primary }[number-1]
     end
@@ -127,7 +127,12 @@ class VirtualServer
 
   def attach_network_interface(**params)
     nti = NetworkInterface.new(self)
-    nti.create({ network_join_id: available_network_join_ids.first }.merge(params))
+    params[:network_join_id] = if params[:primary]
+                                 network_interface.network_join_id
+                               else
+                                 available_network_join_ids.first
+                               end
+    nti.create(params)
   end
 
   def available_network_join_ids

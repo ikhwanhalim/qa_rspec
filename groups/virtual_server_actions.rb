@@ -1,13 +1,10 @@
 class VirtualServerActions
   include FogOnapp, ApiClient, SshClient, TemplateManager, Log
 
-  attr_accessor :hypervisor, :template
-  attr_reader   :virtual_machine, :iso
+  attr_accessor :hypervisor, :template, :iso
+  attr_reader   :virtual_machine
 
   def precondition
-    @iso = Iso.new(self)
-    @iso.create
-
     @template = ImageTemplate.new(self)
     @template.find_by_manager_id(ENV['TEMPLATE_MANAGER_ID'])
 
