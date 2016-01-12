@@ -44,6 +44,7 @@ class FederationSupplier
     stamp = 'federation-autotest' + DateTime.now.strftime('-%d-%m-%y(%H:%M:%S)')
     data = {
       'hypervisor_zone' => {
+        'provider_name' => label || stamp,
         'label' => label || stamp,
         'private' => private,
         'data_store_zone_id' => @data_store_group.id,
