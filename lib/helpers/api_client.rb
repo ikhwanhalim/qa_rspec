@@ -1,6 +1,8 @@
 require 'active_support/all'
 
 module ApiClient
+  CONF = ENV['CONF_PATH'] || 'config/conf.yml'
+
   attr_reader :ip
 
   def conn
@@ -12,7 +14,7 @@ module ApiClient
   end
 
   def read_config
-    data = YAML::load_file('config/conf.yml')
+    data = YAML::load_file(CONF)
     name = authorize_for
     @url = name ? data[name]['url'] : data['url']
     @user = name ? data[name]['user'] : data['user']
