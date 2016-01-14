@@ -138,7 +138,7 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'primary disk should be migrated if there is available DS on a cloud' do
-      if !vm.disk.available_data_store_for_migration.nil?
+      if vm.disk.available_data_store_for_migration
         vm.disk.migrate
         expect(vm.port_opened?).to be true
       else

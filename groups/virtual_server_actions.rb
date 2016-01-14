@@ -1,5 +1,5 @@
 class VirtualServerActions
-  include FogOnapp, ApiClient, SshClient, TemplateManager, Log
+  include FogOnapp, ApiClient, SshClient, Log
 
   attr_accessor :hypervisor, :template, :iso
   attr_reader   :virtual_machine

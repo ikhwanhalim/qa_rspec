@@ -2,7 +2,7 @@ require_relative 'api_client'
 require_relative 'transaction'
 
 module TemplateManager
-  include Transaction
+  include ApiClient, Transaction
 
   attr_reader :template_store
 

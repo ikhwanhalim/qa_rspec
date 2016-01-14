@@ -41,17 +41,14 @@ class Disk
   end
 
   def available_data_store_for_migration
-    ds_of_hv=assigned_data_stores_to_hv
-    ds_of_hvz=assigned_data_store_to_hv_group
-    all_available=(ds_of_hv+ds_of_hvz).uniq!
-    return (all_available-[data_store_id])[0] unless all_available==[]
+    (assigned_data_stores_to_hv + assigned_data_store_to_hv_group).uniq.detect { |id| id != data_store_id }
   end
 
   def migrate(ds_id = available_data_store_for_migration)
     interface.post("#{@route}/migrate",  {disk: {data_store_id: ds_id}})
     return if interface.conn.page.code != '201'
-     wait_for_disk_migrate
-     info_update(data_store_id: ds_id)
+    wait_for_disk_migrate
+    info_update(data_store_id: ds_id)
   end
 
   def info_update(info=false)
@@ -102,18 +99,15 @@ class Disk
 
   def disk_size_on_vm
     command = SshCommands::OnVirtualServer.disk_size(mount_point, is_swap)
-      if is_swap
-        @virtual_machine.ssh_execute(command).first.to_f/1024/1024
-      else
-        @virtual_machine.ssh_execute(command).first.to_f
-      end
+    result = @virtual_machine.ssh_execute(command).first.gsub(',', '.').to_f
+    is_swap ?  result/1024/1024 : result
   end
 
   def disk_size_compare_with_interface
-    disk_size_inside_vm=disk_size_on_vm.to_f
-    disk_size_minus_ratio=disk_size-(disk_size.to_f*@acceptable_physycal_error_ratio)
-    disk_size_plus_ratio=disk_size+(disk_size.to_f*@acceptable_physycal_error_ratio)
-    if disk_size_inside_vm >= disk_size_minus_ratio and disk_size_inside_vm <= disk_size_plus_ratio
+    disk_size_inside_vm = disk_size_on_vm.to_f
+    disk_size_minus_ratio = disk_size - (disk_size.to_f * @acceptable_physycal_error_ratio)
+    disk_size_plus_ratio = disk_size + (disk_size.to_f * @acceptable_physycal_error_ratio)
+    if disk_size_inside_vm >= disk_size_minus_ratio && disk_size_inside_vm <= disk_size_plus_ratio
       Log.info("disk size inside VM: #{disk_size_inside_vm} in comparing with disk size in UI: #{disk_size} should be between acceptable values: #{disk_size_minus_ratio} and #{disk_size_plus_ratio}")
       true
     else
@@ -121,6 +115,4 @@ class Disk
       false
     end
   end
-
-
 end

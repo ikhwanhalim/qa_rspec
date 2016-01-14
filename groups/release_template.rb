@@ -1,5 +1,5 @@
 class ReleaseTemplate
-  include FogOnapp, ApiClient, SshClient, TemplateManager, Log, Mysql
+  include FogOnapp, ApiClient, SshClient, Log, Mysql
 
   attr_accessor :hypervisor, :template
   attr_reader   :virtual_machine, :backup_server
