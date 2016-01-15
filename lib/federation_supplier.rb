@@ -49,14 +49,13 @@ class FederationSupplier
         'private' => private,
         'data_store_zone_id' => @data_store_group.id,
         'network_zone_id' => @network_group.id,
-        'template_group_id' => @template_store.id,
+        'template_group_id' => @template.template_store.id,
         'description' => "#{Socket.gethostname}\n#{Socket.ip_address_list.to_s}"
       }
     }
     response = post("/federation/hypervisor_zones/#{@hvz_id}/add", data)
     Log.error(response.values.join("\n")) if response['errors'].any?
     @published_zone = get("/settings/hypervisor_zones/#{@hvz_id}").values.first
-    sleep 15 #Wait for TemplateTracker and Zabbix tasks
   end
 
   def make_public
