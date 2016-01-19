@@ -58,14 +58,14 @@ class FederationTrader
   end
 
   def zone_appeared?(federation_id)
-    wait_until(60) do
+    wait_until do
       federation.market.set_preflight if federation.market.resource.preflight
       !!all_unsubscribed.detect { |z| z.federation_id == federation_id }
     end
   end
 
   def zone_disappeared?(federation_id)
-    wait_until(60) do
+    wait_until do
       !all_unsubscribed.detect { |z| z.federation_id == federation_id }
     end
   end
