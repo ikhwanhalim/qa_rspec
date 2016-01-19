@@ -104,12 +104,17 @@ describe "Market" do
 
       it "should not be able subscribe to disabled zone" do
         supplier.disable_zone
-        trader.subscribe(federation_id)
-        expect(trader.conn.page.code).to eq '422'
-        supplier.enable_zone
-        trader.zone_appeared? federation_id
-        federation_ids = trader.all_unsubscribed.map &:federation_id
-        expect(federation_ids).to include(federation_id)
+        sleep 5
+        if federation.market.resource.is_active
+          supplier.enable_zone
+          trader.zone_appeared? federation_id
+          raise('Zone has not been deactivated')
+        else
+          trader.subscribe(federation_id)
+          expect(trader.conn.page.code).to eq '422'
+          supplier.enable_zone
+          expect(trader.zone_appeared?(federation_id)).to be true
+        end
       end
 
       it "should be able search zone by part of label" do
