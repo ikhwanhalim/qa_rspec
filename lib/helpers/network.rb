@@ -3,41 +3,31 @@ require_relative 'waiter'
 module Network
   include Waiter
 
-  def port_opened?(port = 22)
-    Log.info("Connect to: #{ip_address}:#{port}")
+  def port_opened?(remote_ip = ip_address, port = 22)
     wait_until do
-      begin
-        TCPSocket.new(ip_address, port).close
-        return true
-      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::ETIMEDOUT
-        false
-      end
+      command = SshCommands::OnControlPanel.nc(remote_ip, port)
+      exit_ok?(command) ? true : false
     end
   end
 
-  def port_closed?(port = 22)
-    Log.info("Connect to: #{ip_address}:#{port}")
+  def port_closed?(remote_ip = ip_address, port = 22)
     wait_until do
-      begin
-        TCPSocket.new(ip_address, port).close
-        false
-      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::ETIMEDOUT
-        return true
-      end
+      command = SshCommands::OnControlPanel.nc(remote_ip, port)
+      exit_ok?(command) == 0 ? false : true
     end
   end
 
-  def pinged?(remote_ip = nil)
-    Log.info("Ping IP address: #{remote_ip || ip_address}")
+  def pinged?(remote_ip = ip_address)
     wait_until do
-      system("ping -c1 #{remote_ip || ip_address}")
+      command = SshCommands::OnControlPanel.ping(remote_ip)
+      exit_ok?(command) ? true : false
     end
   end
 
-  def not_pinged?(remote_ip = nil)
-    Log.info("Ping IP address: #{remote_ip || ip_address}")
+  def not_pinged?(remote_ip = ip_address)
     wait_until do
-      system("ping -c1 #{remote_ip || ip_address}") ? false : true
+      command = SshCommands::OnControlPanel.ping(remote_ip)
+      exit_ok?(command) ? false : true
     end
   end
 
@@ -47,5 +37,11 @@ module Network
 
   def down?
     not_pinged? && port_closed?
+  end
+
+  private
+
+  def exit_ok?(command)
+    interface.execute_with_pass({'vm_host' => interface.ip, 'vm_user' => 'onapp'}, command).last.to_i == 0
   end
 end

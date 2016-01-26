@@ -12,10 +12,10 @@ module SshCommands
 
     def disk_size(mount_point, swap = false)
       if swap
-       "grep SwapTotal /proc/meminfo |awk '{print $2}'"
+       "grep SwapTotal /proc/meminfo |awk '{print \\$2}'"
        #"swapon |tail -1 |awk '{print $3}' |sed 's/.$//'"
       else
-       "df -h | awk '{if($6==\"#{mount_point}\") print $2}'"
+       "df -k | grep #{mount_point} | awk '{print \\$2}'"
       end
     end
 
@@ -60,7 +60,7 @@ module SshCommands
     end
 
     def ip_addresses
-      "ifconfig -a | awk -F \"[: ]+\" '/inet addr:/ { if ($4 != \"127.0.0.1\") print $4 }'"
+      "ifconfig -a | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort | uniq"
     end
   end
 
@@ -73,6 +73,18 @@ module SshCommands
       elsif hypervisor_type == 'xen'
         "xm sched-credit | grep #{vm_identifier} || echo 'false'"
       end
+    end
+  end
+
+  module OnControlPanel
+    extend self
+
+    def ping(remote_ip)
+      "ping -c1 #{remote_ip};echo $?"
+    end
+
+    def nc(remote_ip, port)
+      "nc -z -w1 #{remote_ip} #{port};echo $?"
     end
   end
 end

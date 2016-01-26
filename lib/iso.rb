@@ -66,7 +66,7 @@ class Iso
   end
 
   def exists_on_hv?
-    interface.hypervisor.ssh_execute("mount|grep data").last.include?("data")
+    !!interface.hypervisor.ssh_execute("mount|grep data").last
   end
 
   private

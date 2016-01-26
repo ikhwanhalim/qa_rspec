@@ -136,6 +136,7 @@ DEPENDENCIES
   fog-onapp (= 1.9.0)!
   hashie
   headless
+  ipaddress
   json
   mechanize
   net-ssh

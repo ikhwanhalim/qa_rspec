@@ -33,6 +33,10 @@ class NetworkInterface
     wait_for_attach_network_interface
   end
 
+  def any?
+    interface.get(interfaces_route).any?
+  end
+
   def remove
     interface.delete("#{@route}")
     return if interface.conn.page.code != '204'
@@ -79,9 +83,9 @@ class NetworkInterface
     end
   end
 
-  def allocate_new_ip
+  def allocate_new_ip(ip_address_id = nil)
     ip = IpAddress.new(self)
-    ip.attach(id)
+    ip.attach(id, ip_address_id)
     wait_for_update_firewall if interface.conn.page.code == '202'
     ip
   end
@@ -93,7 +97,7 @@ class NetworkInterface
     ip_addresses
   end
 
-  def set_default_firewall_rule(command='ACCEPT')
+  def set_default_firewall_rule(command = 'ACCEPT')
     data = {:network_interfaces => { id => {:default_firewall_rule => command}}}
     interface.put("#{firewall_rules_route}/update_defaults", data)
     firewall_rules

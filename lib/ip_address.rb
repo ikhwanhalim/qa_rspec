@@ -20,8 +20,15 @@ class IpAddress
     self
   end
 
-  def attach(network_interface_id)
-    join = interface.post(@ip_addresses_route, {ip_address_join: {network_interface_id: network_interface_id}})
+  def attach(network_interface_id, ip_address_id)
+    data = {
+      ip_address_join: {
+        network_interface_id: network_interface_id,
+        ip_address_id: ip_address_id
+      }
+    }
+    join = interface.post(@ip_addresses_route, data)
+    return if join.errors
     info_update(join.ip_address_join)
   end
 
@@ -32,5 +39,15 @@ class IpAddress
   def exist_on_vm
     command = SshCommands::OnVirtualServer.ip_addresses
     network_interface.virtual_machine.ssh_execute(command).include?(address)
+  end
+
+  def all(used: false)
+    interface.get("/settings/networks/#{network_id}/ip_addresses").select do |ip|
+      used ? ip.ip_address.free == false : ip.ip_address.free == true
+    end
+  end
+
+  def private?
+    IPAddress(address).private?
   end
 end

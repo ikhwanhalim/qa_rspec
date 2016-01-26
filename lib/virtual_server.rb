@@ -155,7 +155,7 @@ class VirtualServer
         'vm_host' => ip_address,
         'vm_pass' => initial_root_password
     }
-    interface.execute_with_pass(cred, script)
+    interface.tunnel_execute(cred, script)
   end
 
   def stop
@@ -234,13 +234,13 @@ class VirtualServer
              elsif hypervisor_type == 'xen'
                hypervisor.ssh_execute("xm list | grep #{identifier}")
              end
-    Log.info(result)
-    result.last.include?(identifier)
+    !!result.last
   end
 
   def update_os
     Log.error('DNS resolvers has not set') if ssh_execute('ping -c1 google.com;echo $?').last.to_i != 0
-    result = ssh_execute(OnVirtualServer.update_os(operating_system_distro))
+    command = OnVirtualServer.update_os(operating_system_distro)
+    result = ssh_execute(command)
     status = result.last.to_i
     if status != 0
       Log.error("Update has failed for #{operating_system_distro}\n#{command}\n#{result.join('\n')}")

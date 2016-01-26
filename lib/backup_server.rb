@@ -8,7 +8,7 @@ class BackupServer
 
   def find_first_active
     servers = interface.get('/settings/backup_servers').map &:backup_server
-    server = select_active_with_max_idle(servers)
+    server = select_active_with_max_idle(servers) || servers[0]
     Log.error('Backup server was not found') unless server
     info_update(server)
     self
@@ -33,14 +33,11 @@ class BackupServer
 
   def scan_disk
     ssh_execute('freshclam')
-    log = ssh_execute("clamscan -r --bell -i /mnt/onapp-tmp-#{@di}").last
-    if log && log.to_s.include?('Scanned files: 0')
+    output = ssh_execute("clamscan -r --bell -i /mnt/onapp-tmp-#{@di}")
+    if output.include?('Scanned files: 0')
       Log.error('Disk has not been mounted')
-    elsif log && log.to_s.include?('Infected files: 0')
-      Log.info(log)
-    else
-      Log.error(log)
     end
+    output.include?('Infected files: 0') ? Log.info(output.join("\n")) : Log.error(output.join("\n"))
   end
 
   private

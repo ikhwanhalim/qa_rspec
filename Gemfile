@@ -1,6 +1,7 @@
 gem 'json'
 gem 'mechanize'
 gem 'nokogiri'
+gem 'ipaddress'
 gem 'awesome_print'
 gem 'pry'
 gem 'hashie'

@@ -13,6 +13,8 @@ describe 'Virtual Server actions tests' do
 
   let(:vm) { @vsa.virtual_machine }
 
+  let(:version) { @vsa.version }
+
   describe 'VM power operations' do
     describe 'After build' do
       it { expect(vm.pinged?).to be true }
@@ -58,16 +60,15 @@ describe 'Virtual Server actions tests' do
       @disk.wait_for_build
     end
 
-
     it 'additional disk size should be increased' do
-      new_disk_size=@disk.disk_size+2
+      new_disk_size = @disk.disk_size + 2
       @disk.edit(disk_size: new_disk_size, add_to_linux_fstab: true)
       expect(vm.port_opened?).to be true
       expect(vm.disk('additional').disk_size_compare_with_interface).to eq true
     end
 
     it 'additional disk size should be decreased' do
-      new_disk_size=@disk.disk_size-1
+      new_disk_size = @disk.disk_size - 1
       @disk.edit(disk_size: new_disk_size, add_to_linux_fstab: true)
       expect(vm.port_opened?).to be true
       expect(vm.disk('additional').disk_size_compare_with_interface).to eq true
@@ -88,17 +89,16 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'should be impossible to add second primary disk with template min_disk_size to VS' do
+      skip("CORE-3333") if version == 4.1
       vm.add_disk(primary: true, primary_disk_size: vm.template.min_disk_size)
       expect(vm.api_response_code).to eq '422'
-      expect(vm.disks.count).to eq @disks_count_before_test+1
     end
 
 
     it 'should be impossible to add second primary disk with minimal available size to VS' do
-      skip("Uncomment this test in 4.2. This test brakes VM functionality rebuild VM is required if run it in 4.1")
-      # vm.add_disk(primary: true)
-      # expect(vm.api_response_code).to eq '422' #bug core-3333 fixed in 4.2
-      # expect(vm.disks.count).to eq @disks_count_before_test+1
+      skip("CORE-3333") if version == 4.1
+      vm.add_disk(primary: true)
+      expect(vm.api_response_code).to eq '422'
     end
 
     it 'additional disk should be mounted' do
@@ -118,20 +118,19 @@ describe 'Virtual Server actions tests' do
       expect(vm.port_opened?).to be true
       expect(vm.disk('swap').disk_size_compare_with_interface).to eq false #this can be refactored to determine each swap disk separately
       additiona_swap_disk.remove
-      #additiona_swap_disk.wait_for_destroy
       expect(vm.port_opened?).to be true
       expect(vm.disk('swap').disk_size_compare_with_interface).to eq true
     end
 
     it 'should be possible increase size of swap disk' do
-      new_swap_disk_size=vm.disk('swap').disk_size+2
+      new_swap_disk_size=vm.disk('swap').disk_size + 2
       vm.disk('swap').edit(disk_size: new_swap_disk_size)
       expect(vm.port_opened?).to be true
       expect(vm.disk('swap').disk_size_compare_with_interface).to eq true
     end
 
     it 'should be possible decrease size of swap disk' do
-      new_swap_disk_size=vm.disk('swap').disk_size-1
+      new_swap_disk_size=vm.disk('swap').disk_size - 1
       vm.disk('swap').edit(disk_size: new_swap_disk_size)
       expect(vm.port_opened?).to be true
       expect(vm.disk('swap').disk_size_compare_with_interface).to eq true
@@ -162,44 +161,17 @@ describe 'Virtual Server actions tests' do
   end
 
   describe 'Network operations' do
-    describe 'Network interfaces' do
-      before :all do
-        @ids = @vm.available_network_join_ids
-      end
-
-      before { skip('Additional network has not been attached to HV or HVZ') if @ids.empty? }
-
-      it 'Attach new' do
-        amount = vm.network_interface.amount
-        vm.attach_network_interface
-        expect(vm.network_interface.amount).to eq amount + 1
-      end
-
-      it 'Detach' do
-        amount = vm.network_interface.amount
-        vm.network_interface('additional').remove
-        expect(vm.network_interface.amount).to eq amount - 1
-      end
-
-      it 'Detach primary network interface and attach again' do
-        ip = vm.ip_address
-        vm.network_interface.remove
-        expect(vm.not_pinged?(ip)).to be true
-        vm.attach_network_interface(primary: true)
-        vm.network_interface.allocate_new_ip
-        vm.rebuild_network
-        expect(vm.pinged?).to be true
-      end
-
-      it 'Ability create two primary interfaces should be blocked' do
-        skip
-      end
-    end
-
     describe 'IP addresses' do
       before :all do
         @vm.network_interface.allocate_new_ip
         @vm.rebuild_network
+        @primary_network_interface_exist = @vm.network_interface.any?
+        @free_addresses = @vm.network_interface.ip_address.all
+      end
+
+      before do
+        fail('Primary network interface does not exist') unless @primary_network_interface_exist
+        skip('There are no free ip addresses') if @free_addresses.empty?
       end
 
       it 'Second IP address should be appeared in the interface' do
@@ -232,13 +204,51 @@ describe 'Virtual Server actions tests' do
         skip
       end
     end
+
+    describe 'Network interfaces' do
+      before :all do
+        @ids = @vm.available_network_join_ids
+      end
+
+      before do
+        skip('Additional network has not been attached to HV or HVZ') if @ids.empty?
+      end
+
+      it 'Attach new' do
+        amount = vm.network_interface.amount
+        vm.attach_network_interface
+        expect(vm.network_interface.amount).to eq amount + 1
+      end
+
+      it 'Detach' do
+        amount = vm.network_interface.amount
+        vm.network_interface('additional').remove
+        expect(vm.network_interface.amount).to eq amount - 1
+      end
+
+      it 'Detach primary network interface and attach again' do
+        ip = vm.ip_address
+        vm.network_interface.remove
+        expect(vm.not_pinged?(ip)).to be true
+        vm.attach_network_interface(primary: true)
+        vm.network_interface.allocate_new_ip
+        vm.rebuild_network
+        expect(vm.pinged?).to be true
+      end
+
+      it 'Ability create two primary interfaces should be blocked' do
+        skip
+      end
+    end
   end
 
   describe 'Reboot in recovery operation' do
     it 'Reboot in recovery Operations' do
+      skip('Could not connect to private ip') if vm.network_interface.ip_address.private?
       vm.reboot(recovery: true)
       expect(vm.port_opened?).to be true
-      expect(vm.ssh_execute('hostname')).to include 'recovery'
+      creds = {'vm_host' => vm.ip_address, 'vm_pass' => vm.initial_root_password}
+      expect(vm.interface.execute_with_pass(creds, 'hostname')).to include 'recovery'
       vm.reboot
       expect(vm.port_opened?).to be true
       expect(vm.ssh_execute('hostname')).to include vm.hostname
@@ -249,12 +259,13 @@ describe 'Virtual Server actions tests' do
   describe 'Reboot VS from ISO' do
     before :all do
       @vsa.iso = Iso.new(@vsa)
-      @vsa.iso.create
       @is_folder_mounted = @vsa.iso.exists_on_hv?
+      @vsa.iso.create if @is_folder_mounted
     end
 
     after :all do
-      @vsa.iso.remove
+      @vm.reboot
+      @vsa.iso.remove if @is_folder_mounted
     end
 
     before { skip('The data folder isn\'t mounted on HV') unless @is_folder_mounted }
@@ -276,13 +287,13 @@ describe 'Virtual Server actions tests' do
     it 'Reboot VS from ISO if incorrect virtualization type' do
       vm.hypervisor_type == 'xen' ? iso.edit(virtualization: 'kvm') : iso.edit(virtualization: 'xen')
       vm.reboot_from_iso(iso.id)
-      expect(vm.pinged?).to be true
+      expect(vm.exist_on_hv?).to be true
     end
 
     it 'Boot VS from ISO' do
       skip('Virtual Server cannot be booted from this ISO') if !vm.can_be_booted_from_iso?
       vm.shut_down
-      expect(vm.not_pinged?).to be true
+      expect(vm.exist_on_hv?).to be false
       vm.boot_from_iso(iso.id)
       expect(vm.exist_on_hv?).to be true
     end
