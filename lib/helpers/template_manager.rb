@@ -30,14 +30,10 @@ module TemplateManager
 
   def add_to_template_store(template_id, price=0)
     data = {"relation_group_template"=>{"template_id"=>template_id, "price"=>price}}
-    template_store_list = get("/template_store").select do |s|
+    @template_store = get("/template_store").detect do |s|
       !s.system_group && (s.relations.any? ? !s.relations.first.image_template.remote_id : true)
     end
-    @template_store = if template_store_list
-      template_store_list.first
-    else
-      post("/settings/image_template_groups", {"image_template_group"=>{"label"=>"AutoTests"}})
-    end
+    @template_store ||= post("/settings/image_template_groups", {"image_template_group"=>{"label"=>"AutoTests"}})
     post("/settings/image_template_groups/#{@template_store['id']}/relation_group_templates", data)
   end
 
