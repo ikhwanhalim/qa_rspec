@@ -8,6 +8,7 @@ class FederationTrader
 
   def initialize(federation)
     @federation = federation
+    conn.cookie_jar.clear!
   end
 
   def interface
@@ -59,7 +60,6 @@ class FederationTrader
 
   def zone_appeared?(federation_id)
     wait_until do
-      federation.market.set_preflight if federation.market.resource.preflight
       !!all_unsubscribed.detect { |z| z.federation_id == federation_id }
     end
   end

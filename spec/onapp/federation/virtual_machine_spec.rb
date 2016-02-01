@@ -44,16 +44,18 @@ describe "Federation Virtual Machine" do
     end
 
     it "trader should be able rebuild vm" do
+      skip('CORE-5530') if supplier.version == 4.2 || trader.version == 4.2
       trader.vm.rebuild
-      expect(trader.vm.ssh_execute('hostname')).to include(trader.vm.hostname)
+      creds = { 'vm_host' => trader.vm.ip_address, 'vm_pass' => trader.vm.initial_root_password }
+      expect(trader.vm.ssh_execute(creds, 'hostname')).to include(trader.vm.hostname)
     end
 
     it 'reset root password' do
-      skip('Will work in 4.2')
+      skip('Will work in 4.2') if supplier.version < 4.2 || trader.version < 4.2
       old_password = trader.vm.initial_root_password
       trader.vm.reset_root_password
       expect(trader.vm.initial_root_password).not_to eq old_password
-      expect(trader.vm.execute_with_pass('hostname')).to include(trader.vm.hostname)
+      expect(trader.vm.ssh_execute('hostname')).to include(trader.vm.hostname)
     end
 
     it 'rebuild network' do
@@ -61,7 +63,7 @@ describe "Federation Virtual Machine" do
       expect(trader.vm.up?).to be true
     end
 
-    describe 'Perform disk action' do
+    describe 'Perform disk action', pending: 'CORE-5530' do
       before :all do
         @disk = @federation.trader.vm.add_disk
         @federation.supplier.vm.disks(label: @disk.label).first.wait_for_build
@@ -91,19 +93,23 @@ describe "Federation Virtual Machine" do
     describe 'Firewall rules' do
       it 'set default firewall rule' do
         trader.vm.network_interface.set_default_firewall_rule('DROP')
-        trader.vm.rebuild_network
+        trader.vm.wait_for_receive_notification_from_market
+        trader.vm.update_firewall_rules
         expect(trader.vm.not_pinged?).to be true
         trader.vm.network_interface.set_default_firewall_rule
-        trader.vm.rebuild_network
+        trader.vm.wait_for_receive_notification_from_market
+        trader.vm.update_firewall_rules
         expect(trader.vm.pinged?).to be true
       end
 
       it 'add custom firewall rule' do
         trader.vm.network_interface.add_custom_firewall_rule(command: 'DROP', protocol: 'ICMP')
-        trader.vm.rebuild_network
+        trader.vm.wait_for_receive_notification_from_market
+        trader.vm.update_firewall_rules
         expect(trader.vm.not_pinged?).to be true
         trader.vm.network_interface.reset_firewall_rules
-        trader.vm.rebuild_network
+        trader.vm.wait_for_receive_notification_from_market
+        trader.vm.update_firewall_rules
         expect(trader.vm.pinged?).to be true
       end
     end
@@ -144,6 +150,10 @@ describe "Federation Virtual Machine" do
 
     it "remove IP address" do
       expect(!!supplier.vm.network_interface.remove_ip).to be false
+    end
+
+    it "connect via SSH with own ssh keys" do
+      expect(supplier.vm.ssh_execute('hostname')).to_not include(supplier.vm.hostname)
     end
   end
 end

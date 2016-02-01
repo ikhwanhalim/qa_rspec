@@ -11,6 +11,18 @@ class FederationMarket
 
   def set_preflight(status = false)
     put("/resource/#{federation_id}/set_preflight_status", {data: {status: status}})
+    if status
+       race_condition_check(false) { resource.preflight }
+    else
+      race_condition_check(true) { resource.preflight }
+    end
+  end
+
+  def race_condition_check(state)
+    output = (0..15).map { |_| sleep 0.2;yield }
+    #TODO MKT-243
+    #Log.error("RaceConditionError: preflight status has been changed immediately#{output}")
+    set_preflight(!state) if output.include?(state)
   end
 
   def resource

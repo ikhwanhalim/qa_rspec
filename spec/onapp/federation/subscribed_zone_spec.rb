@@ -4,6 +4,7 @@ describe "Zone has been subscribed" do
   before :all do
     @federation = Federation.new
     @federation.supplier.add_to_federation
+    @federation.market.set_preflight
     @federation.trader.zone_appeared?(@federation.market.federation_id)
     @federation.trader.subscribe(@federation.market.federation_id)
   end
@@ -78,17 +79,14 @@ describe "Zone has been subscribed" do
     end
 
     it "error should appeared if no enough resources on supplier" do
-      #TODO detach resources
-      skip
-      supplier.hypervisors_detach
+      skip('Some VMs were created at HV') unless supplier.hypervisors_detach
       error = trader.create_vm(supplier.template.label)
       expect(error.hypervisor_id.include?("can't be blank")).to be true
       expect(supplier.hypervisors_attach).to be true
     end
 
     it 'should not be able remove federated template' do
-      #TODO in 4.2
-      skip
+      skip('Was broken in 4.1') if supplier.version < 4.2 || trader.version < 4.2
       template = trader.find_template(supplier.template.label)
       trader.delete("/templates/#{template.id}")
       expect(trader.conn.page.code).to eq "422"

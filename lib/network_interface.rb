@@ -86,7 +86,8 @@ class NetworkInterface
   def allocate_new_ip(ip_address_id = nil)
     ip = IpAddress.new(self)
     ip.attach(id, ip_address_id)
-    wait_for_update_firewall if interface.conn.page.code == '202'
+    return if interface.conn.page.code != '202'
+    wait_for_update_firewall
     ip
   end
 

@@ -77,6 +77,11 @@ module VmOperationsWaiters
     wait_for_transaction(id, 'VirtualMachine', 'rebuild_network')
   end
 
+  #FederationTrader
+  def wait_for_receive_notification_from_market
+     wait_for_transaction(id, 'VirtualMachine', 'receive_notification_from_market')
+  end
+
   def set_max_mem
     maxmem = if interface.hypervisor.hypervisor_type == 'xen'
                memory * 2

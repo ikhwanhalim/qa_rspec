@@ -98,9 +98,17 @@ class FederationSupplier
     all_federated.each { |z| remove_from_federation(z.id) }
   end
 
+  def virtual_machines
+    get('/virtual_machines').map &:virtual_machine
+  end
+
   def hypervisors_detach
     id=@published_zone.id
-    @hypervisors_ids = get("/settings/hypervisor_zones/#{id}/hypervisors").map { |hv| hv.hypervisor.id }
+    hv_ids = virtual_machines.map(&:hypervisor_id)
+    @hypervisors_ids = get("/settings/hypervisor_zones/#{id}/hypervisors").map do |hv|
+      return false if hv_ids.include?(hv.hypervisor.id)
+      hv.hypervisor.id
+    end
     post("/settings/hypervisor_zones/#{id}/hypervisors/detach_range", {ids: @hypervisors_ids})
   end
 

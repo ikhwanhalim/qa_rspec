@@ -68,6 +68,10 @@ class VirtualServer
     self
   end
 
+  def locked?
+    interface.get(route).virtual_machine.locked
+  end
+
   def find_by_label(label)
     interface.get('/virtual_machines').select { |vm| vm.label == label }
   end
@@ -155,7 +159,11 @@ class VirtualServer
         'vm_host' => ip_address,
         'vm_pass' => initial_root_password
     }
-    interface.tunnel_execute(cred, script)
+    if interface.class.to_s == "FederationTrader"
+      interface.execute_with_pass(cred, script)
+    else
+      interface.tunnel_execute(cred, script)
+    end
   end
 
   def stop
