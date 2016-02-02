@@ -30,6 +30,10 @@ describe "Federation Virtual Machine" do
     expect(supplier.vm.exist_on_hv?).to be true
   end
 
+  it "seller and buyer passwords should be different" do
+     expect(trader.vm.initial_root_password).not_to eq supplier.vm.initial_root_password
+  end
+
   describe 'Supplier should be able' do
     it "supplier should be able reboot" do
       expect(supplier.vm.reboot).to be true

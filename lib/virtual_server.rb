@@ -44,14 +44,14 @@ class VirtualServer
   end
 
   def build_params
-     {
+    {
       hypervisor_id: hypervisor.id,
       template_id: (template.id if defined?(template.id)),
       label: template.label,
       memory: template.min_memory_size,
       cpus: '1',
       primary_disk_size: template.min_disk_size,
-      hostname: 'auto.interface',
+      hostname: 'autotest',
       required_virtual_machine_build: '1',
       required_ip_address_assignment: '1',
       rate_limit: '0',
