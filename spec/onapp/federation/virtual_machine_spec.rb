@@ -50,8 +50,7 @@ describe "Federation Virtual Machine" do
     it "trader should be able rebuild vm" do
       skip('CORE-5530') if supplier.version == 4.2 || trader.version == 4.2
       trader.vm.rebuild
-      creds = { 'vm_host' => trader.vm.ip_address, 'vm_pass' => trader.vm.initial_root_password }
-      expect(trader.vm.ssh_execute(creds, 'hostname')).to include(trader.vm.hostname)
+      expect(trader.vm.ssh_execute('hostname').last).to include(trader.vm.hostname)
     end
 
     it 'reset root password' do
@@ -59,7 +58,7 @@ describe "Federation Virtual Machine" do
       old_password = trader.vm.initial_root_password
       trader.vm.reset_root_password
       expect(trader.vm.initial_root_password).not_to eq old_password
-      expect(trader.vm.ssh_execute('hostname')).to include(trader.vm.hostname)
+      expect(trader.vm.ssh_execute('hostname').last).to include(trader.vm.hostname)
     end
 
     it 'rebuild network' do
@@ -157,7 +156,7 @@ describe "Federation Virtual Machine" do
     end
 
     it "connect via SSH with own ssh keys" do
-      expect(supplier.vm.ssh_execute('hostname')).to_not include(supplier.vm.hostname)
+      expect(supplier.vm.ssh_execute('hostname').last).to_not include(supplier.vm.hostname)
     end
   end
 end
