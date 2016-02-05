@@ -251,7 +251,7 @@ describe 'Virtual Server actions tests' do
       expect(vm.interface.execute_with_pass(creds, 'hostname')).to include 'recovery'
       vm.reboot
       expect(vm.port_opened?).to be true
-      expect(vm.ssh_execute('hostname')).to include vm.hostname
+      expect(vm.ssh_execute('hostname').last).to include vm.hostname
     end
   end
 

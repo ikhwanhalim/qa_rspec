@@ -119,7 +119,7 @@ class NetworkInterface
 
   def amount
     command = SshCommands::OnVirtualServer.network_interfaces_amount
-    virtual_machine.ssh_execute(command).first.to_i
+    virtual_machine.ssh_execute(command).last.to_i
   end
 
   def reset_firewall_rules

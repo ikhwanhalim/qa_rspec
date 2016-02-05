@@ -15,7 +15,7 @@ module SshCommands
        "grep SwapTotal /proc/meminfo |awk '{print \\$2}'"
        #"swapon |tail -1 |awk '{print $3}' |sed 's/.$//'"
       else
-       "df -k | grep #{mount_point} | awk '{print \\$2}'"
+       "df -k | grep '#{mount_point}$' | awk '{print \\$2}'"
       end
     end
 

@@ -100,7 +100,7 @@ class Disk
   def disk_size_on_vm
     wait_until(60) do
       command = SshCommands::OnVirtualServer.disk_size(mount_point, is_swap)
-      size = @virtual_machine.ssh_execute(command).first.to_f/1024/1024
+      size = @virtual_machine.ssh_execute(command).last.to_f/1024/1024
       size > 0 ? size : false
     end
   end
