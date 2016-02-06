@@ -58,6 +58,7 @@ describe "Federation Virtual Machine" do
       old_password = trader.vm.initial_root_password
       trader.vm.reset_root_password
       expect(trader.vm.initial_root_password).not_to eq old_password
+      expect(trader.vm.port_opened?).to be true
       expect(trader.vm.ssh_execute('hostname').last).to include(trader.vm.hostname)
     end
 
