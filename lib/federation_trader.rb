@@ -49,12 +49,12 @@ class FederationTrader
   end
 
   def search(label)
-    zones = get("/federation/hypervisor_zones/unsubscribed", data={q: label})
+    zones = get("/federation/hypervisor_zones/unsubscribed/per_page/100", data={q: label})
     zones.map! &:hypervisor_zone
   end
 
   def all_unsubscribed
-    zones = get "/federation/hypervisor_zones/unsubscribed"
+    zones = get "/federation/hypervisor_zones/unsubscribed/per_page/100"
     zones.map! &:hypervisor_zone
   end
 
