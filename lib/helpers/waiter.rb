@@ -1,8 +1,8 @@
 module Waiter
-  def wait_until(max = 300)
+  def wait_until(max = 300, frequency = 1)
     Timeout.timeout(max) do
       until value = yield
-        sleep(1)
+        sleep(frequency)
       end
       value
     end

@@ -60,7 +60,7 @@ module SshCommands
     end
 
     def ip_addresses
-      "ifconfig -a | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort | uniq"
+      "ip -o addr show | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort | uniq"
     end
   end
 
