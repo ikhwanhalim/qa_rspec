@@ -1,8 +1,7 @@
-require_relative 'api_client'
 require_relative 'transaction'
 
 module TemplateManager
-  include ApiClient, Transaction
+  include Transaction
 
   attr_reader :template_store
 
@@ -17,24 +16,24 @@ module TemplateManager
   end
 
   def download_template
-    available = get("/templates/available").select { |t| t['remote_template']['manager_id'] == @manager_id }
-    installed = (get("/templates/all") + get('/templates/installs')).select do |t|
+    available = interface.get("/templates/available").select { |t| t['remote_template']['manager_id'] == @manager_id }
+    installed = (interface.get("/templates/all") + interface.get('/templates/installs')).select do |t|
       t['image_template']['manager_id'] == @manager_id
     end
     if installed.any?
       installed.max_by { |t| t['image_template']['version'].to_f }['image_template']
     elsif available.any?
-      post("/templates", {'image_template' => {'manager_id' => @manager_id}})["image_template"]
+      interface.post("/templates", {'image_template' => {'manager_id' => @manager_id}})["image_template"]
     end
   end
 
   def add_to_template_store(template_id, price=0)
     data = {"relation_group_template"=>{"template_id"=>template_id, "price"=>price}}
-    @template_store = get("/template_store").detect do |s|
+    @template_store = interface.get("/template_store").detect do |s|
       !s.system_group && (s.relations.any? ? !s.relations.first.image_template.remote_id : true)
     end
-    @template_store ||= post("/settings/image_template_groups", {"image_template_group"=>{"label"=>"AutoTests"}})
-    post("/settings/image_template_groups/#{@template_store['id']}/relation_group_templates", data)
+    @template_store ||= interface.post("/settings/image_template_groups", {"image_template_group"=>{"label"=>"AutoTests"}})
+    interface.post("/settings/image_template_groups/#{@template_store['id']}/relation_group_templates", data)
   end
 
   def wait_for_download_template(id)

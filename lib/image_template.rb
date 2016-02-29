@@ -1,4 +1,6 @@
 class ImageTemplate
+  include TemplateManager
+
   attr_reader :interface, :allow_resize_without_reboot, :allowed_hot_migrate, :allowed_swap, :application_server,
               :backup_server_id, :baremetal_server, :cdn, :checksum, :created_at, :disk_target_device,
               :ext4, :file_name, :id, :initial_password, :initial_username, :label, :manager_id, :min_disk_size,
@@ -12,7 +14,7 @@ class ImageTemplate
   end
 
   def find_by_manager_id(manager_id)
-    info = interface.get_template(manager_id)
+    info = get_template(manager_id)
     info_update(info)
     self
   end
@@ -26,10 +28,6 @@ class ImageTemplate
   def db_enable_hotresize
     interface.query("update templates set resize_without_reboot_policy='---\n:xen:\n  :centos5: 15\n  :centos6: 15\n:kvm:\n  :centos5: 15\n  :centos6: 15\n' where id=#{id}")
     interface.query("update templates set allow_resize_without_reboot=1 where id=#{id}")
-  end
-
-  def template_store
-    interface.template_store
   end
 
   private
