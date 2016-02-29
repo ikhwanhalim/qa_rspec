@@ -11,9 +11,18 @@ describe 'Virtual Server actions tests' do
     @vm.destroy
   end
 
+  # FOR DEBUG
+  # after do
+  #   require 'pry';binding.pry if example.exception
+  # end
+
   let(:vm) { @vsa.virtual_machine }
 
   let(:version) { @vsa.version }
+
+  it 'See own VMs through users_path users/:id/virtual_machines' do
+    expect(@vsa.get("/users/#{vm.user_id}/virtual_machines")).not_to be_empty
+  end
 
   describe 'VM power operations' do
     describe 'After build' do
@@ -136,23 +145,23 @@ describe 'Virtual Server actions tests' do
       expect(vm.disk('swap').disk_size_compare_with_interface).to eq true
     end
 
-    it 'primary disk should be migrated if there is available DS on a cloud' do
-      if vm.disk.available_data_store_for_migration
-        vm.disk.migrate
-        expect(vm.port_opened?).to be true
-      else
-        skip("skipped because we have not found available data stores for migration.")
-      end
-    end
-
-    it 'additional disk should be migrated if there is additional DS' do
-      if @disk.available_data_store_for_migration!=nil
-        @disk.migrate
-        expect(vm.port_opened?).to be true
-      else
-        skip("skipped because we have not found available data stores for migration.")
-      end
-    end
+    # it 'primary disk should be migrated if there is available DS on a cloud' do
+    #   if vm.disk.available_data_store_for_migration
+    #     vm.disk.migrate
+    #     expect(vm.port_opened?).to be true
+    #   else
+    #     skip("skipped because we have not found available data stores for migration.")
+    #   end
+    # end
+    #
+    # it 'additional disk should be migrated if there is additional DS' do
+    #   if @disk.available_data_store_for_migration!=nil
+    #     @disk.migrate
+    #     expect(vm.port_opened?).to be true
+    #   else
+    #     skip("skipped because we have not found available data stores for migration.")
+    #   end
+    # end
 
     it 'additional disk should be removed' do
       @disk.remove
@@ -215,12 +224,14 @@ describe 'Virtual Server actions tests' do
       end
 
       it 'Attach new' do
+        skip('Doest not work on gentoo') if @vm.operating_system_distro == 'gentoo'
         amount = vm.network_interface.amount
         vm.attach_network_interface
         expect(vm.network_interface.amount).to eq amount + 1
       end
 
       it 'Detach' do
+        skip('Doest not work on gentoo') if @vm.operating_system_distro == 'gentoo'
         amount = vm.network_interface.amount
         vm.network_interface('additional').remove
         expect(vm.network_interface.amount).to eq amount - 1

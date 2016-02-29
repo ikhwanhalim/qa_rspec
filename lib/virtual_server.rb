@@ -57,7 +57,8 @@ class VirtualServer
       rate_limit: '0',
       required_virtual_machine_startup: '1',
       cpu_shares: ('1' if !(hypervisor_type == 'kvm' && hypervisor.distro == 'centos5')),
-      swap_disk_size: ('1' if template.allowed_swap)
+      swap_disk_size: ('1' if template.allowed_swap),
+      licensing_type: ('mak' if template.operating_system == 'windows')
     }
   end
 
