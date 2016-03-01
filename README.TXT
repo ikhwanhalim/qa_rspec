@@ -8,6 +8,8 @@ To install ruby using rvm:
 rvm install ruby-2.0.0
 rvm use 2.0 --default
 
+Create 'log' folder and 'autotest.log' file inside
+
 Do not forget to add your own conf.yml file according to the provided examples in the config folder.
 
 !!!Don't forget put own ssh public key into control panel server for user onapp
