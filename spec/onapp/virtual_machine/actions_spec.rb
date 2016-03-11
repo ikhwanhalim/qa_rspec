@@ -145,23 +145,23 @@ describe 'Virtual Server actions tests' do
       expect(vm.disk('swap').disk_size_compare_with_interface).to eq true
     end
 
-    # it 'primary disk should be migrated if there is available DS on a cloud' do
-    #   if vm.disk.available_data_store_for_migration
-    #     vm.disk.migrate
-    #     expect(vm.port_opened?).to be true
-    #   else
-    #     skip("skipped because we have not found available data stores for migration.")
-    #   end
-    # end
-    #
-    # it 'additional disk should be migrated if there is additional DS' do
-    #   if @disk.available_data_store_for_migration!=nil
-    #     @disk.migrate
-    #     expect(vm.port_opened?).to be true
-    #   else
-    #     skip("skipped because we have not found available data stores for migration.")
-    #   end
-    # end
+    it 'primary disk should be migrated if there is available DS on a cloud' do
+      if vm.disk.available_data_store_for_migration
+        vm.disk.migrate
+        expect(vm.port_opened?).to be true
+      else
+        skip("skipped because we have not found available data stores for migration.")
+      end
+    end
+
+    it 'additional disk should be migrated if there is additional DS' do
+      if @disk.available_data_store_for_migration
+        @disk.migrate
+        expect(vm.port_opened?).to be true
+      else
+        skip("skipped because we have not found available data stores for migration.")
+      end
+    end
 
     it 'additional disk should be removed' do
       @disk.remove

@@ -85,16 +85,39 @@ class VirtualServer
     @last_transaction_id = interface.get("#{route}/transactions", {page: 1, per_page: 10}).first['transaction']['id']
   end
 
-  def wait_for_build(require_startup = true)
-    disk('primary').wait_for_build
-    disk('swap').wait_for_build if template.allowed_swap
-    disk('swap').wait_for_provision if template.operating_system == 'freebsd'
-    disk('primary').wait_for_provision if template.operating_system != 'freebsd'
+  def wait_for_build(image: template, require_startup: true, rebuild: false)
+    if rebuild
+      disk('primary').wait_for_format
+      disk('swap').wait_for_format if image.allowed_swap
+    else
+      disk('primary').wait_for_build
+      disk('swap').wait_for_build if image.allowed_swap
+    end
+
+    if image.operating_system == 'freebsd'
+      disk('swap').wait_for_provision
+    else
+      disk('primary').wait_for_provision
+    end
+
     wait_for_configure_operating_system
-    wait_for_provision_freebsd if template.operating_system == 'freebsd'
-    wait_for_provision_win if template.operating_system == 'windows'
+    wait_for_provision_freebsd if image.operating_system == 'freebsd'
+    wait_for_provision_win if image.operating_system == 'windows'
     wait_for_start if require_startup
     info_update
+  end
+
+  def rebuild(image: template, required_startup: 1)
+    params = {
+      virtual_machine: {
+        template_id: image.id,
+        required_startup: required_startup.to_s,
+        licensing_type: build_params[:licensing_type]
+      }
+    }
+    interface.post("#{route}/build", params)
+    return false if api_response_code  == '404'
+    wait_for_build(image: image, require_startup: !required_startup.zero?, rebuild: true)
   end
 
   def destroy
@@ -199,21 +222,6 @@ class VirtualServer
       interface.post("#{route}/reboot")
     end
     wait_for_reboot
-  end
-
-  def rebuild(template: template, required_startup: 1)
-    params = { virtual_machine: {template_id: template.id, required_startup: required_startup.to_s}}
-    interface.post("#{route}/build", params)
-    return false if api_response_code  == '404'
-    disk('primary').wait_for_format
-    disk('swap').wait_for_format if template.allowed_swap
-    disk('swap').wait_for_provision if template.operating_system == 'freebsd'
-    disk('primary').wait_for_provision if template.operating_system != 'freebsd'
-    wait_for_configure_operating_system
-    wait_for_provision_freebsd if template.operating_system == 'freebsd'
-    wait_for_provision_win if template.operating_system == 'windows'
-    wait_for_start if required_startup == 1
-    info_update
   end
 
   def reset_root_password
