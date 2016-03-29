@@ -87,12 +87,12 @@ module SshCommands
       "nc -z -w1 #{remote_ip} #{port};echo $?"
     end
 
-    def enable_incremantal_backups
-      'cd /onapp/interface;RAILS_ENV=production rake vm:switch_to_incremental_auto_backups;echo $?'
+    def enable_incremantal_autobackups
+      'cd /onapp/interface;RAILS_ENV=production bundle exec rake vm:switch_to_incremental_auto_backups;echo $?'
     end
 
-    def enable_normal_backups
-      'cd /onapp/interface;RAILS_ENV=production rake vm:switch_to_normal_auto_backups;echo $?'
+    def enable_normal_autobackups
+      'cd /onapp/interface;RAILS_ENV=production bundle exec rake vm:switch_to_normal_auto_backups;echo $?'
     end
   end
 end

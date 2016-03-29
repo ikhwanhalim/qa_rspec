@@ -38,7 +38,7 @@ module Network
   private
 
   def exit_ok?(command)
-    interface.execute_with_pass({'vm_host' => interface.ip, 'vm_user' => 'onapp'}, command).last.to_i == 0
+    interface.run_on_cp(command)
   end
 
   def ping_command(remote_ip)

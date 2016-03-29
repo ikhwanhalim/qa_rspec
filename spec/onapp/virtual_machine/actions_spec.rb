@@ -309,4 +309,41 @@ describe 'Virtual Server actions tests' do
       expect(vm.exist_on_hv?).to be true
     end
   end
+
+  describe 'Backups' do
+    let(:enable_incremental_autobackups) { SshCommands::OnControlPanel.enable_incremantal_autobackups }
+    let(:enable_normal_autobackups)      { SshCommands::OnControlPanel.enable_normal_autobackups }
+    let(:settings)                       { @vsa.settings }
+
+    after :all do
+      @vsa.settings.reset_to_primary
+    end
+
+    context 'Incremental backups allowed' do
+      before { skip unless settings.allow_incremental_backups }
+
+      it 'testing ability switch all VMs to normal autobackups' do
+        vm.autobackup('enable')
+        settings.setup(allow_incremental_backups: false)
+        expect(@vsa.run_on_cp enable_normal_autobackups).to be true
+        #TODO CORE-6634
+        #expect(vm.info_update.support_incremental_backups).to be false
+        expect(vm.wait_for_building_backups).to be true
+        expect(vm.disk.has_autobackups).to be true
+      end
+    end
+
+    context 'Normal backups allowed' do
+      before { skip if settings.allow_incremental_backups }
+
+      it 'testing ability switch all VMs to incremental autobackups' do
+        vm.disk.autobackup('enable')
+        settings.setup(allow_incremental_backups: true)
+        expect(@vsa.run_on_cp enable_incremental_autobackups).to be true
+        expect(vm.info_update.support_incremental_backups).to be true
+        expect(vm.wait_for_building_backups).to be true
+        expect(vm.disk.has_autobackups).to be false
+      end
+    end
+  end
 end

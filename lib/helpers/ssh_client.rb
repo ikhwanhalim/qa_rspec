@@ -16,6 +16,10 @@ module SshClient
     end
   end
 
+  def run_on_cp(command)
+    execute_with_pass({'vm_host' => ip, 'vm_user' => 'onapp'}, command).last.to_i.zero?
+  end
+
   def execute_with_keys(host, user, command)
     keys = `ls ~/.ssh/*.pub`
     keys.sub!(/\.pub.*\n$/,"")

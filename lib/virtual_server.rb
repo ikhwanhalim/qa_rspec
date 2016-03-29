@@ -121,7 +121,7 @@ class VirtualServer
   end
 
   def destroy
-    interface.delete("#{route}")
+    interface.delete("#{route}", {destroy_all_backups: 1})
     return false if api_response_code  == '404'
     wait_for_destroy
   end
@@ -343,6 +343,10 @@ class VirtualServer
     @network_interfaces.map! do |x|
       NetworkInterface.new(self).info_update(x['network_interface'])
     end
+  end
+
+  def autobackup(status = 'enable')
+    interface.post("#{route}/autobackup_#{status}")
   end
 end
 

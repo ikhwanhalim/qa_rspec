@@ -1,3 +1,5 @@
+require_relative 'transaction.rb'
+
 module VmOperationsWaiters
   include Transaction
 
@@ -75,6 +77,18 @@ module VmOperationsWaiters
 
   def wait_for_rebuild_network
     wait_for_transaction(id, 'VirtualMachine', 'rebuild_network')
+  end
+
+  def wait_for_building_backups
+    wait_until(30, 1) { building_backups_exist? }
+  rescue Timeout::Error
+    return false
+    wait_until(10800, 10) { !building_backups_exist? }
+  end
+
+  def building_backups_exist?
+    backups = interface.get("/users/#{user_id}/backups").map &:backup
+    backups.select { |b| b.built == false }.any?
   end
 
   #FederationTrader

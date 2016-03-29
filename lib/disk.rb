@@ -117,4 +117,8 @@ class Disk
       false
     end
   end
+
+  def autobackup(status = 'enable')
+    interface.post("/settings/disks/#{id}/autobackup_#{status}")
+  end
 end

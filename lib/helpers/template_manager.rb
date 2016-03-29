@@ -44,7 +44,7 @@ module TemplateManager
   end
 
   def remove_template(id)
-    delete("/templates/#{id}")
+    interface.delete("/templates/#{id}")
   end
 end
 
