@@ -98,14 +98,12 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'should be impossible to add second primary disk with template min_disk_size to VS' do
-      skip("CORE-3333") if version == 4.1
       vm.add_disk(primary: true, primary_disk_size: vm.template.min_disk_size)
       expect(vm.api_response_code).to eq '422'
     end
 
 
     it 'should be impossible to add second primary disk with minimal available size to VS' do
-      skip("CORE-3333") if version == 4.1
       vm.add_disk(primary: true)
       expect(vm.api_response_code).to eq '422'
     end
@@ -240,7 +238,7 @@ describe 'Virtual Server actions tests' do
       it 'Detach primary network interface and attach again' do
         ip = vm.ip_address
         vm.network_interface.remove
-        expect(vm.not_pinged?(ip)).to be true
+        expect(vm.not_pinged?(remote_ip: ip)).to be true
         vm.attach_network_interface(primary: true)
         vm.network_interface.allocate_new_ip
         vm.rebuild_network
@@ -262,7 +260,7 @@ describe 'Virtual Server actions tests' do
       expect(vm.interface.execute_with_pass(creds, 'hostname')).to include 'recovery'
       vm.reboot
       expect(vm.port_opened?).to be true
-      expect(vm.ssh_execute('hostname').last).to include vm.hostname
+      expect(vm.ssh_execute('hostname')).to include vm.hostname
     end
   end
 

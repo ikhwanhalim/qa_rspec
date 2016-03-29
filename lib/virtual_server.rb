@@ -164,11 +164,16 @@ class VirtualServer
   end
 
   def available_network_join_ids
+    all_network_joins.delete_if do |j|
+      j.id == network_interface.network_join_id ||
+          j.target_join_id == network_interface.ip_address.network_id
+    end.map(&:id)
+  end
+
+  def all_network_joins
     all = interface.get("/settings/hypervisor_zones/#{hypervisor.hypervisor_group_id}/network_joins")
     all += interface.get("/settings/hypervisors/#{hypervisor.id}/network_joins")
-    all.map do |i|
-      i.network_join.id if i.network_join.id != network_interface.network_join_id
-    end.uniq.compact
+    all.map(&:network_join)
   end
 
   def rebuild_network(**params)
