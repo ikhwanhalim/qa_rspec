@@ -47,10 +47,10 @@ describe "Federation Virtual Machine" do
       expect(trader.vm.pinged? && trader.vm.port_opened?).to be true
     end
 
-    it "trader should be able rebuild vm" do
+    it "trader should be able rebuild vm", skip: 'CORE-6665' do
       skip('CORE-5530') if supplier.version == 4.2 || trader.version == 4.2
       trader.vm.rebuild
-      expect(trader.vm.ssh_execute('hostname').last).to include(trader.vm.hostname)
+      expect(trader.vm.ssh_execute('hostname').join(' ')).to match trader.vm.hostname
     end
 
     it 'reset root password' do
@@ -59,7 +59,7 @@ describe "Federation Virtual Machine" do
       trader.vm.reset_root_password
       expect(trader.vm.initial_root_password).not_to eq old_password
       expect(trader.vm.port_opened?).to be true
-      expect(trader.vm.ssh_execute('hostname').last).to include(trader.vm.hostname)
+      expect(trader.vm.ssh_execute('hostname').join(' ')).to match trader.vm.hostname
     end
 
     it 'rebuild network' do
@@ -67,7 +67,7 @@ describe "Federation Virtual Machine" do
       expect(trader.vm.up?).to be true
     end
 
-    describe 'Perform disk action', pending: 'CORE-5530' do
+    describe 'Perform disk action' do
       before :all do
         @disk = @federation.trader.vm.add_disk
         @federation.supplier.vm.disks(label: @disk.label).first.wait_for_build
@@ -157,7 +157,7 @@ describe "Federation Virtual Machine" do
     end
 
     it "connect via SSH with own ssh keys" do
-      expect(supplier.vm.ssh_execute('hostname').last).to_not include(supplier.vm.hostname)
+      expect(supplier.vm.ssh_execute('hostname').join(' ')).to_not match supplier.vm.hostname
     end
   end
 end

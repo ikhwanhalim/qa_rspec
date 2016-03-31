@@ -33,11 +33,15 @@ describe "Market" do
         expect(trader.zone_disappeared?(federation_id)).to be true
       end
 
-      it 'sould be able switch zone to public' do
-        supplier.make_public
-        expect(trader.zone_appeared?(federation_id)).to be true
-        supplier.make_private
-        expect(trader.zone_disappeared?(federation_id)).to be true
+      it 'switch zone to public process' do
+        if supplier.version >= 4.3
+          expect(supplier.make_public).to be false
+        else
+          supplier.make_public
+          expect(trader.zone_appeared?(federation_id)).to be true
+          supplier.make_private
+          expect(trader.zone_disappeared?(federation_id)).to be true
+        end
       end
     end
 

@@ -60,6 +60,7 @@ class FederationSupplier
 
   def make_public
     put("/federation/hypervisor_zones/#{@hvz_id}/make_public")
+    return false if conn.page.code == '404'
   end
 
   def make_private
