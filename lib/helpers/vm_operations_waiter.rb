@@ -80,9 +80,11 @@ module VmOperationsWaiters
   end
 
   def wait_for_building_backups
-    wait_until(30, 1) { building_backups_exist? }
-  rescue Timeout::Error
-    return false
+    begin
+      wait_until(30, 1) { building_backups_exist? }
+    rescue Timeout::Error
+      return false
+    end
     wait_until(10800, 10) { !building_backups_exist? }
   end
 

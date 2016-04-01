@@ -318,7 +318,7 @@ describe 'Virtual Server actions tests' do
     end
 
     context 'Incremental backups allowed' do
-      before { skip unless settings.allow_incremental_backups }
+      before { skip('Incremental backups disabled') unless settings.allow_incremental_backups }
 
       it 'testing ability switch all VMs to normal autobackups' do
         vm.autobackup('enable')
@@ -332,7 +332,7 @@ describe 'Virtual Server actions tests' do
     end
 
     context 'Normal backups allowed' do
-      before { skip if settings.allow_incremental_backups }
+      before { skip('Normal backups disabled') if settings.allow_incremental_backups }
 
       it 'testing ability switch all VMs to incremental autobackups' do
         vm.disk.autobackup('enable')
