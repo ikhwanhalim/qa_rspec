@@ -27,7 +27,7 @@ class Hypervisor
     distro = select_distro(virt)
     interface.get("/hypervisors").map(&:hypervisor).each do |h|
       if max_free < h.free_memory && h.distro == distro && h.hypervisor_type == virtualization &&
-          h.enabled && h.server_type == 'virtual' && h.online
+          h.enabled && h.server_type == 'virtual' && h.online && h.label !~ /fake/i
         hv = hvz_id ? (h if hvz_id == h.hypervisor_group_id) : h
         max_free = h.free_memory
       end
