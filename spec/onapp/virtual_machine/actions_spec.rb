@@ -199,16 +199,28 @@ describe 'Virtual Server actions tests' do
     end
 
     describe 'Firewall rules' do
+      after do
+        vm.network_interface.reset_firewall_rules
+        vm.network_interface.set_default_firewall_rule
+        vm.update_firewall_rules
+      end
+
       it 'Set DROP default rule' do
-        skip
+        vm.network_interface.set_default_firewall_rule('DROP')
+        vm.update_firewall_rules
+        expect(vm.not_pinged?).to be true
       end
 
       it 'Set DROP rule for TCP custom port' do
-        skip
+        vm.network_interface.add_custom_firewall_rule(command: 'DROP')
+        vm.update_firewall_rules
+        expect(vm.port_closed?).to be true
       end
 
       it 'Set DROP rule for ICMP' do
-        skip
+        vm.network_interface.add_custom_firewall_rule(command: 'DROP', protocol: 'ICMP')
+        vm.update_firewall_rules
+        expect(vm.not_pinged?).to be true
       end
     end
 
