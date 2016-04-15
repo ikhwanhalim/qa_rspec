@@ -25,7 +25,7 @@ describe 'Virtual Server actions tests' do
   end
 
   describe 'VM power operations' do
-    describe 'After build' do
+    describe 'After build', :smoke do
       it { expect(vm.pinged?).to be true }
 
       it { expect(vm.exist_on_hv?).to be true }
