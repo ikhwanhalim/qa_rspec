@@ -353,6 +353,11 @@ class VirtualServer
   def autobackup(status = 'enable')
     interface.post("#{route}/autobackup_#{status}")
   end
+
+  def join_recipe_to(recipe_id, event_type)
+    recipe_join = { recipe_join: { recipe_id: recipe_id, event_type: event_type} }
+    interface.post("#{route}/recipe_joins", recipe_join)
+  end
 end
 
 

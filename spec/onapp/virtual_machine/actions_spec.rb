@@ -356,4 +356,45 @@ describe 'Virtual Server actions tests' do
       end
     end
   end
+
+  describe 'Recipes' do
+    before(:all) do
+      @recipe_group = Recipe::Group.new(@vsa).create
+      @recipe_group.attach_recipe
+      @recipe = @recipe_group.recipes.first
+    end
+
+    after(:all) do
+      @recipe_group.recipes.map &:remove
+      @recipe_group.remove
+    end
+
+    context 'have been joined and applied to vm_network_rebuild event' do
+      before(:all) do
+        @vm.join_recipe_to(@recipe.id, 'vm_network_rebuild')
+        @vm.rebuild_network
+      end
+
+      it 'should be joined' do
+        expect(@vsa.get("#{vm.route}/recipe_joins")).to have_key(:vm_network_rebuild)
+      end
+
+      it 'transaction should be successfully complited' do
+        expect(vm.wait_for_run_recipes_on_server).to be true
+      end
+
+      it 'recipe should be applied' do
+        expect(vm.ssh_execute('ls /root/')).to include @recipe.label
+      end
+
+      it 'env variables should be exported' do
+        out = vm.ssh_execute('cat /root/' + @recipe.label)
+        expect(out).to include vm.identifier
+        expect(out).to include vm.ip_address
+        expect(out).to include vm.hostname
+        expect(out).to include vm.operating_system_distro
+        expect(out).to include vm.initial_root_password
+      end
+    end
+  end
 end

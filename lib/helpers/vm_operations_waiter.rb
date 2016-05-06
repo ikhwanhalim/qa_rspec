@@ -79,6 +79,10 @@ module VmOperationsWaiters
     wait_for_transaction(id, 'VirtualMachine', 'rebuild_network')
   end
 
+  def wait_for_run_recipes_on_server
+    wait_for_transaction(id, 'VirtualMachine', 'run_recipe_on_vm')
+  end
+
   def wait_for_building_backups
     begin
       wait_until(30, 1) { building_backups_exist? }
