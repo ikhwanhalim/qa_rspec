@@ -85,6 +85,18 @@ module SshCommands
         "xm sched-credit | grep #{vm_identifier} || echo 'false'"
       end
     end
+
+    def force_remount_data(remote_ip)
+      "umount -f /data;mount -t nfs #{remote_ip}:/data/ /data/"
+    end
+
+    def data_mounted
+      'mount|grep data'
+    end
+
+    def find_file(path, file_name)
+      "find #{path} -name #{file_name}"
+    end
   end
 
   module OnControlPanel

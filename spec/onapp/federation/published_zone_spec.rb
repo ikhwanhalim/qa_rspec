@@ -34,7 +34,7 @@ describe "Market" do
       end
 
       it 'switch zone to public process' do
-        if supplier.version >= 4.3
+        if supplier.version >= 5.0
           expect(supplier.make_public).to be false
         else
           supplier.make_public

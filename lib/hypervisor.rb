@@ -41,6 +41,21 @@ class Hypervisor
     interface.tunnel_execute({'vm_host' => ip_address}, script)
   end
 
+  def remount_data
+    command = SshCommands::OnHypervisor.force_remount_data(interface.ip)
+    ssh_execute command
+  end
+
+  def is_data_mounted?
+    command = SshCommands::OnHypervisor.data_mounted
+    !!ssh_execute(command).last
+  end
+
+  def find_exist(path, file_name)
+    command = SshCommands::OnHypervisor.find_file(path, file_name)
+    !!ssh_execute(command).last
+  end
+
   private
 
   def select_virtualization(virt)
