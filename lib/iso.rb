@@ -11,7 +11,8 @@ class Iso
     {
       label: @label || "ISO-#{SecureRandom.hex(4)}",
       make_public: '0',
-      min_memory_size: '256',
+      min_memory_size: '128',
+      min_disk_size: 5,
       version: '1.0',
       operating_system: 'Linux',
       operating_system_distro: 'Fedora',

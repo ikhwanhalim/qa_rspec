@@ -294,29 +294,73 @@ describe 'Virtual Server actions tests' do
     let(:iso) { @vsa.iso }
 
     it 'Reboot VS from ISO' do
-      skip('Virtual Server cannot be booted from this ISO') if !vm.can_be_booted_from_iso?
+      skip('Virtual Server cannot be rebooted from this ISO') if !vm.can_be_booted_from_iso?
       vm.reboot_from_iso(iso.id)
+      expect(vm.api_response_code).to eq '200'
       expect(vm.exist_on_hv?).to be true
     end
 
     it 'Reboot VS from ISO if not enough memory' do
-      iso.edit(min_memory_size: vm.memory.to_i + 10)
+      iso.edit(min_memory_size: vm.memory.to_i + 10,
+               min_disk_size: vm.total_disk_size - 1)
       vm.reboot_from_iso(iso.id)
+      expect(vm.api_response_code).to eq '422'
       expect(vm.exist_on_hv?).to be true
     end
 
     it 'Reboot VS from ISO if incorrect virtualization type' do
-      vm.hypervisor_type == 'xen' ? iso.edit(virtualization: 'kvm') : iso.edit(virtualization: 'xen')
+      skip("https://onappdev.atlassian.net/browse/CORE-5721")
+      vm.hypervisor_type == 'xen' ? iso.edit(virtualization: 'kvm', min_memory_size: vm.memory.to_i, min_disk_size: vm.total_disk_size - 1) : iso.edit(virtualization: 'xen', min_memory_size: vm.memory.to_i, min_disk_size: vm.total_disk_size - 1)
       vm.reboot_from_iso(iso.id)
+      expect(vm.api_response_code).to eq '422'
+      expect(vm.exist_on_hv?).to be true
+    end
+
+    it 'Reboot VS from ISO if not enough disk space' do
+      iso.edit(min_disk_size: vm.total_disk_size + 10,
+               min_memory_size: vm.memory.to_i)
+      vm.reboot_from_iso(iso.id)
+      expect(vm.api_response_code).to eq '422'
       expect(vm.exist_on_hv?).to be true
     end
 
     it 'Boot VS from ISO' do
       skip('Virtual Server cannot be booted from this ISO') if !vm.can_be_booted_from_iso?
-      vm.shut_down
+      vm.shut_down if vm.exist_on_hv?
       expect(vm.exist_on_hv?).to be false
       vm.boot_from_iso(iso.id)
+      expect(vm.api_response_code).to eq '200'
       expect(vm.exist_on_hv?).to be true
+    end
+
+    it 'Boot VS from ISO if not enough memory' do
+      iso.edit(min_memory_size: vm.memory.to_i + 10,
+              min_disk_size: vm.total_disk_size - 1)
+      vm.shut_down if vm.exist_on_hv?
+      expect(vm.exist_on_hv?).to be false
+      vm.boot_from_iso(iso.id)
+      expect(vm.api_response_code).to eq '422'
+      expect(vm.exist_on_hv?).to be false
+    end
+
+    it 'Boot VS from ISO if incorrect virtualization type' do
+      skip("https://onappdev.atlassian.net/browse/CORE-5721")
+      vm.hypervisor_type == 'xen' ? iso.edit(virtualization: 'kvm', min_memory_size: vm.memory.to_i, min_disk_size: vm.total_disk_size - 1) : iso.edit(virtualization: 'xen', min_memory_size: vm.memory.to_i, min_disk_size: vm.total_disk_size - 1)
+      vm.shut_down if vm.exist_on_hv?
+      expect(vm.exist_on_hv?).to be false
+      vm.boot_from_iso(iso.id)
+      expect(vm.api_response_code).to eq '422'
+      expect(vm.exist_on_hv?).to be false
+    end
+
+    it 'Boot VS from ISO if not enough disk space' do
+      iso.edit(min_disk_size: vm.total_disk_size + 10,
+               min_memory_size: vm.memory.to_i)
+      vm.shut_down if vm.exist_on_hv?
+      expect(vm.exist_on_hv?).to be false
+      vm.boot_from_iso(iso.id)
+      expect(vm.api_response_code).to eq '422'
+      expect(vm.exist_on_hv?).to be false
     end
   end
 

@@ -27,7 +27,7 @@ describe 'ISO functionality tests' do
     end
 
     it 'Create ISO with incorrect min_disk_size' do
-      skip('Fixed 4.2')
+      #skip('Fixed 4.2')
       iso.create(min_disk_size: 0)
       expect(iso.errors['min_disk_size']).to eq(["must be greater than or equal to 1"])
     end
@@ -62,7 +62,7 @@ describe 'ISO functionality tests' do
     end
 
     it 'Edit ISO with incorrect min_disk_size' do
-      skip('Fixed 4.2')
+      #skip('Fixed 4.2')
       iso.edit(min_disk_size: 0)
       expect(iso.errors['min_disk_size']).to eq(["must be greater than or equal to 1"])
     end
@@ -87,11 +87,11 @@ describe 'ISO functionality tests' do
     before (:all) do
       @data = {
         label: 'EditedISO',
-        min_memory_size: 128,
+        min_memory_size: 256,
         min_disk_size: 20,
         version: '2.0',
-        operating_system: 'Freebsd',
-        operating_system_distro: 'Debian',
+        operating_system: 'freebsd',
+        operating_system_distro: 'debian',
         virtualization: ["kvm", "kvm_virtio"]
       }
       @iso.edit(@data)
