@@ -8,6 +8,11 @@ module DiskOperationsWaiters
     info_update
   end
 
+  def wait_for_attach
+    wait_for_transaction(id, 'Disk', 'attach_disk')
+    info_update
+  end
+
   def wait_for_provision
     wait_for_transaction(id, 'Disk', 'provisioning')
     info_update
@@ -20,6 +25,11 @@ module DiskOperationsWaiters
 
   def wait_for_destroy
     wait_for_transaction(id, 'Disk', 'destroy_disk')
+    info_update
+  end
+
+  def wait_for_detach
+    wait_for_transaction(id, 'Disk', 'detach_disk')
     info_update
   end
 

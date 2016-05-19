@@ -69,6 +69,11 @@ describe 'Virtual Server actions tests' do
       @disk.wait_for_build
     end
 
+    def hot_actions_supported?
+      @vsa.hypervisor.distro != "centos5" && @vsa.template.virtualization.include?('virtio') &&
+          @vsa.hypervisor.hypervisor_type == 'kvm'
+    end
+
     it 'additional disk size should be increased' do
       new_disk_size = @disk.disk_size + 2
       @disk.edit(disk_size: new_disk_size, add_to_linux_fstab: true)
@@ -164,6 +169,15 @@ describe 'Virtual Server actions tests' do
     it 'additional disk should be removed' do
       @disk.remove
       expect(vm.disks.count).to eq @disks_count_before_test
+    end
+
+    it 'additional disk should be hot attached/detached' do
+      skip('Hot actions not supported') unless hot_actions_supported?
+      expect(vm.pinged?).to be true
+      disk = vm.add_disk(hot_attach: 1)
+      disk.wait_for_attach
+      expect(disk.disk_size_compare_with_interface).to be true
+      disk.detach
     end
   end
 
@@ -277,10 +291,10 @@ describe 'Virtual Server actions tests' do
   end
 
 #Reboot VS from ISO
-  describe 'Reboot VS from ISO' do
+  describe 'ISO' do
     before :all do
       @vsa.iso = Iso.new(@vsa)
-      @is_folder_mounted = @vsa.iso.exists_on_hv?
+      @is_folder_mounted = @vsa.hypervisor.is_data_mounted?
       @vsa.iso.create if @is_folder_mounted
     end
 
@@ -292,6 +306,12 @@ describe 'Virtual Server actions tests' do
     before { skip('The data folder isn\'t mounted on HV') unless @is_folder_mounted }
 
     let(:iso) { @vsa.iso }
+    let(:hypervisor) { @vsa.hypervisor }
+
+    it 'ISO file should exist on HV' do
+      hypervisor.remount_data unless hypervisor.find_exist('/data', iso.file_name)
+      expect(hypervisor.find_exist('/data', iso.file_name)).to be true
+    end
 
     it 'Reboot VS from ISO' do
       skip('Virtual Server cannot be booted from this ISO') if !vm.can_be_booted_from_iso?

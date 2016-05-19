@@ -76,10 +76,19 @@ class Disk
     info_update(params)
   end
 
-  def remove
-    interface.delete(@route)
+  def remove(**params)
+    data = {force: 1, shutdown_type: 'graceful', required_startup: 1}
+    interface.delete(@route, data.merge(params))
     return if interface.conn.page.code != '204'
     wait_for_destroy
+  end
+
+  #TODO refactoring
+  def detach
+    #Detach should supported as default action
+    interface.delete(@route)
+    return if interface.conn.page.code != '204'
+    wait_for_detach
   end
 
   def build_params
@@ -89,7 +98,8 @@ class Disk
       is_swap: false,
       require_format_disk: true,
       add_to_linux_fstab: true,
-      file_system: 'ext3'
+      file_system: 'ext3',
+      hot_attach: 0
     }
   end
 
