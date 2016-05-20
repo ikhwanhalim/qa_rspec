@@ -1,7 +1,7 @@
 class Iso
   include Transaction
   attr_reader :interface, :errors, :id, :label, :min_memory_size, :version, :operating_system, :operating_system_distro,
-              :virtualization, :user_id, :min_disk_size
+              :virtualization, :user_id, :min_disk_size, :file_name
 
   def initialize(interface)
     @interface = interface
@@ -64,10 +64,6 @@ class Iso
 
   def api_response_code
     interface.conn.page.code
-  end
-
-  def exists_on_hv?
-    !!interface.hypervisor.ssh_execute("mount|grep data").last
   end
 
   private
