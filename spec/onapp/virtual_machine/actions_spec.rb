@@ -5,10 +5,12 @@ describe 'Virtual Server actions tests' do
   before :all do
     @vsa = VirtualServerActions.new.precondition
     @vm = @vsa.virtual_machine
+    @template = @vsa.template
   end
 
   after :all do
     @vm.destroy
+    @template.remove if @vm.find_by_template(@template.id).empty?
   end
 
   # FOR DEBUG

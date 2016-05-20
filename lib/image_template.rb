@@ -25,6 +25,11 @@ class ImageTemplate
     self
   end
 
+  def remove
+    interface.delete("/templates/#{id}")
+    wait_for_transaction(id, "ImageTemplateBase", "destroy_template")
+  end
+
   def db_enable_hotresize
     interface.query("update templates set resize_without_reboot_policy='---\n:xen:\n  :centos5: 15\n  :centos6: 15\n:kvm:\n  :centos5: 15\n  :centos6: 15\n' where id=#{id}")
     interface.query("update templates set allow_resize_without_reboot=1 where id=#{id}")

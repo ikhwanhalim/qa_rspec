@@ -42,9 +42,5 @@ module TemplateManager
     wait_for_transaction(id, "ImageTemplateBase", "distribute_template")
     wait_for_transaction(id, "ImageTemplateBase", "cleanup_template")
   end
-
-  def remove_template(id)
-    interface.delete("/templates/#{id}")
-  end
 end
 

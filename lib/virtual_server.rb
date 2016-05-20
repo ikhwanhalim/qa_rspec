@@ -74,11 +74,16 @@ class VirtualServer
   end
 
   def find_by_label(label)
-    interface.get('/virtual_machines').select { |vm| vm.label == label }
+    all.select { |vm| vm.label == label }
   end
 
+  def find_by_template(image_template_id)
+    all.select { |vm| vm.template_id ==  image_template_id}
+  end
+
+
   def all
-    interface.get('/virtual_machines')
+    interface.get('/virtual_machines').map &:virtual_machine
   end
 
   def update_last_transaction
