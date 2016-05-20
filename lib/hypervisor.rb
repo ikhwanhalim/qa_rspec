@@ -32,8 +32,8 @@ class Hypervisor
         max_free = h.free_memory
       end
     end
-    Log.info("Hypervisor with id #{hv.id} has been selected")
     hv ? info_update(hv) : Log.error('Hypervisor was not found')
+    Log.info("Hypervisor with id #{hv.id} has been selected")
     self
   end
 

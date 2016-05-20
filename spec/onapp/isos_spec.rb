@@ -27,7 +27,6 @@ describe 'ISO functionality tests' do
     end
 
     it 'Create ISO with incorrect min_disk_size' do
-      #skip('Fixed 4.2')
       iso.create(min_disk_size: 0)
       expect(iso.errors['min_disk_size']).to eq(["must be greater than or equal to 1"])
     end

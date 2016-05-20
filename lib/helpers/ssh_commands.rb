@@ -62,6 +62,17 @@ module SshCommands
     def ip_addresses
       "ip -o addr show | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort | uniq"
     end
+
+    def recipe_script(file)
+      "echo $VM_IDENTIFIER>>#{file};"\
+      "echo $IP_ADDRESS>>#{file};"\
+      "echo $HOSTNAME>>#{file};"\
+      "echo $ROOT_PASSWORD>>#{file};"\
+      "echo $OPERATING_SYSTEM>>#{file};"\
+      "echo $OPERATING_SYSTEM_DISTRO>>#{file};"\
+      "echo $OPERATING_SYSTEM_ARCH>>#{file};"\
+      "echo $OPERATING_SYSTEM_EDITION>>#{file};"\
+    end
   end
 
   module OnHypervisor
