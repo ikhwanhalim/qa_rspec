@@ -21,33 +21,37 @@ describe "Federation Virtual Machine" do
   let(:supplier) { @federation.supplier }
   let(:trader) { @federation.trader }
   let(:market) { @federation.market }
-
-  it "should pinged after booting" do
+  
+  it 'should pinged after booting' do
     expect(trader.vm.up?).to be true
   end
 
-  it "should be created on supplier HV" do
+  it 'should be created on supplier HV' do
     expect(supplier.vm.exist_on_hv?).to be true
   end
 
-  it "seller and buyer passwords should be different" do
+  it 'seller and buyer passwords should be different' do
      expect(trader.vm.initial_root_password).not_to eq supplier.vm.initial_root_password
   end
 
+  it 'buyer should have access to vm via ssh' do
+    expect(trader.vm.ssh_execute('hostname').join(' ')).to match trader.vm.hostname
+  end
+
   describe 'Supplier should be able' do
-    it "supplier should be able reboot" do
+    it 'supplier should be able reboot' do
       expect(supplier.vm.reboot).to be true
       expect(supplier.vm.up?).to be true
     end
   end
 
   describe 'Trader should be able' do
-    it "trader should be able reboot" do
+    it 'trader should be able reboot' do
       expect(trader.vm.reboot).to be true
       expect(trader.vm.pinged? && trader.vm.port_opened?).to be true
     end
 
-    it "trader should be able rebuild vm", skip: 'CORE-6665' do
+    it 'trader should be able rebuild vm' do
       skip('CORE-5530') if supplier.version == 4.2 || trader.version == 4.2
       trader.vm.rebuild
       expect(trader.vm.ssh_execute('hostname').join(' ')).to match trader.vm.hostname
@@ -124,39 +128,39 @@ describe "Federation Virtual Machine" do
       expect(supplier.vm.reset_root_password).to be false
     end
 
-    it "rebuild vm" do
+    it 'rebuild vm' do
       expect(supplier.vm.rebuild).to be false
     end
 
-    it "delete vm" do
+    it 'delete vm' do
       expect(supplier.vm.destroy).to be false
     end
 
-    it "add firewall rule" do
+    it 'add firewall rule' do
       expect(!!supplier.vm.network_interface.add_custom_firewall_rule).to be false
     end
 
-    it "rebuild network" do
+    it 'rebuild network' do
       expect(supplier.vm.rebuild_network).to be false
     end
 
-    it "add disk" do
+    it 'add disk' do
       expect(!!supplier.vm.add_disk).to be false
     end
 
-    it "destroy swap disk" do
+    it 'destroy swap disk' do
       expect(!!supplier.vm.disk('swap').remove).to be false
     end
 
-    it "allocate IP address" do
+    it 'allocate IP address' do
       expect(!!supplier.vm.network_interface.allocate_new_ip).to be false
     end
 
-    it "remove IP address" do
+    it 'remove IP address' do
       expect(!!supplier.vm.network_interface.remove_ip).to be false
     end
 
-    it "connect via SSH with own ssh keys" do
+    it 'connect via SSH with own ssh keys' do
       expect(supplier.vm.ssh_execute('hostname').join(' ')).to_not match supplier.vm.hostname
     end
   end

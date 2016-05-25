@@ -137,10 +137,10 @@ class FederationSupplier
   def vm
     @vm ||= -> {
       server = VirtualServer.new(self)
-      virtual_machine = server.all.detect do |s|
-        vm_primary_ip = s.virtual_machine.ip_addresses.first
+      virtual_machine = virtual_machines.detect do |s|
+        vm_primary_ip = s.ip_addresses.first
         vm_primary_ip && vm_primary_ip.ip_address.address == federation.trader.vm.ip_address
-      end.virtual_machine
+      end
       server.find(virtual_machine.id)
     }.call
   end
