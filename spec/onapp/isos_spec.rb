@@ -85,7 +85,7 @@ describe 'ISO functionality tests' do
   describe 'Edit ISO positive tests' do
     before (:all) do
       @data = {
-        label: 'EditedISO',
+        label: "ISO-#{SecureRandom.hex(4)}",
         min_memory_size: 256,
         min_disk_size: 20,
         version: '2.0',
