@@ -87,7 +87,9 @@ class VirtualServer
   end
 
   def update_last_transaction
-    @last_transaction_id = interface.get("#{route}/transactions", {page: 1, per_page: 10}).first['transaction']['id']
+    define_last_transaction_id
+    interface.last_transaction_id = interface.get("/transactions", {page: 1, per_page: 10}).first['transaction']['id']
+    Log.info("Last transaction id: #{@last_transaction_id}")
   end
 
   def wait_for_build(image: template, require_startup: true, rebuild: false)
@@ -261,7 +263,7 @@ class VirtualServer
              elsif hypervisor_type == 'xen'
                hypervisor.ssh_execute("xm list | grep #{identifier}")
              end
-    !!result.last
+    result.last.try(:include?, identifier)
   end
 
   def update_os

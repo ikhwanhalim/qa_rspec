@@ -9,8 +9,10 @@ describe 'Virtual Server actions tests' do
   end
 
   after :all do
-    @vm.destroy
-    @template.remove if @vm.find_by_template(@template.id).empty?
+    unless VirtualServerActions::IDENTIFIER
+      @vm.destroy
+      @template.remove if @vm.find_by_template(@template.id).empty?
+    end
   end
 
   # FOR DEBUG

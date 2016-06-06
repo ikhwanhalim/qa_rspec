@@ -11,14 +11,14 @@ module Transaction
     transaction_completing(transaction)
   end
 
-  private
-
   def define_last_transaction_id
     interface.last_transaction_id
   rescue NoMethodError
     interface.class_eval{attr_accessor :last_transaction_id}
     interface.last_transaction_id ||= 0
   end
+
+  private
 
   def appeared_transaction(parent_id, parent_type, action)
     wait_until(300, 5) do

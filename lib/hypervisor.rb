@@ -48,12 +48,12 @@ class Hypervisor
 
   def is_data_mounted?
     command = SshCommands::OnHypervisor.data_mounted
-    !!ssh_execute(command).last
+    ssh_execute(command).last.try(:include?, 'data')
   end
 
   def find_exist(path, file_name)
     command = SshCommands::OnHypervisor.find_file(path, file_name)
-    !!ssh_execute(command).last
+    ssh_execute(command).last.try(:include?, file_name)
   end
 
   private
