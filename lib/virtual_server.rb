@@ -89,7 +89,6 @@ class VirtualServer
   def update_last_transaction
     define_last_transaction_id
     interface.last_transaction_id = interface.get("/transactions", {page: 1, per_page: 10}).first['transaction']['id']
-    Log.info("Last transaction id: #{@last_transaction_id}")
   end
 
   def wait_for_build(image: template, require_startup: true, rebuild: false)

@@ -1,9 +1,12 @@
 module SshClient
   HOST_KEY_VERIFICATION = '-o StrictHostKeyChecking=no'
+  PORT = ENV['PORT']
+
   #Example for cred - {'vm_user'=>'name', 'vm_host'=>'ip', 'cp_hostname'=>'name', 'cp_ip'=>'ip'}
   def tunnel_execute(cred={}, command)
     Log.error("HV ip should not be nil") unless cred['vm_host']
-    cmd = "echo \"#{command}\" | ssh -T #{HOST_KEY_VERIFICATION} onapp@#{ip} ssh -T #{HOST_KEY_VERIFICATION} root@#{cred['vm_host']}"
+    port_option = "-p#{PORT}" if PORT
+    cmd = "echo \"#{command}\" | ssh -T #{HOST_KEY_VERIFICATION} #{port_option} onapp@#{ip} ssh -T #{HOST_KEY_VERIFICATION} root@#{cred['vm_host']}"
     Log.info(cmd)
     %x[ #{cmd} 2>&1 ].split /[\r,\n]/
   end
@@ -11,7 +14,7 @@ module SshClient
   #Example for cred - {'vm_user'=>'name', 'vm_host'=>'ip', 'vm_pass'=>'pass'}
   def execute_with_pass(cred={}, command)
     Log.info("Execute #{command}. Credentials #{cred['vm_host']}/#{cred['vm_pass']}")
-    Net::SSH.start(cred['vm_host'], cred['vm_user'] || 'root', :password => cred['vm_pass'], :paranoid => false) do |ssh|
+    Net::SSH.start(cred['vm_host'], cred['vm_user'] || 'root', :password => cred['vm_pass'], :port => PORT || '22', :paranoid => false) do |ssh|
       ssh.exec!(command).to_s.split("\n")
     end
   end

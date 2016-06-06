@@ -22,8 +22,9 @@ CONF_PATH - path to custom config file
 VIRT_TYPE - virtualization type
 TEMPLATE_MANAGER_ID - manager id of template for virtual server
 IDENTIFIER - VS identifier
+PORT - Control panel port
 
 How to run (example):
 VIRT_TYPE=kvm6 TEMPLATE_MANAGER_ID=rhel7.1x64 rspec spec/onapp/...
 or
-IDENTIFIER=pdosbsmwciq6cf rspec spec/onapp/...
+PORT=2222 IDENTIFIER=pdosbsmwciq6cf rspec spec/onapp/...
