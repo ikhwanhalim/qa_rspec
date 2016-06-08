@@ -183,6 +183,17 @@ describe 'Virtual Server actions tests' do
       expect(disk.disk_size_compare_with_interface).to be true
       disk.detach
     end
+
+    it 'increase disk size during unlocking' do
+      disk = vm.add_disk
+      disk.wait_for_lock
+      disk.unlock
+      new_disk_size = disk.disk_size + 1
+      disk.edit(disk_size: new_disk_size, add_to_linux_fstab: true)
+      expect(vm.port_opened?).to be true
+      expect(disk.disk_size).to eq new_disk_size
+      expect(disk.disk_size_compare_with_interface).to eq true
+    end
   end
 
   describe 'Network operations' do

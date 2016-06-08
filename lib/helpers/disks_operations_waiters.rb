@@ -47,4 +47,8 @@ module DiskOperationsWaiters
     wait_for_transaction(id, 'Disk', 'update_fstab')
     info_update
   end
+
+  def wait_for_lock
+    wait_until { locked? }
+  end
 end

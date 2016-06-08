@@ -26,7 +26,7 @@ module Transaction
         t['parent_id'] == parent_id && t['parent_type'] == parent_type && t['action'] == action &&
           t['id'] > interface.last_transaction_id
       end
-      return transactions.last if transactions.any?
+      return transactions.first if transactions.any?
     end
     Log.error("Unable to find transaction according to credentials")
   end

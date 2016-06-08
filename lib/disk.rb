@@ -52,7 +52,7 @@ class Disk
   end
 
   def info_update(info=false)
-    info ||= interface.get(@route)
+    info ||= interface.get(@route).disk
     info.each { |k,v| instance_variable_set("@#{k}", v) }
     @route = "#{disks_route}/#{id}"
     self
@@ -130,5 +130,13 @@ class Disk
 
   def autobackup(status = 'enable')
     interface.post("/settings/disks/#{id}/autobackup_#{status}")
+  end
+
+  def unlock
+    interface.post("/settings/disks/#{@id}/unlock")
+  end
+
+  def locked?
+    info_update.locked
   end
 end
