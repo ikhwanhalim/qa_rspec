@@ -25,9 +25,15 @@ class ImageTemplate
     self
   end
 
-  def remove
-    interface.delete("/templates/#{id}")
-    wait_for_transaction(id, "ImageTemplateBase", "destroy_template")
+  def find_by_label(label)
+    interface.get("/templates").detect do |t|
+      t.image_template.label == label
+    end.image_template
+  end
+
+  def remove(template_id = nil)
+    interface.delete("/templates/#{template_id || id}")
+    wait_for_transaction(template_id || id, "ImageTemplateBase", "destroy_template")
   end
 
   def db_enable_hotresize

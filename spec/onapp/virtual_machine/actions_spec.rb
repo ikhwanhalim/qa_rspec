@@ -122,7 +122,6 @@ describe 'Virtual Server actions tests' do
       expect(vm.disk_mounted?(@disk)).to be true
     end
 
-
     it 'default swap disk size should be mounted and actual size should be equal to UI value' do
       expect(vm.port_opened?).to be true
       expect(vm.disk('swap').disk_size_compare_with_interface).to eq true
@@ -400,6 +399,12 @@ describe 'Virtual Server actions tests' do
   end
 
   describe 'Backups' do
+    before :all do
+      @data_for_check = "File-#{SecureRandom.hex(4)}"
+      @vm.ssh_execute(">#{@data_for_check}")
+      expect(@vm.ssh_execute('ls')).to include @data_for_check
+    end
+
     let(:enable_incremental_autobackups) { SshCommands::OnControlPanel.enable_incremantal_autobackups }
     let(:enable_normal_autobackups)      { SshCommands::OnControlPanel.enable_normal_autobackups }
     let(:settings)                       { @vsa.settings }
@@ -409,9 +414,42 @@ describe 'Virtual Server actions tests' do
     end
 
     context 'Incremental backups allowed' do
+      before :all do
+        @backup = @vm.create_backup if @vsa.settings.allow_incremental_backups
+      end
+
       before { skip('Incremental backups disabled') unless settings.allow_incremental_backups }
 
-      it 'testing ability switch all VMs to normal autobackups' do
+      let(:backup) { @backup }
+
+      it 'backups should be visible in /files route' do
+        ids = @vsa.get("#{vm.route}/backups/files").map { |b| b.backup.id }
+        expect(ids).to include backup.id
+      end
+
+      it 'backup should not be visible in /images route' do
+        ids = @vsa.get("#{vm.route}/backups/images").map { |b| b.backup.id }
+        expect(ids).not_to include backup.id
+      end
+
+      it 'restore from backup' do
+        vm.ssh_execute("rm -f #{@data_for_check}")
+        expect(vm.ssh_execute('ls')).not_to include @data_for_check
+        backup.restore
+        expect(vm.port_opened?).to be true
+        expect(vm.ssh_execute('ls')).to include @data_for_check
+      end
+
+      it 'convert to template and rebuild vm with it' do
+        converted_template = backup.convert
+        vm.rebuild(image: converted_template)
+        expect(vm.port_opened?).to be true
+        expect(@vm.ssh_execute('ls')).to include @data_for_check
+        vm.rebuild(image: @template)
+        @template.remove(converted_template.id)
+      end
+
+      it 'testing ability switch all VMs to normal autobackups', :settings_modified do
         vm.autobackup('enable')
         settings.setup(allow_incremental_backups: false)
         expect(@vsa.run_on_cp enable_normal_autobackups).to be true
@@ -423,9 +461,42 @@ describe 'Virtual Server actions tests' do
     end
 
     context 'Normal backups allowed' do
+      before :all do
+        @backup = @vm.disk.create_backup unless @vsa.settings.allow_incremental_backups
+      end
+
       before { skip('Normal backups disabled') if settings.allow_incremental_backups }
 
-      it 'testing ability switch all VMs to incremental autobackups' do
+      let(:backup) { @backup }
+
+      it 'backups should not be visible in /files route' do
+        ids = @vsa.get("#{vm.route}/backups/files").map { |b| b.backup.id }
+        expect(ids).not_to include backup.id
+      end
+
+      it 'backup should be visible in /images route' do
+        ids = @vsa.get("#{vm.route}/backups/images").map { |b| b.backup.id }
+        expect(ids).to include backup.id
+      end
+
+      it 'restore from backup' do
+        vm.ssh_execute("rm -f #{@data_for_check}")
+        expect(vm.ssh_execute('ls')).not_to include @data_for_check
+        backup.restore
+        expect(vm.port_opened?).to be true
+        expect(vm.ssh_execute('ls')).to include @data_for_check
+      end
+
+      it 'convert to template and rebuild vm with it' do
+        converted_template = backup.convert
+        vm.rebuild(image: converted_template)
+        expect(vm.port_opened?).to be true
+        expect(@vm.ssh_execute('ls')).to include @data_for_check
+        vm.rebuild(image: @template)
+        @template.remove(converted_template.id)
+      end
+
+      it 'testing ability switch all VMs to incremental autobackups', :settings_modified do
         vm.disk.autobackup('enable')
         settings.setup(allow_incremental_backups: true)
         expect(@vsa.run_on_cp enable_incremental_autobackups).to be true
@@ -467,7 +538,9 @@ describe 'Virtual Server actions tests' do
       end
 
       it 'env variables should be exported' do
-        out = vm.ssh_execute('cat /root/' + @recipe.label)
+        skip('IP address should be public') if vm.network_interface.ip_address.private?
+        out = vm.ssh_execute('cat ' + @recipe.label, true)
+        # included_ips_count = (out & vm.ip_addresses.map &:
         expect(out).to include vm.identifier
         expect(out).to include vm.ip_address
         expect(out).to include vm.hostname

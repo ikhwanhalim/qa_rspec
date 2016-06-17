@@ -1,6 +1,6 @@
 class Disk
   include DiskOperationsWaiters, Waiter
-  attr_reader :interface, :add_to_freebsd_fstab, :add_to_linux_fstab,:built,:burst_bw,:burst_iops,:created_at,:data_store_id,
+  attr_reader :interface, :route, :add_to_freebsd_fstab, :add_to_linux_fstab,:built,:burst_bw,:burst_iops,:created_at,:data_store_id,
               :disk_size,:disk_vm_number,:file_system,:id,:identifier, :iqn,:is_swap, :label,:locked,:max_bw,
               :max_iops, :min_iops, :mount_point, :primary, :updated_at,:virtual_machine_id, :volume_id,:has_autobackups
 
@@ -138,5 +138,9 @@ class Disk
 
   def locked?
     info_update.locked
+  end
+
+  def create_backup
+    backup = Backup.new(self).create
   end
 end

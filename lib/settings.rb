@@ -19,6 +19,7 @@ class Settings
   def setup(**params)
     updated = primary.merge(params)
     interface.put('/settings', {restart: 1, configuration: updated})
+    read
   end
 
   def reset_to_primary

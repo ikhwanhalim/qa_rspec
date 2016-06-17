@@ -38,20 +38,20 @@ module ApiClient
   end
 
   def get(link, data="")
-    Log.info("GET request is sending to #{link} with params #{data}")
+    Log.info("GET request is sending to #{link} #{'with params ' + data.to_s unless data.empty?}")
     response = JSON.parse conn.get("#{@url + link}.json", data, nil, @headers).body
     conn.page.body = convert_to_mash(response)
   end
 
   def get_from_url(link, data="")
-    Log.info("GET request is sending to #{link} with params #{data}")
+    Log.info("GET request is sending to #{link} #{'with params ' + data.to_s unless data.empty?}")
     response = JSON.parse conn.get(link, data, nil, @headers).body
     conn.page.body = convert_to_mash(response)
   end
 
   def post(link, data="", additional='')
     request = conn.post("#{@url + link}.json" + additional, data.to_json, @headers)
-    Log.info("POST request is sending to #{link} with params #{data}")
+    Log.info("POST request is sending to #{link} #{'with params ' + data.to_s unless data.empty?}")
     if request.body.blank?
       request
     else
@@ -64,13 +64,13 @@ module ApiClient
   end
 
   def delete(link, data="")
-    Log.info("DELETE request is sending to #{link} with params #{data}")
+    Log.info("DELETE request is sending to #{link} #{'with params ' + data.to_s unless data.empty?}")
     conn.delete("#{@url + link}.json", data, @headers)
   end
 
   def put(link, data="")
     request = conn.put(@url + link + '.json', data.to_json, @headers)
-    Log.info("PUT request is sending to #{link} with params #{data}")
+    Log.info("PUT request is sending to #{link} #{'with params ' + data.to_s unless data.empty?}")
     if request.body.blank?
       request
     else

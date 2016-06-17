@@ -25,12 +25,10 @@ module DiskOperationsWaiters
 
   def wait_for_destroy
     wait_for_transaction(id, 'Disk', 'destroy_disk')
-    info_update
   end
 
   def wait_for_detach
     wait_for_transaction(id, 'Disk', 'detach_disk')
-    info_update
   end
 
   def wait_for_resize

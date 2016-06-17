@@ -189,12 +189,12 @@ class VirtualServer
     wait_for_rebuild_network
   end
 
-  def ssh_execute(script)
+  def ssh_execute(script, with_pass=false)
     cred = {
         'vm_host' => ip_address,
         'vm_pass' => initial_root_password
     }
-    if interface.class.to_s == "FederationTrader"
+    if interface.class.to_s == "FederationTrader" || with_pass
       interface.execute_with_pass(cred, script)
     else
       interface.tunnel_execute(cred, script)
@@ -363,6 +363,10 @@ class VirtualServer
   def join_recipe_to(recipe_id, event_type)
     recipe_join = { recipe_join: { recipe_id: recipe_id, event_type: event_type} }
     interface.post("#{route}/recipe_joins", recipe_join)
+  end
+
+  def create_backup
+    backup = Backup.new(self).create
   end
 end
 
