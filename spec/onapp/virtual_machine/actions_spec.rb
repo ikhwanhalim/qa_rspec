@@ -523,14 +523,11 @@ describe 'Virtual Server actions tests' do
       before(:all) do
         @vm.join_recipe_to(@recipe.id, 'vm_network_rebuild')
         @vm.rebuild_network
+        @vm.wait_for_run_recipes_on_server
       end
 
       it 'should be joined' do
         expect(@vsa.get("#{vm.route}/recipe_joins")).to have_key(:vm_network_rebuild)
-      end
-
-      it 'transaction should be successfully complited' do
-        expect(vm.wait_for_run_recipes_on_server).to be true
       end
 
       it 'recipe should be applied' do
@@ -540,7 +537,8 @@ describe 'Virtual Server actions tests' do
       it 'env variables should be exported' do
         skip('IP address should be public') if vm.network_interface.ip_address.private?
         out = vm.ssh_execute('cat ' + @recipe.label, true)
-        # included_ips_count = (out & vm.ip_addresses.map &:
+        ips = vm.ip_addresses.map &:address
+        expect(out & ips).not_to be_empty
         expect(out).to include vm.identifier
         expect(out).to include vm.ip_address
         expect(out).to include vm.hostname
