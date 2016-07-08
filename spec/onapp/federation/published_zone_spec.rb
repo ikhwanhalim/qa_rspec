@@ -11,7 +11,7 @@ describe "Market" do
 
   context "Zone has been published as private" do
     before :all do
-      @federation.supplier.add_to_federation(private: 1)
+      @federation.supplier.add_to_federation(private: 1, tier: 'private')
       @federation.market.wait_for_zone_publishing
       @federation.market.set_preflight
     end

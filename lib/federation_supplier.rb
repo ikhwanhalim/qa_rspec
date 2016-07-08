@@ -35,7 +35,7 @@ class FederationSupplier
     Log.error "HypervisorGroupNotFound"
   end
 
-  def add_to_federation(private: 0, label: nil)
+  def add_to_federation(private: 0, label: nil, tier: nil)
     @template = ImageTemplate.new(self).find_by_manager_id(ENV['TEMPLATE_MANAGER_ID'])
     @resources ||= get_publishing_resources
     @data_store_group = @resources.data_store_group
@@ -50,11 +50,12 @@ class FederationSupplier
         'data_store_zone_id' => @data_store_group.id,
         'network_zone_id' => @network_group.id,
         'template_group_id' => @template.template_store.id,
-        'description' => "#{Socket.gethostname}\n#{Socket.ip_address_list.to_s}"
+        'description' => "#{Socket.gethostname}\n#{Socket.ip_address_list.to_s}",
+        'tier' => tier
       }
     }
     response = post("/federation/hypervisor_zones/#{@hvz_id}/add", data)
-    Log.error(response.values.join("\n")) if response['errors'].any?
+    Log.error(response.values.join("\n")) if response['errors']
     @published_zone = get("/settings/hypervisor_zones/#{@hvz_id}").values.first
   end
 
