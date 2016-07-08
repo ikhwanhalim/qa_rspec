@@ -117,5 +117,9 @@ module SshCommands
     def enable_normal_autobackups
       'cd /onapp/interface;RAILS_ENV=production bundle exec rake vm:switch_to_normal_auto_backups;echo $?'
     end
+
+    def remove_federation_cache
+      'rm -rf /onapp/interface/tmp/cache/6E6 /onapp/interface/tmp/cache/8E5 /onapp/interface/tmp/cache/9C8; echo $?'
+    end
   end
 end

@@ -59,12 +59,14 @@ class FederationTrader
   end
 
   def zone_appeared?(federation_id)
+    return unless clear_cache
     wait_until do
       !!all_unsubscribed.detect { |z| z.federation_id == federation_id }
     end
   end
 
   def zone_disappeared?(federation_id)
+    return unless clear_cache
     wait_until do
       !all_unsubscribed.detect { |z| z.federation_id == federation_id }
     end
@@ -126,4 +128,9 @@ class FederationTrader
     data = {announcement: {text: text}}
     put("/federation/hypervisor_zones/#{subscribed_zone.id}/announcements/#{id}", data)
   end
+
+  def clear_cache
+    command = SshCommands::OnControlPanel.remove_federation_cache
+    run_on_cp(command)
+    end
 end
