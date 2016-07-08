@@ -132,5 +132,5 @@ class FederationTrader
   def clear_cache
     command = SshCommands::OnControlPanel.remove_federation_cache
     run_on_cp(command)
-    end
+  end
 end
