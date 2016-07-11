@@ -13,7 +13,6 @@ describe 'Dns' do
     puts dns.user_id
   end
 
-
   it 'should be GETable' do
     puts @dnsa.get(dns.route)
     expect(@dnsa.conn.page.code).to eq '200'
@@ -42,7 +41,6 @@ describe 'Dns' do
     expect(@dnsa.conn.page.code).to eq '204'
   end
 end
-
 
 
 # try to create dns_zone with empty name

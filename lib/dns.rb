@@ -26,7 +26,6 @@ class Dns
         auto_populate: '1'
     }
   end
-
   
   def attrs_update(attrs=nil)
     attrs ||= interface.get(route)
