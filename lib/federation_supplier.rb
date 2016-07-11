@@ -151,8 +151,8 @@ class FederationSupplier
     data = {
       announcement: {
         text: 'Autotest message',
-        start_at: 10.second.from_now,
-        finish_at: 1.day.from_now
+        start_at: 10.second.since.strftime("%Y-%m-%d %H:%M:%S"),
+        finish_at: 1.day.since.strftime("%Y-%m-%d %H:%M:%S")
       }
     }
     post("/federation/hypervisor_zones/#{published_zone.id}/announcements", data)
