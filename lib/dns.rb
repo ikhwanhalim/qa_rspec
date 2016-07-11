@@ -27,6 +27,7 @@ class Dns
     }
   end
 
+  
   def attrs_update(attrs=nil)
     attrs ||= interface.get(route)
     attrs.values.first.each { |k,v| instance_variable_set("@#{k}", v) }
