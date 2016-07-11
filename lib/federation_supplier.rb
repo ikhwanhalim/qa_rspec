@@ -35,7 +35,7 @@ class FederationSupplier
     Log.error "HypervisorGroupNotFound"
   end
 
-  def add_to_federation(private: 0, label: nil, tier: nil)
+  def add_to_federation(private: 0, label: nil, tier: 'dev')
     @template = ImageTemplate.new(self).find_by_manager_id(ENV['TEMPLATE_MANAGER_ID'])
     @resources ||= get_publishing_resources
     @data_store_group = @resources.data_store_group
@@ -151,8 +151,8 @@ class FederationSupplier
     data = {
       announcement: {
         text: 'Autotest message',
-        start_at: 10.second.from_now,
-        finish_at: 1.day.from_now
+        start_at: 10.second.since.strftime("%Y-%m-%d %H:%M:%S"),
+        finish_at: 1.day.since.strftime("%Y-%m-%d %H:%M:%S")
       }
     }
     post("/federation/hypervisor_zones/#{published_zone.id}/announcements", data)
