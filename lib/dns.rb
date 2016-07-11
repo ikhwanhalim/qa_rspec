@@ -1,5 +1,5 @@
 class Dns
-  attr_reader :interface, :id, :name
+  attr_reader :interface, :id, :name, :user_id, :cdn_reference
 
   def initialize(interface)
     @interface = interface
@@ -11,9 +11,18 @@ class Dns
     attrs_update json_response
   end
 
+  def random_label(length = 8)
+    chars = ('a'..'z').to_a + ('0'..'9').to_a
+    length.times.map { chars.sample }.join
+  end
+
+  def random_domain_name(length = 8, domain = 'com')
+    "#{random_label(length)}.#{domain}"
+  end
+
   def create_params
     {
-        name: "unix.com",
+        name: "#{random_domain_name(6,'com')}",
         auto_populate: '1'
     }
   end
@@ -23,8 +32,14 @@ class Dns
     attrs.values.first.each { |k,v| instance_variable_set("@#{k}", v) }
     self
   end
-
   def route
     "/dns_zones/#{id}"
+  end
+  def route_edit
+    "/dns_zones/#{id}/records"
+  end
+
+  def remove
+    interface.delete route
   end
 end
