@@ -32,21 +32,25 @@ describe 'Dns' do
   #   @dnsa.get("/dns_zones/name_servers")
   # end
 
-  # it 'should Add DNS Record' do
-  #   puts @dnsa.post(@route_edit, name: "test", ttl: "111",  type: "A", ip: "127.0.0.1")
+  # it 'should add dns record' do
+  # puts  dns.create_dns_record
   # end
 
   it 'should be removed' do
    puts dns.remove
     expect(@dnsa.conn.page.code).to eq '204'
   end
+
+  # it 'should not added with empty name' do
+  #   #dns.create(name: "")
+  #   expect(dns.create(name: "")).to eq '422'
+  # end
 end
 
 
-# try to create dns_zone with empty name
-#add dns record
-#get dns record
-#edit dns record
-# get dns record
+# try to create dns_zone with empty/incorrect name
+#add/get dns record
+#edit/get dns record
+
 
 #require 'pry';binding.pry

@@ -1,5 +1,5 @@
 class Dns
-  attr_reader :interface, :id, :name, :user_id, :cdn_reference
+  attr_reader :interface, :id, :name, :user_id, :cdn_reference, :errors
 
   def initialize(interface)
     @interface = interface
@@ -26,7 +26,7 @@ class Dns
         auto_populate: '1'
     }
   end
-  
+
   def attrs_update(attrs=nil)
     attrs ||= interface.get(route)
     attrs.values.first.each { |k,v| instance_variable_set("@#{k}", v) }
@@ -38,6 +38,22 @@ class Dns
   def route_edit
     "/dns_zones/#{id}/records"
   end
+
+  def create_dns_record(**params)
+    data_dns_record = create_params_dns_record.merge(params)
+    json_response_dns_record = interface.post('/dns_zones/#{id}/records', dns_zone: data_dns_record)
+    attrs_update json_response_dns_record
+  end
+
+  def create_params_dns_record
+    { dns_record: {
+        name: "test_com",
+        ttl: "1",
+        type: "A",
+        ip: "127.0.0.1"
+    }
+    }
+    end
 
   def remove
     interface.delete route
