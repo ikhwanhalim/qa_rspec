@@ -1,5 +1,5 @@
 class Dns
-  attr_reader :interface, :id, :name, :user_id, :cdn_reference, :errors
+  attr_reader :interface, :id, :name, :user_id, :cdn_reference
 
   def initialize(interface)
     @interface = interface
@@ -11,18 +11,20 @@ class Dns
     attrs_update json_response
   end
 
-  def random_label(length = 8)
-    chars = ('a'..'z').to_a + ('0'..'9').to_a
-    length.times.map { chars.sample }.join
-  end
-
-  def random_domain_name(length = 8, domain = 'com')
-    "#{random_label(length)}.#{domain}"
-  end
+  # def random_label(length = 8)
+  #   chars = ('a'..'z').to_a + ('0'..'9').to_a
+  #   length.times.map { chars.sample }.join
+  # end
+  #
+  # def random_domain_name(length = 8, domain = 'com')
+  #   "#{random_label(length)}.#{domain}"
+  # end
 
   def create_params
     {
-        name: "#{random_domain_name(6,'com')}",
+        name: "#{SecureRandom.hex}.com",
+        #name: "#{(0...10).map { ('a'..'z').to_a[rand(5)] }.join}.com",
+        #name: "#{random_domain_name(6,'com')}",
         auto_populate: '1'
     }
   end

@@ -9,22 +9,22 @@ describe 'Dns' do
   let(:dns) { @dnsa.dns }
 
   it 'should be created' do
-   puts expect(dns.name).not_to be nil
+   expect(dns.name).not_to be nil
     puts dns.user_id
   end
 
   it 'should be GETable' do
-    puts @dnsa.get(dns.route)
+   @dnsa.get(dns.route)
     expect(@dnsa.conn.page.code).to eq '200'
   end
 
   it 'should GET advanced' do
-   puts @dnsa.get(dns.route)
+   @dnsa.get(dns.route)
     expect(@dnsa.conn.page.code).to eq '200'
   end
 
   it 'should Get List of Users DNS Zones' do
-    puts @dnsa.get("/dns_zones/#{dns.user_id}")
+   @dnsa.get("/dns_zones/#{dns.user_id}")
   end
 
  #  undefined method `each_pair' for "ns1.qaonapp.net":String
@@ -37,14 +37,26 @@ describe 'Dns' do
   # end
 
   it 'should be removed' do
-   puts dns.remove
+   dns.remove
     expect(@dnsa.conn.page.code).to eq '204'
   end
 
-  # it 'should not added with empty name' do
-  #   #dns.create(name: "")
-  #   expect(dns.create(name: "")).to eq '422'
-  # end
+  it 'dns_zone should not be added with empty name' do
+   dns.create(name: "")
+    expect(@dnsa.conn.page.code).to eq '422'
+  end
+
+  it 'dns_zone should not be added with incorrect(digit) name' do
+   # dns.create(name: "#{rand.to_s[2..11]}")
+    dns.create(name: "#{SecureRandom.random_number(100)}")
+    expect(@dnsa.conn.page.code).to eq '422'
+  end
+
+  it 'dns_zone should not be added with incorrect() name' do
+    #dns.create(name: "#{(0...10).map { ('a'..'z').to_a[rand(5)] }.join}")
+    dns.create(name: "#{SecureRandom.hex}")
+    expect(@dnsa.conn.page.code).to eq '422'
+  end
 end
 
 
