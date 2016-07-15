@@ -138,4 +138,12 @@ describe "Market" do
       end
     end
   end
+
+  it 'Supplier should not be able publish zone with empty tier' do
+    skip #TODO
+  end
+
+  it 'Supplier should not be able publish private zone with not private tier' do
+    skip #TODO
+  end
 end

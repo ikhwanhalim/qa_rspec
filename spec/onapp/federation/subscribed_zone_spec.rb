@@ -108,15 +108,19 @@ describe "Zone has been subscribed" do
       trader.edit_announcement(announcement_id, 'modified')
       expect(trader.find_announcement(market_id).announcement.text).to eq 'modified'
     end
+
+    it 'location group lat and lng should not be 0.0' do
+      skip #TODO
+    end
   end
 
   describe 'Perform on the market' do
     it 'template tracker sync' do
-      skip
+      skip #TODO
     end
 
     it 'resources sync' do
-      skip
+      skip #TODO
     end
   end
 end
