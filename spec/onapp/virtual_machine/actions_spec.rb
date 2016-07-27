@@ -547,4 +547,24 @@ describe 'Virtual Server actions tests' do
       end
     end
   end
+
+  describe 'Autoscale', :autoscale do
+    before do
+      host = @vsa.settings.zabbix_host
+      command = SshCommands::OnControlPanel.ping(host)
+      skip('Zabbix is not available') unless  @vsa.run_on_cp(command)
+    end
+
+    after :all do
+      @vsa.settings.reset_to_primary
+    end
+
+    let(:zabbix_agent_status) { SshCommands::OnVirtualServer.zabbix_agent_status }
+
+    it "zabbix agent should be enabled for #{ENV['TEMPLATE_MANAGER_ID']}" do
+      vm.autoscale_enable
+      exit_status = vm.ssh_execute(zabbix_agent_status).last.to_i
+      expect(exit_status.zero?).to be true
+    end
+  end
 end

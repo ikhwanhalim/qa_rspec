@@ -14,6 +14,7 @@ class ImageTemplate
   end
 
   def find_by_manager_id(manager_id)
+    remove_after_install
     info = get_template(manager_id)
     info_update(info)
     self
@@ -39,6 +40,19 @@ class ImageTemplate
   def db_enable_hotresize
     interface.query("update templates set resize_without_reboot_policy='---\n:xen:\n  :centos5: 15\n  :centos6: 15\n:kvm:\n  :centos5: 15\n  :centos6: 15\n' where id=#{id}")
     interface.query("update templates set allow_resize_without_reboot=1 where id=#{id}")
+  end
+
+  def remove_after_install
+    if defined?(interface.settings)
+      if interface.settings
+        unless interface.settings.delete_template_source_after_install
+          interface.settings.setup(delete_template_source_after_install: true)
+        end
+        Log.info('Template will be removed after install')
+      else
+        Log.warn('Settings has not been defined')
+      end
+    end
   end
 
   private

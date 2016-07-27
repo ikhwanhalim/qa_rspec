@@ -73,6 +73,10 @@ module SshCommands
       "echo $OPERATING_SYSTEM_ARCH>>#{file};"\
       "echo $OPERATING_SYSTEM_EDITION>>#{file};"\
     end
+
+    def zabbix_agent_status
+      'service autoscale-agent status;echo $?'
+    end
   end
 
   module OnHypervisor

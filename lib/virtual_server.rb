@@ -368,6 +368,14 @@ class VirtualServer
   def create_backup
     backup = Backup.new(self).create
   end
+
+  def autoscale_enable
+    interface.post("#{route}/autoscale_enable")
+    if interface.conn.page.code == '201'
+      wait_for_check_or_install_zabbix_agent
+      wait_for_enable_auto_scaling
+    end
+  end
 end
 
 

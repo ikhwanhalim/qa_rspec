@@ -83,6 +83,14 @@ module VmOperationsWaiters
     wait_for_transaction(id, 'VirtualMachine', 'run_recipe_on_vm')
   end
 
+  def wait_for_enable_auto_scaling
+    wait_for_transaction(id, 'VirtualMachine', 'enable_auto_scaling')
+  end
+
+  def wait_for_check_or_install_zabbix_agent
+    wait_for_transaction(id, 'VirtualMachine', 'check_or_install_zabbix_agent')
+  end
+
   def wait_for_building_backups
     begin
       wait_until(30, 1) { building_backups_exist? }

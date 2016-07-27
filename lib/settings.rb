@@ -1,5 +1,5 @@
 class Settings
-  attr_reader :interface, :allow_incremental_backups
+  attr_reader :interface, :allow_incremental_backups, :zabbix_host, :delete_template_source_after_install
 
   def initialize(interface)
     @interface = interface
