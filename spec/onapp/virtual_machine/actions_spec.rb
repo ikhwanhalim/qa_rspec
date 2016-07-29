@@ -562,6 +562,7 @@ describe 'Virtual Server actions tests' do
     let(:zabbix_agent_status) { SshCommands::OnVirtualServer.zabbix_agent_status }
 
     it "zabbix agent should be enabled for #{ENV['TEMPLATE_MANAGER_ID']}" do
+      expect(vm.port_opened?).to be true
       vm.autoscale_enable
       exit_status = vm.ssh_execute(zabbix_agent_status).last.to_i
       expect(exit_status.zero?).to be true
