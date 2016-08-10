@@ -49,12 +49,12 @@ class FederationTrader
   end
 
   def search(label)
-    zones = get("/federation/hypervisor_zones/unsubscribed/per_page/100", data={q: label})
+    zones = get("/federation/hypervisor_zones/unsubscribed/per_page/1000", data={q: label})
     zones.map! &:hypervisor_zone
   end
 
   def all_unsubscribed
-    zones = get "/federation/hypervisor_zones/unsubscribed/per_page/100"
+    zones = get "/federation/hypervisor_zones/unsubscribed/per_page/1000"
     zones.map! &:hypervisor_zone
   end
 
@@ -104,6 +104,9 @@ class FederationTrader
   def use_token(sender, token)
     data = {token: {token: token, sender: sender}}
     post("/federation/trader_tokens", data)
+    wait_until do
+      get('/federation/trader_tokens').map { |t| t.token.token == token }.include?(true)
+    end
   end
 
   #Announcements
