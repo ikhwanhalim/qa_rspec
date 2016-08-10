@@ -18,6 +18,7 @@ describe "Market" do
 
     after :all do
       @federation.supplier.remove_from_federation
+      @federation.trader.clean_up_tokens
     end
 
     let(:federation_id) { supplier.published_zone.federation_id }

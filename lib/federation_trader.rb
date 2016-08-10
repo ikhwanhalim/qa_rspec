@@ -109,6 +109,10 @@ class FederationTrader
     end
   end
 
+  def clean_up_tokens
+    get('/federation/trader_tokens').each { |t| delete("/federation/trader_tokens/#{t.token.id}")}
+  end
+
   #Announcements
   def find_announcement(market_id)
     wait_until do
