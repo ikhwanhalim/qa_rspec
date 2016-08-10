@@ -229,7 +229,7 @@ describe 'Virtual Server actions tests' do
       end
 
       after :all do
-        vm.rebuild_network
+        @vm.rebuild_network
       end
 
       it 'Set DROP default rule' do
