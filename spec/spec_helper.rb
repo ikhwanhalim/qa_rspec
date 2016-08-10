@@ -11,4 +11,10 @@ RSpec.configure do |c|
     puts test_name
     puts '=' * test_name.size
   end
+
+  if ENV['DEBUG']
+    c.after :each do |x|
+      binding.pry if x.exception
+    end
+  end
 end

@@ -23,6 +23,7 @@ VIRT_TYPE - virtualization type
 TEMPLATE_MANAGER_ID - manager id of template for virtual server
 IDENTIFIER - VS identifier
 PORT - Control panel port
+DEBUG - enable pry debugging *any value*
 
 How to run (example):
 VIRT_TYPE=kvm6 TEMPLATE_MANAGER_ID=rhel7.1x64 rspec spec/onapp/...

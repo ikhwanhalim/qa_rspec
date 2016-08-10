@@ -15,11 +15,6 @@ describe 'Virtual Server actions tests' do
     end
   end
 
-  # FOR DEBUG
-  # after do
-  #   require 'pry';binding.pry if example.exception
-  # end
-
   let(:vm) { @vsa.virtual_machine }
 
   let(:version) { @vsa.version }
@@ -233,6 +228,10 @@ describe 'Virtual Server actions tests' do
         vm.update_firewall_rules
       end
 
+      after :all do
+        vm.rebuild_network
+      end
+
       it 'Set DROP default rule' do
         vm.network_interface.set_default_firewall_rule('DROP')
         vm.update_firewall_rules
@@ -401,6 +400,7 @@ describe 'Virtual Server actions tests' do
   describe 'Backups' do
     before :all do
       @data_for_check = "File-#{SecureRandom.hex(4)}"
+      @vm.port_opened?
       @vm.ssh_execute(">#{@data_for_check}")
       expect(@vm.ssh_execute('ls')).to include @data_for_check
     end
@@ -550,9 +550,7 @@ describe 'Virtual Server actions tests' do
 
   describe 'Autoscale', :autoscale do
     before do
-      host = @vsa.settings.zabbix_host
-      command = SshCommands::OnControlPanel.ping(host)
-      skip('Zabbix is not available') unless  @vsa.run_on_cp(command)
+      skip('Zabbix ip address is not available') unless  IPAddress.valid?(@vsa.settings.zabbix_host)
     end
 
     after :all do
