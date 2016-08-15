@@ -208,12 +208,10 @@ describe 'Virtual Server actions tests' do
         expect(vm.ip_addresses.count).to eq 2
       end
 
-      it 'All IPs should be visible inside VM' do
-        expect(vm.ip_addresses.map &:exist_on_vm).to_not include false
-      end
-
-      it 'All IPs should pinged' do
-        expect(vm.ip_addresses.map &:pinged?).to_not include false
+      it 'All IPs should be pinged and visible inside VM' do
+        ping_states = vm.ip_addresses.map &:pinged?
+        exist_states = vm.ip_addresses.map &:exist_on_vm
+        expect(ping_states + exist_states).to_not include false
       end
 
       it 'Allocate used IP' do
@@ -303,7 +301,6 @@ describe 'Virtual Server actions tests' do
     end
   end
 
-#Reboot VS from ISO
   describe 'ISO' do
     before :all do
       @vsa.iso = Iso.new(@vsa)
@@ -312,7 +309,7 @@ describe 'Virtual Server actions tests' do
     end
 
     after :all do
-      @vm.reboot
+      @vm.reboot if @vm.info_update.booted
       @vsa.iso.remove if @is_folder_mounted
     end
 
@@ -334,8 +331,7 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'Reboot VS from ISO if not enough memory' do
-      iso.edit(min_memory_size: vm.memory.to_i + 10,
-               min_disk_size: vm.total_disk_size - 1)
+      iso.edit(min_memory_size: vm.memory.to_i + 10, min_disk_size: vm.total_disk_size - 1)
       vm.reboot_from_iso(iso.id)
       expect(vm.api_response_code).to eq '422'
       expect(vm.exist_on_hv?).to be true
@@ -343,15 +339,15 @@ describe 'Virtual Server actions tests' do
 
     it 'Reboot VS from ISO if incorrect virtualization type' do
       skip("https://onappdev.atlassian.net/browse/CORE-5721")
-      vm.hypervisor_type == 'xen' ? iso.edit(virtualization: 'kvm', min_memory_size: vm.memory.to_i, min_disk_size: vm.total_disk_size - 1) : iso.edit(virtualization: 'xen', min_memory_size: vm.memory.to_i, min_disk_size: vm.total_disk_size - 1)
+      virt = vm.hypervisor_type == 'xen' ? 'kvm' : 'xen'
+      iso.edit(virtualization: virt, min_memory_size: vm.memory.to_i, min_disk_size: vm.total_disk_size - 1)
       vm.reboot_from_iso(iso.id)
       expect(vm.api_response_code).to eq '422'
       expect(vm.exist_on_hv?).to be true
     end
 
     it 'Reboot VS from ISO if not enough disk space' do
-      iso.edit(min_disk_size: vm.total_disk_size + 10,
-               min_memory_size: vm.memory.to_i)
+      iso.edit(min_disk_size: vm.total_disk_size + 10, min_memory_size: vm.memory.to_i)
       vm.reboot_from_iso(iso.id)
       expect(vm.api_response_code).to eq '422'
       expect(vm.exist_on_hv?).to be true
@@ -367,8 +363,7 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'Boot VS from ISO if not enough memory' do
-      iso.edit(min_memory_size: vm.memory.to_i + 10,
-              min_disk_size: vm.total_disk_size - 1)
+      iso.edit(min_memory_size: vm.memory.to_i + 10, min_disk_size: vm.total_disk_size - 1)
       vm.shut_down if vm.exist_on_hv?
       expect(vm.exist_on_hv?).to be false
       vm.boot_from_iso(iso.id)
@@ -378,7 +373,8 @@ describe 'Virtual Server actions tests' do
 
     it 'Boot VS from ISO if incorrect virtualization type' do
       skip("https://onappdev.atlassian.net/browse/CORE-5721")
-      vm.hypervisor_type == 'xen' ? iso.edit(virtualization: 'kvm', min_memory_size: vm.memory.to_i, min_disk_size: vm.total_disk_size - 1) : iso.edit(virtualization: 'xen', min_memory_size: vm.memory.to_i, min_disk_size: vm.total_disk_size - 1)
+      virt = vm.hypervisor_type == 'xen' ? 'kvm' : 'xen'
+      iso.edit(virtualization: virt, min_memory_size: vm.memory.to_i, min_disk_size: vm.total_disk_size - 1)
       vm.shut_down if vm.exist_on_hv?
       expect(vm.exist_on_hv?).to be false
       vm.boot_from_iso(iso.id)
@@ -387,8 +383,7 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'Boot VS from ISO if not enough disk space' do
-      iso.edit(min_disk_size: vm.total_disk_size + 10,
-               min_memory_size: vm.memory.to_i)
+      iso.edit(min_disk_size: vm.total_disk_size + 10, min_memory_size: vm.memory.to_i)
       vm.shut_down if vm.exist_on_hv?
       expect(vm.exist_on_hv?).to be false
       vm.boot_from_iso(iso.id)
