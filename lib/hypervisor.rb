@@ -48,7 +48,7 @@ class Hypervisor
 
   def is_data_mounted?
     command = SshCommands::OnHypervisor.data_mounted
-    ssh_execute(command).last.try(:include?, 'data')
+    ssh_execute(command).join.include?(':/data')
   end
 
   def find_exist(path, file_name)
