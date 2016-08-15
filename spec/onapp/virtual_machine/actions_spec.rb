@@ -8,12 +8,12 @@ describe 'Virtual Server actions tests' do
     @template = @vsa.template
   end
 
-  # after :all do
-  #   unless VirtualServerActions::IDENTIFIER
-  #     @vm.destroy
-  #     @template.remove if @vm.find_by_template(@template.id).empty?
-  #   end
-  # end
+  after :all do
+    unless VirtualServerActions::IDENTIFIER
+      @vm.destroy
+      @template.remove if @vm.find_by_template(@template.id).empty?
+    end
+  end
 
   let(:vm) { @vsa.virtual_machine }
 
