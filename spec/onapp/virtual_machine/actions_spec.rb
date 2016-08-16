@@ -309,7 +309,7 @@ describe 'Virtual Server actions tests' do
     end
 
     after :all do
-      @vm.reboot if @vm.info_update.booted
+      @vm.info_update.booted ? @vm.reboot : @vm.start_up
       @vsa.iso.remove if @is_folder_mounted
     end
 
