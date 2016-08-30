@@ -20,6 +20,10 @@ module VmOperationsWaiters
     wait_for_transaction(id, 'VirtualMachine', 'provision_win')
   end
 
+  def wait_for_build_virtual_machine
+    wait_for_transaction(id, 'VirtualMachine','build_virtual_machine')
+  end
+
   def wait_for_stop
     wait_for_transaction(id, 'VirtualMachine', 'stop_virtual_machine')
   end

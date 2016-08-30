@@ -1,7 +1,7 @@
 class Iso
-  include Transaction
+  include Transaction, TemplateManager
   attr_reader :interface, :errors, :id, :label, :min_memory_size, :version, :operating_system, :operating_system_distro,
-              :virtualization, :user_id, :min_disk_size, :file_name
+              :virtualization, :user_id, :min_disk_size, :file_name, :allowed_swap, :type
 
   def initialize(interface)
     @interface = interface
