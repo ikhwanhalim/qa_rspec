@@ -12,7 +12,7 @@ module ApiClient
     unless @conn
       read_config
       setup_connection
-      check_services
+      check_services if authorize_for != 'market'
     end
     @conn
   end
