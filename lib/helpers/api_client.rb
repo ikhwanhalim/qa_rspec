@@ -1,6 +1,9 @@
 require 'active_support/all'
+require_relative 'service_checker'
 
 module ApiClient
+  include ServiceChecker
+
   CONF = ENV['CONF_PATH'] || 'config/conf.yml'
 
   attr_reader :ip
@@ -9,6 +12,7 @@ module ApiClient
     unless @conn
       read_config
       setup_connection
+      check_services
     end
     @conn
   end
