@@ -6,7 +6,6 @@ class IsoVirtualServerActions
   alias template iso
 
   def precondition
-
     @hypervisor = Hypervisor.new(self)
     @hypervisor.find_by_virt(ENV['VIRT_TYPE'])
     return false unless @hypervisor.is_data_mounted?
@@ -19,8 +18,6 @@ class IsoVirtualServerActions
 
     @virtual_machine = VirtualServer.new(self)
     @virtual_machine.create
-
-    #@virtual_machine.find('lzs0rpbg48m2lh')
 
     self
   end

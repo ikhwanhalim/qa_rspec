@@ -303,9 +303,7 @@ class VirtualServer
   end
 
   def can_be_booted_from_iso?(iso)
-    (memory >= iso.min_memory_size) &&
-    (iso.virtualization.include?(hypervisor_type)) &&
-    (total_disk_size > iso.min_disk_size)
+    (memory >= iso.min_memory_size) && (iso.virtualization.include?(hypervisor_type)) && (total_disk_size > iso.min_disk_size)
   end
 
   def boot_from_iso(iso_id)

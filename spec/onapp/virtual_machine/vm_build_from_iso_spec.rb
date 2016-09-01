@@ -61,7 +61,6 @@ describe 'Virtual Server build from ISO actions tests' do
       creds = {'vm_host' => vm.ip_address, 'vm_pass' => 'recovery'}
       expect(vm.interface.execute_with_pass(creds, 'hostname')).to include 'recovery'
     end
-
   end
 
   describe 'ISO' do
@@ -160,6 +159,5 @@ describe 'Virtual Server build from ISO actions tests' do
       end
     end
   end
-
 end
 
