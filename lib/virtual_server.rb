@@ -100,17 +100,15 @@ class VirtualServer
       disk('swap').wait_for_build if image.allowed_swap
     end
 
-    if image.type != 'ImageTemplateIso'
-      image.operating_system == 'freebsd' ? disk('swap').wait_for_provision : disk('primary').wait_for_provision
-    end
-
     if image.type == 'ImageTemplateIso'
       wait_for_build_virtual_machine
     else
+      image.operating_system == 'freebsd' ? disk('swap').wait_for_provision : disk('primary').wait_for_provision
       wait_for_configure_operating_system
+      wait_for_provision_freebsd if image.operating_system == 'freebsd'
+      wait_for_provision_win if image.operating_system == 'windows'
     end
-    wait_for_provision_freebsd if image.operating_system == 'freebsd'
-    wait_for_provision_win if image.operating_system == 'windows'
+
     wait_for_start if require_startup
     info_update
   end

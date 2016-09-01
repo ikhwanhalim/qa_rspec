@@ -7,7 +7,7 @@ class ImageTemplate
               :min_memory_size, :operating_system, :operating_system_arch, :operating_system_distro,
               :operating_system_edition, :operating_system_tail, :parent_template_id, :remote_id,
               :resize_without_reboot_policy, :smart_server, :state, :template_size, :updated_at, :user_id,
-              :version, :virtualization
+              :version, :virtualization, :type
 
   def initialize(interface)
     @interface = interface
