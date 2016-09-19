@@ -63,7 +63,7 @@ describe 'Virtual Server build from ISO actions tests' do
     end
   end
 
-  describe 'ISO' do
+  describe 'Boot/Reboot from ISO VS built from ISO' do
     before :all do
       @iso_new = Iso.new(@ivsa)
       @is_folder_mounted = @ivsa.hypervisor.is_data_mounted?
@@ -156,6 +156,52 @@ describe 'Virtual Server build from ISO actions tests' do
         vm.boot_from_iso(iso_new.id)
         expect(vm.api_response_code).to eq '422'
         expect(vm.exist_on_hv?).to be false
+      end
+    end
+  end
+
+  describe 'Disk operations for VS built from ISO' do
+    before :each do
+      @disk = vm.disk
+    end
+
+    let(:disk) { @disk }
+
+    it 'Disk should be increased' do
+      new_disk_size = disk.disk_size + 2
+      disk.edit(disk_size: new_disk_size)
+      vm.wait_for_start
+      expect(vm.exist_on_hv?).to be true
+      expect(disk.disk_size).to eq new_disk_size
+    end
+
+    it 'Disk should not be decreased' do
+      vm_disk_size = disk.disk_size
+      new_disk_size = disk.disk_size - 2
+      disk.edit(disk_size: new_disk_size)
+      expect(vm.api_response_code).to eq '422'
+      expect(disk.errors['disk_size']).to eq(['cannot be decreased for VM built from ISO template'])
+      expect(vm.exist_on_hv?).to be true
+      expect(disk.disk_size).to eq vm_disk_size
+    end
+
+    it 'should be possible to add and remove additional disk' do
+      disks_count_before_test = vm.disks.count
+      new_disk = vm.add_disk
+      new_disk.wait_for_build
+      expect(vm.exist_on_hv?).to be true
+      expect(vm.disks.count).to eq disks_count_before_test + 1
+      new_disk.remove
+      expect(vm.exist_on_hv?).to be true
+      expect(vm.disks.count).to eq disks_count_before_test
+    end
+
+    it 'disk should be migrated if there is available DS on a cloud' do
+      if disk.available_data_store_for_migration
+        disk.migrate
+        expect(vm.exist_on_hv?).to be true
+      else
+        skip('skipped because we have not found available data stores for migration.')
       end
     end
   end

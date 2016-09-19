@@ -324,14 +324,14 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'Reboot VS from ISO' do
-      skip('Virtual Server cannot be rebooted from this ISO') if !vm.can_be_booted_from_iso?
+      skip('Virtual Server cannot be rebooted from this ISO') if !vm.can_be_booted_from_iso?(iso)
       vm.reboot_from_iso(iso.id)
       expect(vm.api_response_code).to eq '200'
       expect(vm.exist_on_hv?).to be true
     end
 
     it 'Boot VS from ISO' do
-      skip('Virtual Server cannot be booted from this ISO') if !vm.can_be_booted_from_iso?
+      skip('Virtual Server cannot be booted from this ISO') if !vm.can_be_booted_from_iso?(iso)
       vm.shut_down if vm.exist_on_hv?
       expect(vm.exist_on_hv?).to be false
       vm.boot_from_iso(iso.id)
