@@ -141,7 +141,11 @@ class Disk
   end
 
   def create_backup
-    backup = Backup.new(self).create
+    Backup.new(self).create
+  end
+
+  def get_backups
+    interface.get("#{@vm_route}/disks/#{@id}/backups")
   end
 
   def response_handler(response)

@@ -10,7 +10,7 @@ class Backup
 
   def create
     data = interface.post("#{@obj_route}/backups")
-    return if interface.conn.page.code != '201'
+    return data['errors'] if interface.conn.page.code != '201'
     info_update(data)
     incremental_allowed? ? wait_for_take_incremental_backup : wait_for_take_backup
     self

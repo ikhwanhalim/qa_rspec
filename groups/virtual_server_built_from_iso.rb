@@ -2,7 +2,7 @@ class IsoVirtualServerActions
   include FogOnapp, ApiClient, SshClient, Log
 
   attr_accessor :hypervisor, :iso
-  attr_reader   :virtual_machine
+  attr_reader   :virtual_machine, :settings
   alias template iso
 
   def precondition
@@ -18,6 +18,8 @@ class IsoVirtualServerActions
 
     @virtual_machine = VirtualServer.new(self)
     @virtual_machine.create
+
+    @settings = Settings.new(self)
 
     self
   end
