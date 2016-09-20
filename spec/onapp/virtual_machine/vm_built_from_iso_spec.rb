@@ -1,7 +1,7 @@
 require 'spec_helper'
-require './groups/virtual_server_build_from_iso'
+require './groups/virtual_server_built_from_iso'
 
-describe 'Virtual Server build from ISO actions tests' do
+describe 'Virtual Server built from ISO actions tests' do
   before :all do
     @ivsa = IsoVirtualServerActions.new.precondition
     if @ivsa
@@ -63,7 +63,7 @@ describe 'Virtual Server build from ISO actions tests' do
     end
   end
 
-  describe 'Boot/Reboot from ISO VS built from ISO' do
+  describe 'Boot/Reboot from ISO' do
     before :all do
       @iso_new = Iso.new(@ivsa)
       @is_folder_mounted = @ivsa.hypervisor.is_data_mounted?
@@ -160,7 +160,7 @@ describe 'Virtual Server build from ISO actions tests' do
     end
   end
 
-  describe 'Disk operations for VS built from ISO' do
+  describe 'Disk operations' do
     before :each do
       @disk = vm.disk
     end
@@ -185,7 +185,7 @@ describe 'Virtual Server build from ISO actions tests' do
       expect(disk.disk_size).to eq vm_disk_size
     end
 
-    it 'should be possible to add and remove additional disk' do
+    it 'Add and remove an additional disk' do
       disks_count_before_test = vm.disks.count
       new_disk = vm.add_disk
       new_disk.wait_for_build
@@ -196,13 +196,60 @@ describe 'Virtual Server build from ISO actions tests' do
       expect(vm.disks.count).to eq disks_count_before_test
     end
 
-    it 'disk should be migrated if there is available DS on a cloud' do
+    it 'Disk should be migrated if there is available DS on a cloud' do
       if disk.available_data_store_for_migration
         disk.migrate
         expect(vm.exist_on_hv?).to be true
       else
         skip('skipped because we have not found available data stores for migration.')
       end
+    end
+  end
+
+  describe 'Backups' do
+
+    before { @incremental_backups_enabled = @ivsa.settings.allow_incremental_backups }
+
+    it 'Normal backups should not be supported for VS built from ISO' do
+      if !@incremental_backups_enabled
+        expect(vm.disk.create_backup['base']).to eq(['Backups are not supported'])
+        expect(vm.api_response_code).to eq '422'
+        expect(vm.exist_on_hv?).to be true
+      else
+        skip('Skipped as normal backups are disabled at CP settings')
+      end
+    end
+
+    it 'Incremental backups should not be supported for VS built from ISO' do
+      skip('https://onappdev.atlassian.net/browse/CORE-7781')
+      if @incremental_backups_enabled
+        expect(vm.create_backup['base']).to eq(['Backups are not supported'])
+        expect(vm.api_response_code).to eq '422'
+        expect(vm.exist_on_hv?).to be true
+       else
+         skip('Skipped as incremental backups are disabled at CP settings')
+      end
+    end
+
+    it 'Getting all backups for VS built from ISO should return error' do
+      expect(vm.get_backups['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
+      expect(vm.api_response_code).to eq '422'
+    end
+
+    it 'Getting normal backups for VS built from ISO should return error' do
+      expect(vm.get_backups('normal')['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
+      expect(vm.api_response_code).to eq '422'
+    end
+
+    it 'Getting incremental backups for VS built from ISO should return error' do
+      expect(vm.get_backups('incremental')['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
+      expect(vm.api_response_code).to eq '422'
+    end
+
+    it 'Getting disk backups for VS built from ISO should return error' do
+      skip('https://onappdev.atlassian.net/browse/CORE-7781')
+      expect(vm.disk.get_backups['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
+      expect(vm.api_response_code).to eq '422'
     end
   end
 end

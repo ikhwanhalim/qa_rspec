@@ -364,7 +364,17 @@ class VirtualServer
   end
 
   def create_backup
-    backup = Backup.new(self).create
+    Backup.new(self).create
+  end
+
+  def get_backups(type='')
+    if type == 'normal'
+      interface.get("#{route}/backups/images")
+    elsif type == 'incremental'
+      interface.get("#{route}/backups/files")
+    else
+      interface.get("#{route}/backups")
+    end
   end
 
   def autoscale_enable
