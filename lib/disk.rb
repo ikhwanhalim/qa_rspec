@@ -145,7 +145,7 @@ class Disk
   end
 
   def get_backups
-    interface.get("#{@vm_route}/disks/#{@id}")
+    interface.get("#{@vm_route}/disks/#{@id}/backups")
   end
 
   def response_handler(response)
