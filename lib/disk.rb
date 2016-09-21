@@ -67,7 +67,10 @@ class Disk
   def edit(**params)
     params[:label] ||= label
     response = interface.put(@route, {disk: params})
-    return response_handler(response) if interface.conn.page.code != '204'
+    if interface.conn.page.code != '204'
+      response_handler(response)
+      return
+    end
     if params[:disk_size] && params[:disk_size] != disk_size
       wait_for_resize
     elsif params[:mount_point]
