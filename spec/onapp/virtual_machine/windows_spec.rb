@@ -8,7 +8,9 @@ describe 'Windows Virtual Server actions tests' do
   end
 
   after :all do
-    @vm.destroy
+    unless VirtualServerActions::IDENTIFIER
+      @vm.destroy
+    end
   end
 
   let(:vm) { @vsa.virtual_machine }
