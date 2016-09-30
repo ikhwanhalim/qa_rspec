@@ -68,7 +68,6 @@ describe 'Virtual Server built from ISO actions tests' do
       @iso_new = Iso.new(@ivsa)
       @is_folder_mounted = @ivsa.hypervisor.is_data_mounted?
       @iso_new.create() if @is_folder_mounted
-
     end
 
     after :all do
