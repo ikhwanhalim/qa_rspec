@@ -171,8 +171,8 @@ class VirtualServer
 
   def available_network_join_ids
     all_network_joins.delete_if do |j|
-      j.id == network_interface.network_join_id ||
-          j.target_join_id == network_interface.ip_address.network_id
+      j.id == network_interface.network_join_id #||
+          #j.target_join_id == network_interface.ip_address.network_id
     end.map(&:id)
   end
 

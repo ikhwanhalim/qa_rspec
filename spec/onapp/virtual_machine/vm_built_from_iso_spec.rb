@@ -67,7 +67,7 @@ describe 'Virtual Server built from ISO actions tests' do
     before :all do
       @iso_new = Iso.new(@ivsa)
       @is_folder_mounted = @ivsa.hypervisor.is_data_mounted?
-      @iso_new.create(min_disk_size: 3) if @is_folder_mounted
+      @iso_new.create() if @is_folder_mounted
     end
 
     after :all do
@@ -102,10 +102,6 @@ describe 'Virtual Server built from ISO actions tests' do
     end
 
     context 'Negative' do
-      before do
-        iso_new.edit(min_memory_size: vm.memory.to_i - 1, min_disk_size: vm.total_disk_size - 1)
-      end
-
       it 'Reboot VS from ISO if not enough memory' do
         iso_new.edit(min_memory_size: vm.memory.to_i + 10)
         vm.reboot_from_iso(iso_new.id)
@@ -114,9 +110,10 @@ describe 'Virtual Server built from ISO actions tests' do
       end
 
       it 'Reboot VS from ISO if incorrect virtualization type' do
+        #TODO
         skip("https://onappdev.atlassian.net/browse/CORE-5721")
         virt = vm.hypervisor_type == 'xen' ? 'kvm' : 'xen'
-        iso_new.edit(virtualization: virt, min_memory_size: vm.memory.to_i)
+        iso_new.edit(virtualization: virt)
         vm.reboot_from_iso(iso_new.id)
         expect(vm.api_response_code).to eq '422'
         expect(vm.exist_on_hv?).to be true
@@ -139,9 +136,10 @@ describe 'Virtual Server built from ISO actions tests' do
       end
 
       it 'Boot VS from ISO if incorrect virtualization type' do
+        #TODO
         skip("https://onappdev.atlassian.net/browse/CORE-5721")
         virt = vm.hypervisor_type == 'xen' ? 'kvm' : 'xen'
-        iso_new.edit(virtualization: virt, min_memory_size: vm.memory.to_i, min_disk_size: vm.total_disk_size - 1)
+        iso_new.edit(virtualization: virt)
         vm.shut_down if vm.exist_on_hv?
         expect(vm.exist_on_hv?).to be false
         vm.boot_from_iso(iso_new.id)
@@ -150,7 +148,7 @@ describe 'Virtual Server built from ISO actions tests' do
       end
 
       it 'Boot VS from ISO if not enough disk space' do
-        iso_new.edit(min_disk_size: vm.total_disk_size + 10, min_memory_size: vm.memory.to_i)
+        iso_new.edit(min_disk_size: vm.total_disk_size + 10)
         vm.shut_down if vm.exist_on_hv?
         expect(vm.exist_on_hv?).to be false
         vm.boot_from_iso(iso_new.id)
@@ -221,6 +219,7 @@ describe 'Virtual Server built from ISO actions tests' do
     end
 
     it 'Incremental backups should not be supported for VS built from ISO' do
+      #TODO
       skip('https://onappdev.atlassian.net/browse/CORE-7781')
       if @incremental_backups_enabled
         expect(vm.create_backup['base']).to eq(['Backups are not supported'])
@@ -247,9 +246,33 @@ describe 'Virtual Server built from ISO actions tests' do
     end
 
     it 'Getting disk backups for VS built from ISO should return error' do
+      #TODO
       skip('https://onappdev.atlassian.net/browse/CORE-7781')
       expect(vm.disk.get_backups['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
       expect(vm.api_response_code).to eq '422'
+    end
+  end
+
+  describe 'Network operations' do
+    it 'Add and remove an IP address' do
+      skip('There are no free ip addresses') if vm.network_interface.ip_address.all.empty?
+      ips_count_before_test = vm.ip_addresses.count
+      vm.network_interface.allocate_new_ip
+      expect(vm.ip_addresses.count).to eq ips_count_before_test + 1
+      vm.network_interface.remove_ip(1)
+      expect(vm.ip_addresses.count).to eq ips_count_before_test
+    end
+
+    it 'Attach network interface' do
+      skip('Additional network has not been attached to HV or HVZ') if vm.available_network_join_ids.empty?
+      vm.attach_network_interface
+      expect(vm.network_interfaces.count).to eq 2
+    end
+
+    it 'Detach network interface' do
+      skip('Additional network has not been attached to HV or HVZ') if vm.available_network_join_ids.empty?
+      vm.network_interface('additional').remove
+      expect(vm.network_interfaces.count).to eq 1
     end
   end
 end

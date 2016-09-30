@@ -30,7 +30,7 @@ class NetworkInterface
     network_interface = interface.post("#{interfaces_route}", data).network_interface
     return if interface.conn.page.code != '201'
     info_update(network_interface)
-    wait_for_attach_network_interface
+    wait_for_network_interface_transaction('create')
   end
 
   def any?
@@ -40,7 +40,33 @@ class NetworkInterface
   def remove
     interface.delete("#{@route}")
     return if interface.conn.page.code != '204'
-    wait_for_detach_network_interface
+    wait_for_network_interface_transaction('remove')
+  end
+
+  def wait_for_network_interface_transaction(action)
+    if hypervisor_type == 'kvm' && hypervisor_distro == 'centos6'
+      if template_kvm_virtio?
+        action == 'create' ? wait_for_attach_network_interface : wait_for_detach_network_interface
+      else
+        virtual_machine.wait_for_reboot
+      end
+    elsif hypervisor_type == 'kvm' && hypervisor_distro == 'centos5'
+      virtual_machine.wait_for_reboot
+    else
+      action == 'create' ? wait_for_attach_network_interface : wait_for_detach_network_interface
+    end
+  end
+
+  def hypervisor_type
+    interface.hypervisor.hypervisor_type
+  end
+
+  def hypervisor_distro
+    interface.hypervisor.distro
+  end
+
+  def template_kvm_virtio?
+    interface.template.virtualization.include? 'kvm_virtio'
   end
 
   def build_params

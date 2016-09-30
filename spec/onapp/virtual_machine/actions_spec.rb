@@ -262,6 +262,7 @@ describe 'Virtual Server actions tests' do
         skip('Doest not work on gentoo') if @vm.operating_system_distro == 'gentoo'
         amount = vm.network_interface.amount
         vm.attach_network_interface
+        expect(vm.port_opened?).to be true
         expect(vm.network_interface.amount).to eq amount + 1
       end
 
@@ -269,6 +270,7 @@ describe 'Virtual Server actions tests' do
         skip('Doest not work on gentoo') if @vm.operating_system_distro == 'gentoo'
         amount = vm.network_interface.amount
         vm.network_interface('additional').remove
+        expect(vm.port_opened?).to be true
         expect(vm.network_interface.amount).to eq amount - 1
       end
 
@@ -340,10 +342,6 @@ describe 'Virtual Server actions tests' do
     end
 
     context 'Negative' do
-      before do
-        iso.edit(min_memory_size: vm.memory.to_i - 1, min_disk_size: vm.total_disk_size - 1)
-      end
-
       it 'Reboot VS from ISO if not enough memory' do
         iso.edit(min_memory_size: vm.memory.to_i + 10)
         vm.reboot_from_iso(iso.id)
@@ -354,7 +352,7 @@ describe 'Virtual Server actions tests' do
       it 'Reboot VS from ISO if incorrect virtualization type' do
         skip("https://onappdev.atlassian.net/browse/CORE-5721")
         virt = vm.hypervisor_type == 'xen' ? 'kvm' : 'xen'
-        iso.edit(virtualization: virt, min_memory_size: vm.memory.to_i)
+        iso.edit(virtualization: virt)
         vm.reboot_from_iso(iso.id)
         expect(vm.api_response_code).to eq '422'
         expect(vm.exist_on_hv?).to be true
@@ -379,7 +377,7 @@ describe 'Virtual Server actions tests' do
       it 'Boot VS from ISO if incorrect virtualization type' do
         skip("https://onappdev.atlassian.net/browse/CORE-5721")
         virt = vm.hypervisor_type == 'xen' ? 'kvm' : 'xen'
-        iso.edit(virtualization: virt, min_memory_size: vm.memory.to_i, min_disk_size: vm.total_disk_size - 1)
+        iso.edit(virtualization: virt)
         vm.shut_down if vm.exist_on_hv?
         expect(vm.exist_on_hv?).to be false
         vm.boot_from_iso(iso.id)
@@ -388,7 +386,7 @@ describe 'Virtual Server actions tests' do
       end
 
       it 'Boot VS from ISO if not enough disk space' do
-        iso.edit(min_disk_size: vm.total_disk_size + 10, min_memory_size: vm.memory.to_i)
+        iso.edit(min_disk_size: vm.total_disk_size + 10)
         vm.shut_down if vm.exist_on_hv?
         expect(vm.exist_on_hv?).to be false
         vm.boot_from_iso(iso.id)
