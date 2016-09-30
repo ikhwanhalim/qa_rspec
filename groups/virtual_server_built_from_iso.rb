@@ -11,7 +11,7 @@ class IsoVirtualServerActions
     return false unless @hypervisor.is_data_mounted?
 
     @iso = Iso.new(self)
-    @iso.create
+    @iso.create(min_memory_size: 256, min_disk_size: 6)
     @iso.make_public
 
     @template_store = @iso.add_to_template_store(@iso.id, 0)
