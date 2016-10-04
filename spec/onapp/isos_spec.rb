@@ -126,6 +126,7 @@ describe 'ISO functionality tests' do
   end
 
   it 'Make ISO public' do
+    expect(iso.user_id).not_to be_nil
     iso.make_public
     expect(iso.api_response_code).to eq '201'
     expect(iso.user_id).to be_nil
