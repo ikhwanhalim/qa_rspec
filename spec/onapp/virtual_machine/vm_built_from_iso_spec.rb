@@ -7,6 +7,7 @@ describe 'Virtual Server built from ISO actions tests' do
     if @ivsa
       @vm = @ivsa.virtual_machine
       @iso = @ivsa.iso
+      @hypervisor = @ivsa.hypervisor
     else
       fail('/data not mounted')
     end
@@ -271,6 +272,7 @@ describe 'Virtual Server built from ISO actions tests' do
 
     it 'Detach network interface' do
       skip('Additional network has not been attached to HV or HVZ') if vm.available_network_join_ids.empty?
+      skip ('https://onappdev.atlassian.net/browse/CORE-7878') if @hypervisor.hypervisor_type == 'xen'
       vm.network_interface('additional').remove
       expect(vm.network_interfaces.count).to eq 1
     end
