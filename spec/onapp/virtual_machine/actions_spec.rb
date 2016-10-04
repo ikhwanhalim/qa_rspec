@@ -401,6 +401,7 @@ describe 'Virtual Server actions tests' do
       @data_for_check = "File-#{SecureRandom.hex(4)}"
       @vm.port_opened?
       @vm.ssh_execute(">#{@data_for_check}")
+      sleep 30 #need for completely writing file to disk
       expect(@vm.ssh_execute('ls')).to include @data_for_check
     end
 
