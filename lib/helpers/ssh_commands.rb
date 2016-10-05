@@ -77,6 +77,10 @@ module SshCommands
     def zabbix_agent_status
       'service autoscale-agent status;echo $?'
     end
+
+    def drop_caches
+      'sync && echo 3 > /proc/sys/vm/drop_caches && echo $?'
+    end
   end
 
   module OnHypervisor
