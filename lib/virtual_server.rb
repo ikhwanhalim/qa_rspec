@@ -262,7 +262,7 @@ class VirtualServer
              elsif hypervisor_type == 'xen'
                hypervisor.ssh_execute("xm list | grep #{identifier}")
              end
-    result.last.try(:include?, identifier)
+    !!result.last.try(:include?, identifier)
   end
 
   def update_os
