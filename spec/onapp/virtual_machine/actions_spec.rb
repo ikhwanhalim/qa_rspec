@@ -409,7 +409,7 @@ describe 'Virtual Server actions tests' do
     let(:settings)                       { @vsa.settings }
 
     after :all do
-      @vsa.settings.reset_to_primary
+      @vsa.settings.reset_to_primary if @vsa.settings.has_been_changed?
     end
 
     context 'Incremental backups allowed' do
@@ -553,7 +553,7 @@ describe 'Virtual Server actions tests' do
     end
 
     after :all do
-      @vsa.settings.reset_to_primary
+      @vsa.settings.reset_to_primary if @vsa.settings.has_been_changed?
     end
 
     let(:zabbix_agent_status) { SshCommands::OnVirtualServer.zabbix_agent_status }

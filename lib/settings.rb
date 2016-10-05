@@ -1,5 +1,8 @@
 class Settings
+  attr_accessor :has_been_changed
   attr_reader :interface, :allow_incremental_backups, :zabbix_host, :delete_template_source_after_install
+
+  alias has_been_changed? has_been_changed
 
   def initialize(interface)
     @interface = interface
@@ -19,6 +22,7 @@ class Settings
   def setup(**params)
     updated = primary.merge(params)
     interface.put('/settings', {restart: 1, configuration: updated})
+    @has_been_changed = true
     read
   end
 
