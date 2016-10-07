@@ -14,6 +14,9 @@ describe 'ISO functionality tests' do
   let(:iso) { @ia.iso }
 
   describe 'Create ISO negative tests' do
+
+    let(:label_edited) {iso.label + 'edited' }
+
     after { expect(@iso.api_response_code).to eq '422' }
 
     it 'Create ISO with empty label' do
@@ -21,33 +24,38 @@ describe 'ISO functionality tests' do
       expect(iso.errors['label']).to eq(["can't be blank"])
     end
 
+    it 'Create ISO with already taken label' do
+      iso.create(label: iso.label)
+      expect(iso.errors['label']).to eq(["has already been taken"])
+    end
+
     it 'Create ISO with incorrect min_memory_size' do
-      iso.create(min_memory_size: 0)
+      iso.create(min_memory_size: 0, label: label_edited)
       expect(iso.errors['min_memory_size']).to eq(["must be greater than or equal to 128"])
     end
 
     it 'Create ISO with incorrect min_disk_size' do
-      iso.create(min_disk_size: 0)
+      iso.create(min_disk_size: 0, label: label_edited)
       expect(iso.errors['min_disk_size']).to eq(["must be greater than or equal to 1"])
     end
 
     it 'Create ISO with empty version' do
-      iso.create(version: '')
+      iso.create(version: '', label: label_edited)
       expect(iso.errors['version']).to eq(["can't be blank"])
     end
 
     it 'Create ISO with empty operating_system' do
-      iso.create(operating_system: '')
+      iso.create(operating_system: '', label: label_edited)
       expect(iso.errors['operating_system']).to eq(["can't be blank"])
     end
 
     it 'Create ISO with empty virtualization' do
-      iso.create(virtualization: [])
+      iso.create(virtualization: [], label: label_edited)
       expect(iso.errors['virtualization']).to eq(["can't be blank"])
     end
 
     it 'Create ISO with empty file_url' do
-      iso.create(file_url: '')
+      iso.create(file_url: '', label: label_edited)
       expect(iso.errors['file_url']).to eq(["can't be blank"])
     end
   end
