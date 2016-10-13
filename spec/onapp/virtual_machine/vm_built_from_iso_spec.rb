@@ -7,18 +7,17 @@ describe 'Virtual Server built from ISO actions tests' do
     if @ivsa
       @vm = @ivsa.virtual_machine
       @iso = @ivsa.iso
-      @hypervisor = @ivsa.hypervisor
     else
       fail('/data not mounted')
     end
   end
 
-  after :all do
-    if @ivsa
-      @vm.destroy
-      @iso.remove
-    end
-  end
+  #after :all do
+  #  if @ivsa
+  #    @vm.destroy
+  #    @iso.remove
+  #  end
+  #end
 
   let(:vm) { @ivsa.virtual_machine }
   let(:iso) { @ivsa.iso }
@@ -167,6 +166,7 @@ describe 'Virtual Server built from ISO actions tests' do
     let(:disk) { @disk }
 
     it 'Disk should be increased' do
+      skip("Size for FreeBSD primary disk cannot be changed") if iso.operating_system == 'freebsd'
       new_disk_size = disk.disk_size + 2
       disk.edit(disk_size: new_disk_size)
       vm.wait_for_start
@@ -272,9 +272,38 @@ describe 'Virtual Server built from ISO actions tests' do
 
     it 'Detach network interface' do
       skip('Additional network has not been attached to HV or HVZ') if vm.available_network_join_ids.empty?
-      skip ('https://onappdev.atlassian.net/browse/CORE-7878') if @hypervisor.hypervisor_type == 'xen'
       vm.network_interface('additional').remove
       expect(vm.network_interfaces.count).to eq 1
+    end
+
+    it 'Rebuild Network should not be supported for VS built from ISO' do
+      expect(vm.rebuild_network['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
+      expect(vm.api_response_code).to eq '422'
+    end
+  end
+
+  describe 'Firewall rules' do
+    after do
+      vm.network_interface.reset_firewall_rules
+      vm.update_firewall_rules
+    end
+
+    it 'Set DROP default rule' do
+      vm.network_interface.set_default_firewall_rule('DROP')
+      vm.update_firewall_rules
+      expect(vm.api_response_code).to eq '200'
+    end
+
+    it 'Set DROP rule for TCP custom port' do
+      vm.network_interface.add_custom_firewall_rule(command: 'DROP')
+      vm.update_firewall_rules
+      expect(vm.api_response_code).to eq '200'
+    end
+
+    it 'Set DROP rule for ICMP' do
+      vm.network_interface.add_custom_firewall_rule(command: 'DROP', protocol: 'ICMP')
+      vm.update_firewall_rules
+      expect(vm.api_response_code).to eq '200'
     end
   end
 end

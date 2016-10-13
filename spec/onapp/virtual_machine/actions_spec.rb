@@ -222,7 +222,6 @@ describe 'Virtual Server actions tests' do
     describe 'Firewall rules' do
       after do
         vm.network_interface.reset_firewall_rules
-        vm.network_interface.set_default_firewall_rule
         vm.update_firewall_rules
       end
 
