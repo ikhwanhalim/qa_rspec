@@ -12,12 +12,12 @@ describe 'Virtual Server built from ISO actions tests' do
     end
   end
 
-  #after :all do
-  #  if @ivsa
-  #    @vm.destroy
-  #    @iso.remove
-  #  end
-  #end
+  after :all do
+    if @ivsa
+      @vm.destroy unless VirtualServerActions::IDENTIFIER
+      @iso.remove unless IsoVirtualServerActions::ISO_ID
+    end
+  end
 
   let(:vm) { @ivsa.virtual_machine }
   let(:iso) { @ivsa.iso }
