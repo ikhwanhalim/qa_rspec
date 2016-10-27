@@ -17,8 +17,7 @@ class InstancePackage
   end
 
   def create(**params)
-    response = interface.post("/instance_packages", { instance_package: build_data.merge(params) })
-    response_handler response
+    response_handler interface.post("/instance_packages", { instance_package: build_data.merge(params) })
   end
 
   def find(instance_package_id)
@@ -26,8 +25,7 @@ class InstancePackage
   end
 
   def edit(**params)
-    response = interface.put(route, { instance_package: build_data.merge(params) })
-    response_handler response
+    response_handler interface.put(route, { instance_package: build_data.merge(params) })
   end
 
   def remove

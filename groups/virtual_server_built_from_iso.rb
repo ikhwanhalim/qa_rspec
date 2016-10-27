@@ -1,5 +1,5 @@
 class IsoVirtualServerActions
-  include FogOnapp, ApiClient, SshClient, Log
+  include ApiClient, SshClient, Log
 
   IDENTIFIER = ENV['IDENTIFIER']
   ISO_ID     = ENV['ISO_ID']

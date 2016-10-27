@@ -14,7 +14,7 @@ describe 'Virtual Server built from ISO actions tests' do
 
   after :all do
     if @ivsa
-      @vm.destroy unless VirtualServerActions::IDENTIFIER
+      @vm.destroy unless IsoVirtualServerActions::IDENTIFIER
       @iso.remove unless IsoVirtualServerActions::ISO_ID
     end
   end
