@@ -29,12 +29,12 @@ describe 'ISO functionality tests' do
       expect(iso.errors['label']).to eq(["has already been taken"])
     end
 
-    it 'Create ISO with incorrect min_memory_size' do
-      iso.create(min_memory_size: 0, label: label_edited)
+    it 'Create ISO with min_memory_size less than 128' do
+      iso.create(min_memory_size: 127, label: label_edited)
       expect(iso.errors['min_memory_size']).to eq(["must be greater than or equal to 128"])
     end
 
-    it 'Create ISO with incorrect min_disk_size' do
+    it 'Create ISO with min_disk_size less than 1' do
       iso.create(min_disk_size: 0, label: label_edited)
       expect(iso.errors['min_disk_size']).to eq(["must be greater than or equal to 1"])
     end
@@ -64,11 +64,11 @@ describe 'ISO functionality tests' do
     after { expect(@iso.api_response_code).to eq '422' }
 
     it 'Edit ISO with the min_memory_size less than 128' do
-       iso.edit(min_memory_size: 100)
+       iso.edit(min_memory_size: 127)
        expect(iso.errors['min_memory_size']).to eq(["must be greater than or equal to 128"])
     end
 
-    it 'Edit ISO with incorrect min_disk_size' do
+    it 'Edit ISO with min_disk_size less than 1' do
       #skip('Fixed 4.2')
       iso.edit(min_disk_size: 0)
       expect(iso.errors['min_disk_size']).to eq(["must be greater than or equal to 1"])
