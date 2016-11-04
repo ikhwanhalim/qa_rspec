@@ -61,7 +61,7 @@ class Hypervisor
   def select_virtualization(virt)
     if virt == 'xen3' || virt == 'xen4'
       'xen'
-    elsif virt == 'kvm5' || virt == 'kvm6'
+    elsif virt == 'kvm5' || virt == 'kvm6' || virt == 'kvm7'
       'kvm'
     end
   end
@@ -71,6 +71,8 @@ class Hypervisor
       'centos5'
     elsif virt == 'xen4' || virt == 'kvm6'
       'centos6'
+    elsif virt == 'kvm7'
+      'centos7'
     end
   end
 
