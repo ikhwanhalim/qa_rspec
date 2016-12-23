@@ -115,7 +115,7 @@ module SshCommands
     end
 
     def nc(remote_ip, port)
-      "nc -z -w1 #{remote_ip} #{port};echo $?"
+      "nc -v -w1 #{remote_ip} #{port} < /dev/null;echo $?"
     end
 
     def enable_incremantal_autobackups

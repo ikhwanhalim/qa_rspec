@@ -236,13 +236,27 @@ class VirtualServer
     wait_for_reboot
   end
 
-  def reset_root_password
-    interface.post("#{route}/reset_password")
-    return false if api_response_code  == '404'
+  def reset_root_password(root_pass: false, passphrase: false, confirmation_passphrase: false)
+    if passphrase || root_pass
+      params = {
+          virtual_machine: {
+              initial_root_password: (root_pass if root_pass),
+              initial_root_password_encryption_key: (passphrase if passphrase),
+              initial_root_password_encryption_key_confirmation: (confirmation_passphrase if confirmation_passphrase) }
+      }
+      response = interface.post("#{route}/reset_password", params)
+    else
+      response = interface.post("#{route}/reset_password")
+    end
+    return response if api_response_code == '422'
     wait_for_stop
     wait_for_reset_root_password
     wait_for_start
     info_update
+  end
+
+  def decrypt_root_password(passphrase)
+    interface.get("#{route}/with_decrypted_password", {initial_root_password_encryption_key: passphrase})
   end
 
   #Keyword arguments - label, cpus, cpu_shares, memory

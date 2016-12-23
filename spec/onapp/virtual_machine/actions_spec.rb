@@ -56,8 +56,88 @@ describe 'Virtual Server actions tests' do
       vm.start_up
       expect(vm.api_response_code).to eq '422'
       vm.unsuspend
+      expect(vm.down?).to be true
       vm.start_up
       expect(vm.pinged? && vm.exist_on_hv?).to be true
+    end
+  end
+
+  describe 'Administrative Options' do
+    before :all do
+      @root_password = 'ownPassword123!'
+      @passphrase = 'test'
+    end
+
+    let(:settings) { @vsa.settings }
+    let(:root_password) {@root_password}
+    let(:passphrase) {@passphrase}
+
+    it 'Reset VS root password with generated password' do
+      expect(vm.pinged? && vm.exist_on_hv?).to be true
+      vm.reset_root_password
+      expect(vm.up?).to be true
+      creds = {'vm_host' => vm.ip_address, 'vm_pass' => vm.initial_root_password}
+      expect(vm.interface.execute_with_pass(creds, 'hostname').join(' ')).to match vm.hostname
+    end
+
+    it 'Reset VS root password with own password' do
+      expect(vm.pinged? && vm.exist_on_hv?).to be true
+      vm.reset_root_password(root_pass: root_password)
+      expect(vm.up?).to be true
+      creds = {'vm_host' => vm.ip_address, 'vm_pass' => root_password}
+      expect(root_password).to eq(vm.initial_root_password)
+      expect(vm.interface.execute_with_pass(creds, 'hostname').join(' ')).to match vm.hostname
+    end
+
+    it 'Reset VS root password encrypt generated password' do
+      skip('Allow VS password encryption option is disabled at CP settings') unless settings.allow_initial_root_password_encryption
+      expect(vm.pinged? && vm.exist_on_hv?).to be true
+      vm.reset_root_password(passphrase: passphrase, confirmation_passphrase: passphrase)
+      expect(vm.up?).to be true
+      response = vm.decrypt_root_password(passphrase)
+      vm_pass = response['virtual_machine']['initial_root_password']
+      creds = {'vm_host' => vm.ip_address, 'vm_pass' => vm_pass}
+      expect(root_password).to_not eq(vm.initial_root_password)
+      expect(vm.interface.execute_with_pass(creds, 'hostname').join(' ')).to match vm.hostname
+    end
+
+    it 'Reset VS root password set own password and encrypt' do
+      skip('Allow VS password encryption option is disabled at CP settings') unless settings.allow_initial_root_password_encryption
+      expect(vm.pinged? && vm.exist_on_hv?).to be true
+      vm.reset_root_password(root_pass: root_password, passphrase: passphrase, confirmation_passphrase: passphrase)
+      expect(vm.up?).to be true
+      response = vm.decrypt_root_password(passphrase)
+      vm_pass = response['virtual_machine']['initial_root_password']
+      expect(root_password).to eq(vm_pass)
+      creds = {'vm_host' => vm.ip_address, 'vm_pass' => vm_pass}
+      expect(vm.interface.execute_with_pass(creds, 'hostname').join(' ')).to match vm.hostname
+    end
+
+    it 'Reset VS root password decrypt root password with incorrect passphrase' do
+      skip('Allow VS password encryption option is disabled at CP settings') unless settings.allow_initial_root_password_encryption
+      expect(vm.pinged? && vm.exist_on_hv?).to be true
+      vm.reset_root_password(passphrase: passphrase, confirmation_passphrase: passphrase)
+      expect(vm.up?).to be true
+      response = vm.decrypt_root_password('testttttt')
+      expect(response['errors']).to eq(['Encryption passphrase is invalid'])
+    end
+
+    it 'Reset VS root password encrypt generated password with incorrect confirmation passphrase' do
+      skip('Allow VS password encryption option is disabled at CP settings') unless settings.allow_initial_root_password_encryption
+      expect(vm.pinged? && vm.exist_on_hv?).to be true
+      response = vm.reset_root_password(passphrase: passphrase, confirmation_passphrase: 'testttttt')
+      expect(vm.up?).to be true
+      expect(response['errors']['initial_root_password_encryption_key_confirmation']).to eq(["doesn't match confirmation"])
+      expect(response['errors']['base']).to eq(['Virtual server root password cannot be reset at the moment. '])
+    end
+
+    it 'Reset VS root password set own password and encrypt with incorrect confirmation passphrase' do
+      skip('Allow VS password encryption option is disabled at CP settings') unless settings.allow_initial_root_password_encryption
+      expect(vm.pinged? && vm.exist_on_hv?).to be true
+      response = vm.reset_root_password(root_pass: root_password, passphrase: passphrase, confirmation_passphrase: 'testttt')
+      expect(vm.up?).to be true
+      expect(response['errors']['initial_root_password_encryption_key_confirmation']).to eq(["doesn't match confirmation"])
+      expect(response['errors']['base']).to eq(['Virtual server root password cannot be reset at the moment. '])
     end
   end
 
@@ -123,11 +203,11 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'should be possible to add and remove additional swap disk' do
-      additiona_swap_disk = vm.add_disk(is_swap: true, disk_size: 2)
-      additiona_swap_disk.wait_for_build
+      additional_swap_disk = vm.add_disk(is_swap: true, disk_size: 2)
+      additional_swap_disk.wait_for_build
       expect(vm.port_opened?).to be true
       expect(vm.disk('swap').disk_size_compare_with_interface).to eq false #this can be refactored to determine each swap disk separately
-      additiona_swap_disk.remove
+      additional_swap_disk.remove
       expect(vm.port_opened?).to be true
       expect(vm.disk('swap').disk_size_compare_with_interface).to eq true
     end
