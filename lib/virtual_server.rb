@@ -121,8 +121,8 @@ class VirtualServer
         licensing_type: build_params[:licensing_type]
       }
     }
-    interface.post("#{route}/build", params)
-    return false if api_response_code  == '404'
+    response = interface.post("#{route}/build", params)
+    return response if api_response_code  == '422'
     wait_for_build(image: image, require_startup: !required_startup.zero?, rebuild: true)
   end
 

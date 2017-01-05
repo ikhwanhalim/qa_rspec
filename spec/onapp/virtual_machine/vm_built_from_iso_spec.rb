@@ -158,6 +158,13 @@ describe 'Virtual Server built from ISO actions tests' do
     end
   end
 
+  describe 'Rebuild VS' do
+    it 'Rebuild VS built from ISO should not be supported' do
+      expect(vm.rebuild['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
+      expect(vm.api_response_code).to eq '422'
+    end
+  end
+
   describe 'Disk operations' do
     before :each do
       @disk = vm.disk
