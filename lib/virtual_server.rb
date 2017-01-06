@@ -259,6 +259,12 @@ class VirtualServer
     interface.get("#{route}/with_decrypted_password", {initial_root_password_encryption_key: passphrase})
   end
 
+  def set_ssh_keys
+    response = interface.post("#{route}/set_ssh_keys")
+    return response if api_response_code == '422'
+    wait_for_set_ssh_keys
+  end
+
   #Keyword arguments - label, cpus, cpu_shares, memory
   def edit(**kwargs)
     interface.put(route, {virtual_machine: kwargs})

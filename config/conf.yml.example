@@ -1,0 +1,20 @@
+---
+url: http://69.168.237.161
+user: admin
+pass: changeme
+
+supplier:
+  url: http://69.168.237.163
+  user: admin
+  pass: changeme
+
+trader:
+  url: http://69.168.237.162
+  user: admin
+  pass: changeme
+
+market:
+  url: http://69.168.237.164:3000
+  user: admin
+  pass: admin
+

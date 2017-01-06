@@ -5,7 +5,7 @@ class VirtualServerActions
   TEMPLATE_MANAGER_ID = ENV['TEMPLATE_MANAGER_ID']
   VIRT_TYPE           = ENV['VIRT_TYPE']
 
-  attr_accessor :hypervisor, :template, :iso
+  attr_accessor :hypervisor, :template, :iso, :user
   attr_reader   :virtual_machine, :settings
 
   def precondition

@@ -36,6 +36,10 @@ module VmOperationsWaiters
     wait_for_transaction(id, 'VirtualMachine', 'reset_root_password')
   end
 
+  def wait_for_set_ssh_keys
+    wait_for_transaction(id, 'VirtualMachine', 'set_ssh_keys')
+  end
+
   def wait_for_reboot
     set_max_mem
     wait_for_transaction(id, 'VirtualMachine', 'reboot_virtual_machine')
