@@ -146,14 +146,25 @@ describe 'Virtual Server actions tests' do
       before :all do
         @vsa.user = User.new(@vsa)
         @vsa.user.find(@vm.user_id)
-        ssh_key = (`cat ~/.ssh/*.pub`).chomp!
-        @vsa.user.add_ssh_key(ssh_key)
       end
 
-      it 'Set SSH key' do
+      let(:user) { @vsa.user }
+
+      it 'Add SSH key to user profile' do
+        user.add_ssh_key
+        expect(user.api_response_code).to eq '201'
+      end
+
+      it 'Set SSH keys' do
         vm.set_ssh_keys
         expect(vm.api_response_code).to eq '200'
         expect(vm.up?).to be true
+        expect(vm.interface.execute_with_keys(vm.ip_address, 'root', 'hostname')).to match vm.hostname
+      end
+
+      it 'Remove SSH key from user profile' do
+        user.remove_ssh_key
+        expect(user.api_response_code).to eq '204'
       end
     end
   end
