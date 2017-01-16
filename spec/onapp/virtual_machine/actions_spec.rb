@@ -415,6 +415,7 @@ describe 'Virtual Server actions tests' do
       @vsa.iso = Iso.new(@vsa)
       @is_folder_mounted = @vsa.hypervisor.is_data_mounted?
       @vsa.iso.create if @is_folder_mounted
+      @iso_path = @vsa.settings.iso_path_on_hv
     end
 
     after :all do
@@ -428,8 +429,8 @@ describe 'Virtual Server actions tests' do
     let(:hypervisor) { @vsa.hypervisor }
 
     it 'ISO file should exist on HV' do
-      hypervisor.remount_data unless hypervisor.find_exist('/data', iso.file_name)
-      expect(hypervisor.find_exist('/data', iso.file_name)).to be true
+      hypervisor.remount_data unless hypervisor.find_exist( @iso_path, iso.file_name)
+      expect(hypervisor.find_exist(@iso_path, iso.file_name)).to be true
     end
 
     it 'Reboot VS from ISO' do

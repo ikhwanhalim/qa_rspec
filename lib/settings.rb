@@ -1,6 +1,7 @@
 class Settings
   attr_accessor :has_been_changed
-  attr_reader :interface, :allow_incremental_backups, :zabbix_host, :delete_template_source_after_install, :allow_initial_root_password_encryption
+  attr_reader :interface, :allow_incremental_backups, :zabbix_host, :delete_template_source_after_install, :allow_initial_root_password_encryption,
+              :iso_path_on_hv
 
   alias has_been_changed? has_been_changed
 
