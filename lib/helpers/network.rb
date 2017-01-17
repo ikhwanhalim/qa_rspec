@@ -25,6 +25,7 @@ module Network
     wait_until do
       !exit_ok? ping_command(remote_ip)
     end
+
   end
 
   def up?

@@ -1,5 +1,5 @@
 class FederationMarket
-  include ApiClient, Waiter
+  #include ApiClient, Waiter
 
   attr_accessor :federation_id
   attr_reader :federation, :resource
