@@ -9,5 +9,5 @@ if ARGV[0] == 'template'
   end
   puts manager_ids.sample
 elsif ARGV[0] == 'virt'
-  puts %w(xen3 xen4 kvm5 kvm6).sample
+  puts %w(xen3 xen4 kvm5 kvm6 kvm7).sample
 end

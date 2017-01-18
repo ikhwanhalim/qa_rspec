@@ -60,6 +60,17 @@ describe 'Virtual Server actions tests' do
       vm.start_up
       expect(vm.pinged? && vm.exist_on_hv?).to be true
     end
+
+    it 'Reboot in recovery Operations' do
+      #skip('Could not connect to private ip') if vm.network_interface.ip_address.private?
+      vm.reboot(recovery: true)
+      expect(vm.port_opened?).to be true
+      creds = {'vm_host' => vm.ip_address, 'vm_pass' => vm.initial_root_password}
+      expect(vm.interface.execute_with_pass(creds, 'hostname')).to include 'recovery'
+      vm.reboot
+      expect(vm.port_opened?).to be true
+      expect(vm.ssh_execute('hostname').join(' ')).to match vm.hostname
+    end
   end
 
   describe 'Administrative Options' do
@@ -397,20 +408,7 @@ describe 'Virtual Server actions tests' do
     end
   end
 
-  describe 'Reboot in recovery operation' do
-    it 'Reboot in recovery Operations' do
-      skip('Could not connect to private ip') if vm.network_interface.ip_address.private?
-      vm.reboot(recovery: true)
-      expect(vm.port_opened?).to be true
-      creds = {'vm_host' => vm.ip_address, 'vm_pass' => vm.initial_root_password}
-      expect(vm.interface.execute_with_pass(creds, 'hostname')).to include 'recovery'
-      vm.reboot
-      expect(vm.port_opened?).to be true
-      expect(vm.ssh_execute('hostname').join(' ')).to match vm.hostname
-    end
-  end
-
-  describe 'ISO' do
+  describe 'Boot from ISO' do
     before :all do
       @vsa.iso = Iso.new(@vsa)
       @is_folder_mounted = @vsa.hypervisor.is_data_mounted?
