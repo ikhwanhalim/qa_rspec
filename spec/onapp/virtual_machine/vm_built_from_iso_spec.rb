@@ -63,6 +63,18 @@ describe 'Virtual Server built from ISO actions tests' do
     end
   end
 
+  describe 'Administrative Options' do
+    it 'Reset VS root password with generated password' do
+      expect(vm.reset_root_password['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
+      expect(vm.api_response_code).to eq '422'
+    end
+
+    it 'Set SSH keys' do
+      expect(vm.set_ssh_keys['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
+      expect(vm.api_response_code).to eq '422'
+    end
+  end
+
   describe 'Boot/Reboot from ISO' do
     before :all do
       @iso_new = Iso.new(@ivsa)
