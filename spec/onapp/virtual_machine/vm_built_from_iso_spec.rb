@@ -22,6 +22,22 @@ describe 'Virtual Server built from ISO actions tests' do
   let(:vm) { @ivsa.virtual_machine }
   let(:iso) { @ivsa.iso }
 
+  describe 'Option cdboot' do
+    it 'Option cdboot should be true for VS built from ISO' do
+      expect(vm.cdboot).to be true
+    end
+
+    it 'Disable cdboot option for VS built from ISO' do
+      vm.boot_from_cd(status: 'disable')
+      expect(vm.cdboot).to be false
+    end
+
+    it 'Enable cdboot option for VS built from ISO' do
+      vm.boot_from_cd
+      expect(vm.cdboot).to eq true
+    end
+  end
+
   describe 'VM power operations' do
     it { expect(vm.exist_on_hv?).to be true }
 
@@ -64,12 +80,12 @@ describe 'Virtual Server built from ISO actions tests' do
   end
 
   describe 'Administrative Options' do
-    it 'Reset VS root password with generated password' do
+    it 'Reset VS root password for VS built from ISO should not be supported' do
       expect(vm.reset_root_password['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
       expect(vm.api_response_code).to eq '422'
     end
 
-    it 'Set SSH keys' do
+    it 'Set SSH keys for VS built from ISO should not be supported' do
       expect(vm.set_ssh_keys['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
       expect(vm.api_response_code).to eq '422'
     end
