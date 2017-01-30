@@ -1,12 +1,13 @@
 module SshClient
   HOST_KEY_VERIFICATION = '-o StrictHostKeyChecking=no'
+  USER_KNOWN_HOST_FILE = '-o UserKnownHostsFile=/dev/null'
   PORT = ENV['PORT']
 
   #Example for cred - {'vm_user'=>'name', 'vm_host'=>'ip', 'cp_hostname'=>'name', 'cp_ip'=>'ip'}
   def tunnel_execute(cred={}, command)
     Log.error("HV ip should not be nil") unless cred['vm_host']
     port_option = "-p#{PORT}" if PORT
-    cmd = "echo \"#{command}\" | ssh -T #{HOST_KEY_VERIFICATION} #{port_option} onapp@#{ip} ssh -T #{HOST_KEY_VERIFICATION} root@#{cred['vm_host']}"
+    cmd = "echo \"#{command}\" | ssh -T #{HOST_KEY_VERIFICATION} #{port_option} onapp@#{ip} ssh -T #{HOST_KEY_VERIFICATION} #{USER_KNOWN_HOST_FILE} root@#{cred['vm_host']}"
     Log.info(cmd)
     %x[ #{cmd} 2>&1 ].split /[\r,\n]/
   end
