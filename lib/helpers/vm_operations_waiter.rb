@@ -118,6 +118,11 @@ module VmOperationsWaiters
      wait_for_transaction(id, 'VirtualMachine', 'receive_notification_from_market')
   end
 
+  def wait_for_create_cdn_server
+    set_max_mem
+    wait_for_transaction(id, 'VirtualMachine', 'create_cdn_server')
+  end
+
   def set_max_mem
     maxmem = if interface.hypervisor.hypervisor_type == 'xen'
                memory * 2

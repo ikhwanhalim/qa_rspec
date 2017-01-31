@@ -28,7 +28,13 @@ module Log
   end
 
   def formatted_message(message, message_type)
-    output = "#{Time.now} | #{message_type}: #{message}\n"
+    output = if message_type == "ERR"
+               "#{Time.now} | #{message_type}: #{message}\n".red
+             elsif message_type == "WARN"
+               "#{Time.now} | #{message_type}: #{message}\n".yellow
+             else
+               "#{Time.now} | #{message_type}: #{message}\n".green
+             end
     puts output
     if message_type == "ERR"
       ERR + output + CLEAR

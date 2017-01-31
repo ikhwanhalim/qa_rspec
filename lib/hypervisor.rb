@@ -76,6 +76,44 @@ class Hypervisor
     end
   end
 
+  def find_cdn_location_group
+    @cdn_location_groups = []
+    interface.get('/settings/location_groups').each {|x| @cdn_location_groups << x.location_group.id if x.location_group.cdn_enabled? }
+  end
+
+  def find_cdn_hvz
+    find_cdn_location_group
+    @cdn_hvz = []
+    interface.get("/settings/location_groups/#{@cdn_location_groups.sample(1).join}/hypervisor_groups").each {|x| @cdn_hvz << x.hypervisor_group.id if x.hypervisor_group.server_type == 'virtual' }
+  end
+
+  def find_cdn_supported(hvz_id = nil, hv_id = nil)
+    hv = nil
+    max_free = 0
+    if hvz_id
+      #TODO Andrii refactor
+      interface.get("/settings/hypervisor_zones/#{hvz_id}/hypervisors").map(&:hypervisor).each do |h|
+        if max_free < h.free_memory && h.enabled && h.server_type == 'virtual' && h.online && h.label !~ /fake/i
+          hv = hv_id ? (h if hv_id == h.hypervisor_group_id) : h
+          max_free = h.free_memory
+        end
+      end
+    else
+      find_cdn_hvz
+      size_cdn_hvz = @cdn_hvz.count - 1
+      interface.get("/settings/hypervisor_zones/#{@cdn_hvz[rand(0..size_cdn_hvz)]}/hypervisors").map(&:hypervisor).each do |h|
+        if max_free < h.free_memory && h.enabled && h.server_type == 'virtual' && h.online && h.label !~ /fake/i
+          hv = hv_id ? (h if hv_id == h.hypervisor_group_id) : h
+          max_free = h.free_memory
+        end
+      end
+    end
+
+    hv ? info_update(hv) : Log.error('Hypervisor was not found')
+    Log.info("Hypervisor with id #{hv.id} has been selected")
+    self
+  end
+
   def ssh_execute(script)
     interface.tunnel_execute({'vm_host' => ip_address}, script)
   end

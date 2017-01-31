@@ -17,7 +17,16 @@ class NetworkInterface
     network_interface.each { |k,v| instance_variable_set("@#{k}", v) }
     @route = "#{interfaces_route}/#{id}"
     ip_addresses
-    firewall_rules
+    firewall_rules unless virtual_machine.firewall_notrack
+    self
+  end
+
+  #TODO refactor Andrii, method below
+  def info_update_es(network_interface=nil)
+    network_interface ||= interface.get("#{virtual_machine.route}/network_interfaces/#{id}").network_interface
+    network_interface.each { |k,v| instance_variable_set("@#{k}", v) }
+    @route = "#{interfaces_route}/#{id}"
+    ip_addresses
     self
   end
 

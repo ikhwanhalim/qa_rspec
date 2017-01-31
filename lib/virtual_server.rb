@@ -94,10 +94,10 @@ class VirtualServer
   def wait_for_build(image: template, require_startup: true, rebuild: false)
     if rebuild
       disk('primary').wait_for_format
-      disk('swap').wait_for_format if image.allowed_swap
+      disk('swap').wait_for_format if image.allowed_swap && image.manager_id == 'cdn' # CORE-8860
     else
       disk('primary').wait_for_build
-      disk('swap').wait_for_build if image.allowed_swap
+      disk('swap').wait_for_build if image.allowed_swap && image.manager_id == 'cdn'
     end
 
     if image.type == 'ImageTemplateIso'
@@ -110,6 +110,7 @@ class VirtualServer
     end
 
     wait_for_start if require_startup
+    wait_for_create_cdn_server if image.manager_id == 'cdn'
     info_update
   end
 
@@ -420,6 +421,21 @@ class VirtualServer
       wait_for_check_or_install_zabbix_agent
       wait_for_enable_auto_scaling
     end
+  end
+
+  def set_vip
+    interface.post("#{route}/set_vip")
+    info_update
+  end
+
+  def add_note(**params)
+    interface.put(route, {ENV['CDN_SERVER'] => params})
+    info_update
+  end
+
+  def destroy_note(type)
+    interface.delete("#{route}/note", {type: "#{type}"})
+    info_update
   end
 end
 

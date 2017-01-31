@@ -130,6 +130,10 @@ module SshCommands
       'rm -rf /onapp/interface/tmp/cache/6E6 /onapp/interface/tmp/cache/8E5 /onapp/interface/tmp/cache/9C8; echo $?'
     end
 
+    def license
+      'grep -q "staging-dashboard.onapp.com" /onapp/interface/config/environments/production.rb; echo $?'
+    end
+
     def run_autohealing_task
       'cd /onapp/interface; RAILS_ENV=production rake storage_auto_healing:perform_hourly'
     end

@@ -8,7 +8,7 @@ module Transaction
     Log.info("Waiting for #{parent_type} (#{parent_id}) transaction: #{action}")
     transaction = appeared_transaction(parent_id, parent_type, action)
     interface.last_transaction_id = transaction['id']
-    transaction_completing(transaction)
+    transaction_completing(transaction, action)
   end
 
   def define_last_transaction_id
@@ -45,10 +45,10 @@ module Transaction
     interface.get("/transactions/#{transaction['id']}")['transaction']['status']
   end
 
-  def transaction_completing(transaction)
+  def transaction_completing(transaction, action)
     log_text = "Transaction #{@url}/transactions/#{transaction['id']}.json"
     status = transaction_status(transaction)
-    Log.error("#{log_text} FAILED") if  status == 'failed'
+    Log.error("#{log_text} FAILED") if  status == 'failed' && action != 'create_cdn_server'
     Log.error("#{log_text} CANCELLED") if status == 'cancelled'
     true
   end
