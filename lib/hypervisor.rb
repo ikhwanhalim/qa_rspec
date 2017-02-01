@@ -8,10 +8,31 @@ class Hypervisor
               :power_cycle_command, :rebooting, :release, :server_type, :spare, :storage_controller_memory_size,
               :threads_per_core, :total_mem, :total_zombie_mem, :updated_at, :uptime, :total_cpus, :free_memory,
               :used_cpu_resources, :total_memory, :free_disk_space, :memory_allocated_by_running_vms,
-              :total_memory_allocated_by_vms, :storage
+              :total_memory_allocated_by_vms, :storage, :id
 
   def initialize(interface)
     @interface = interface
+  end
+
+  def create(**params)
+    response = interface.post('/settings/hypervisors', {hypervisor: build_data.merge(params) })
+    info_update(response['hypervisor'])
+  end
+
+  def build_data
+    {
+      label: "Hypervisor_#{SecureRandom.hex(4)}",
+      hypervisor_type: 'xen',
+      ip_address: "%d.%d.%d.%d" % [rand(256), rand(256), rand(256), rand(256)],
+      cpu_units: '1000',
+      enabled: true,
+      collect_stats: true,
+      disable_failover:false
+    }
+  end
+
+  def remove(hypervisor_id)
+    interface.delete("/settings/hypervisors/#{hypervisor_id}")
   end
 
   def find_by_id(id)
