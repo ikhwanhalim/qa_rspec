@@ -23,7 +23,7 @@ class Hypervisor
     {
       label: "Hypervisor_#{SecureRandom.hex(4)}",
       hypervisor_type: 'xen',
-      ip_address: "%d.%d.%d.%d" % [rand(256), rand(256), rand(256), rand(256)],
+      ip_address: Faker::Internet.ip_v4_address,
       cpu_units: '1000',
       enabled: true,
       collect_stats: true,

@@ -16,3 +16,4 @@ gem 'fog-onapp', '1.9.0', git: 'git@bitbucket.org:onappcore/fog-onapp.git', bran
 gem 'fog-json'
 gem 'rspec_junit_formatter'
 gem 'activesupport'
+gem 'faker'

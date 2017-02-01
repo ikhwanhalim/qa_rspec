@@ -11,7 +11,8 @@ class LocationGroup
 
   def select_location_group
     location_group = interface.get('/settings/location_groups').map(&:location_group).first
-    location_group ? response_handler(location_group) : Log.warn('There is no locations in this cloud')
+    return Log.warn('There is no locations in this cloud') unless location_group
+    response_handler(location_group)
   end
 
   def response_handler(response)

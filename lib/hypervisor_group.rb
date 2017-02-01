@@ -4,7 +4,7 @@ class HypervisorGroup
 
   def initialize(interface, location_group= nil)
     @interface = interface
-    @location_group = location_group if location_group
+    @location_group = location_group
   end
 
 
