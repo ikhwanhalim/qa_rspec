@@ -13,6 +13,7 @@ class LocationGroup
     location_group = interface.get('/settings/location_groups').map(&:location_group).first
     return Log.warn('There is no locations in this cloud') unless location_group
     response_handler(location_group)
+    self
   end
 
   def response_handler(response)

@@ -2,11 +2,10 @@ class HypervisorGroup
   attr_reader :interface, :id, :label, :server_type, :location_group_id, :preconfigured_only, :run_sysprep,
               :cpu_flags_enabled, :errors
 
-  def initialize(interface, location_group= nil)
+  def initialize(interface)
     @interface = interface
-    @location_group = location_group
+    @location_group = interface.location_group
   end
-
 
   def create(**params)
     response = interface.post('/settings/hypervisor_zones', { hypervisor_group: build_data.merge(params) })
@@ -17,7 +16,7 @@ class HypervisorGroup
     {
       label: "ComputeZone_#{SecureRandom.hex(4)}",
       server_type: 'virtual',
-      location_group_id: (@location_group.id if @location_group),
+      location_group_id: @location_group.id,
       run_sysprep: 1,
       cpu_flags_enabled: false
     }
