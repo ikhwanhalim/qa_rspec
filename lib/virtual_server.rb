@@ -331,23 +331,15 @@ class VirtualServer
   end
 
   def boot_from_iso(iso_id)
-    interface.post("#{route}/startup", {iso_id: iso_id})
-    if api_response_code != '201'
-      Log.warn(interface.conn.page.body.error)
-      false
-    else
-      wait_for_start
-    end
+    response = interface.post("#{route}/startup", {iso_id: iso_id})
+    return response if api_response_code == '422'
+    wait_for_start
   end
 
   def reboot_from_iso(iso_id)
-    interface.post("#{route}/reboot", {iso_id: iso_id})
-    if api_response_code != '201'
-      Log.warn(interface.conn.page.body.error)
-      false
-    else
-      wait_for_reboot
-    end
+    response = interface.post("#{route}/reboot", {iso_id: iso_id})
+    return response if api_response_code == '422'
+    wait_for_reboot
   end
 
   def api_response_code

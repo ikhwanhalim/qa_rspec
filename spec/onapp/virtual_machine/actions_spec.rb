@@ -450,23 +450,22 @@ describe 'Virtual Server actions tests' do
     context 'Negative' do
       it 'Reboot VS from ISO if not enough memory' do
         iso.edit(min_memory_size: vm.memory.to_i + 10)
-        vm.reboot_from_iso(iso.id)
+        expect(vm.reboot_from_iso(iso.id)['error']).to eq("Virtual server must have at least #{iso.min_memory_size}MB of RAM")
         expect(vm.api_response_code).to eq '422'
         expect(vm.exist_on_hv?).to be true
       end
 
       it 'Reboot VS from ISO if incorrect virtualization type' do
-        skip("https://onappdev.atlassian.net/browse/CORE-5721")
         virt = vm.hypervisor_type == 'xen' ? 'kvm' : 'xen'
         iso.edit(virtualization: virt)
-        vm.reboot_from_iso(iso.id)
+        expect(vm.reboot_from_iso(iso.id)['error']).to eq("Template virtualization is not compatible with compute resource type")
         expect(vm.api_response_code).to eq '422'
         expect(vm.exist_on_hv?).to be true
       end
 
       it 'Reboot VS from ISO if not enough disk space' do
         iso.edit(min_disk_size: vm.total_disk_size + 10)
-        vm.reboot_from_iso(iso.id)
+        expect(vm.reboot_from_iso(iso.id)['error']).to eq("Virtual server primary disk size must be at least #{iso.min_disk_size}GB")
         expect(vm.api_response_code).to eq '422'
         expect(vm.exist_on_hv?).to be true
       end
@@ -475,18 +474,17 @@ describe 'Virtual Server actions tests' do
         iso.edit(min_memory_size: vm.memory.to_i + 10)
         vm.shut_down if vm.exist_on_hv?
         expect(vm.exist_on_hv?).to be false
-        vm.boot_from_iso(iso.id)
+        expect(vm.boot_from_iso(iso.id)['error']).to eq("Virtual server must have at least #{iso.min_memory_size}MB of RAM")
         expect(vm.api_response_code).to eq '422'
         expect(vm.exist_on_hv?).to be false
       end
 
       it 'Boot VS from ISO if incorrect virtualization type' do
-        skip("https://onappdev.atlassian.net/browse/CORE-5721")
         virt = vm.hypervisor_type == 'xen' ? 'kvm' : 'xen'
         iso.edit(virtualization: virt)
         vm.shut_down if vm.exist_on_hv?
         expect(vm.exist_on_hv?).to be false
-        vm.boot_from_iso(iso.id)
+        expect(vm.boot_from_iso(iso.id)['error']).to eq("Template virtualization is not compatible with compute resource type")
         expect(vm.api_response_code).to eq '422'
         expect(vm.exist_on_hv?).to be false
       end
@@ -495,7 +493,7 @@ describe 'Virtual Server actions tests' do
         iso.edit(min_disk_size: vm.total_disk_size + 10)
         vm.shut_down if vm.exist_on_hv?
         expect(vm.exist_on_hv?).to be false
-        vm.boot_from_iso(iso.id)
+        expect(vm.boot_from_iso(iso.id)['error']).to eq("Virtual server primary disk size must be at least #{iso.min_disk_size}GB")
         expect(vm.api_response_code).to eq '422'
         expect(vm.exist_on_hv?).to be false
       end
