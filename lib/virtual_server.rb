@@ -265,6 +265,32 @@ class VirtualServer
     wait_for_set_ssh_keys
   end
 
+  def hot_migrate(hv_id)
+    response = interface.post("#{route}/migrate", {virtual_machine: {destination: hv_id}})
+    return response.errors if api_response_code == '422'
+    wait_for_hot_migration
+    info_update
+  end
+
+  def cold_migrate(hv_id)
+    response = interface.post("#{route}/migrate", {virtual_machine: {destination: hv_id}})
+    return response.errors if api_response_code == '422'
+    wait_for_cold_migration
+    info_update
+  end
+
+  def segregate(vm_id)
+    response = interface.put("#{route}/segregation", {virtual_machine: {strict_virtual_machine_id: vm_id}})
+    return response.errors if api_response_code == '422'
+    info_update
+  end
+
+  def desegregate(vm_id)
+    response = interface.delete("#{route}/segregation", {virtual_machine: {strict_virtual_machine_id: vm_id}})
+    return response if api_response_code == '422'
+    info_update
+  end
+
   #Keyword arguments - label, cpus, cpu_shares, memory
   def edit(**kwargs)
     interface.put(route, {virtual_machine: kwargs})

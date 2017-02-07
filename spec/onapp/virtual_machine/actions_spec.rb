@@ -6,6 +6,7 @@ describe 'Virtual Server actions tests' do
     @vsa = VirtualServerActions.new.precondition
     @vm = @vsa.virtual_machine
     @template = @vsa.template
+    @hypervisor = @vsa.hypervisor
   end
 
   after :all do
@@ -177,6 +178,57 @@ describe 'Virtual Server actions tests' do
         user.remove_ssh_key
         expect(user.api_response_code).to eq '204'
       end
+    end
+  end
+
+  describe 'Migrate VS' do
+    before do
+      @hv = @hypervisor.available_hypervisor_for_migration(vm.hypervisor_id)
+      skip('There is no available hypervisors for migration') unless @hv
+    end
+
+    it 'Hot Migrate VS' do
+      expect(vm.up?).to be true
+      vm.hot_migrate(@hv.id)
+      expect(vm.hypervisor_id).to eq @hv.id
+      expect(vm.up?).to be true
+    end
+
+    it 'Cold Migrate VS' do
+      vm.stop
+      expect(vm.down?).to be true
+      vm.cold_migrate(@hv.id)
+      expect(vm.hypervisor_id).to eq @hv.id
+      vm.start_up
+      expect(vm.up?).to be true
+    end
+  end
+
+  describe 'Performance Options' do
+    before :all do
+      @hv = @hypervisor.available_hypervisor_for_migration(@vm.hypervisor_id)
+      skip('There is no available hypervisors for segregation') unless @hv
+      @vm_new = VirtualServer.new(@vsa)
+      @vm_new.create(hypervisor_id: @hv.id)
+    end
+
+    after :all do
+      @vm_new.destroy
+    end
+
+    it 'Segregate VS' do
+      vm.segregate(@vm_new.id)
+      expect(vm.strict_virtual_machine_id).to eq @vm_new.id
+      expect(vm.hot_migrate(@hv.id)['base']).to eq(['Virtual Server cannot be migrated'])
+      expect(vm.api_response_code).to eq '422'
+    end
+
+    it 'Desegregate VS' do
+      vm.desegregate(@vm_new.id)
+      expect(vm.strict_virtual_machine_id).to be nil
+      vm.hot_migrate(@hv.id)
+      expect(vm.hypervisor_id).to eq @hv.id
+      expect(vm.up?).to be true
     end
   end
 

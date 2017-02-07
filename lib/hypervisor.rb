@@ -35,6 +35,19 @@ class Hypervisor
     interface.delete("/settings/hypervisors/#{hypervisor_id}")
   end
 
+  def available_hypervisor_for_migration(hv_id)
+    hv = nil
+    interface.get("/settings/hypervisor_zones/#{hypervisor_group_id}/hypervisors").map(&:hypervisor).each do |h|
+      if h.enabled && h.server_type == 'virtual' && h.online && h.label !~ /fake/i && h.id != hv_id
+        hv = h
+      end
+    end
+    return false unless hv
+    info_update(hv)
+    Log.info("Hypervisor with id #{hv.id} has been selected for VS migration")
+    self
+  end
+
   def find_by_id(id)
     data = interface.get("/hypervisors/#{id}").hypervisor
     info_update(data)
