@@ -35,17 +35,8 @@ class Hypervisor
     interface.delete("/settings/hypervisors/#{hypervisor_id}")
   end
 
-  def available_hypervisor_for_migration(hv_id)
-    hv = nil
-    interface.get("/settings/hypervisor_zones/#{hypervisor_group_id}/hypervisors").map(&:hypervisor).each do |h|
-      if h.enabled && h.server_type == 'virtual' && h.online && h.label !~ /fake/i && h.id != hv_id
-        hv = h
-      end
-    end
-    return false unless hv
-    info_update(hv)
-    Log.info("Hypervisor with id #{hv.id} has been selected for VS migration")
-    self
+  def available_hypervisor_for_migration
+    find_by_virt(ENV['VIRT_TYPE'], hypervisor_group_id, exclude_current: true)
   end
 
   def find_by_id(id)
@@ -54,7 +45,7 @@ class Hypervisor
     self
   end
 
-  def find_by_virt(virt, hvz_id = nil)
+  def find_by_virt(virt, hvz_id = nil, exclude_current: false)
     max_free = 0
     hv = nil
     virtualization = select_virtualization(virt)
@@ -62,13 +53,27 @@ class Hypervisor
     interface.get("/hypervisors").map(&:hypervisor).each do |h|
       if max_free < h.free_memory && h.distro == distro && h.hypervisor_type == virtualization &&
           h.enabled && h.server_type == 'virtual' && h.online && h.label !~ /fake/i
+        if exclude_current
+          next if h.id == id
+        end
         hv = hvz_id ? (h if hvz_id == h.hypervisor_group_id) : h
         max_free = h.free_memory
       end
     end
-    hv ? info_update(hv) : Log.error('Hypervisor was not found')
-    Log.info("Hypervisor with id #{hv.id} has been selected")
-    self
+
+    if exclude_current
+      if hv
+        info_update(hv)
+        Log.info("Hypervisor with id #{hv.id} has been selected for migration")
+        return self
+      else
+        return hv
+      end
+    else
+        hv ? info_update(hv) : Log.error('Hypervisor was not found')
+        Log.info("Hypervisor with id #{hv.id} has been selected")
+        self
+    end
   end
 
   def ssh_execute(script)

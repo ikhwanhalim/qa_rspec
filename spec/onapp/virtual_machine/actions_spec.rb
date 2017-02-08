@@ -183,13 +183,13 @@ describe 'Virtual Server actions tests' do
 
   describe 'Migrate VS' do
     before do
-      @hv = @hypervisor.available_hypervisor_for_migration(vm.hypervisor_id)
+      @hv = @hypervisor.available_hypervisor_for_migration
       skip('There is no available hypervisors for migration') unless @hv
     end
 
     it 'Hot Migrate VS' do
       expect(vm.up?).to be true
-      vm.hot_migrate(@hv.id)
+      vm.migrate(@hv.id)
       expect(vm.hypervisor_id).to eq @hv.id
       expect(vm.up?).to be true
     end
@@ -197,7 +197,7 @@ describe 'Virtual Server actions tests' do
     it 'Cold Migrate VS' do
       vm.stop
       expect(vm.down?).to be true
-      vm.cold_migrate(@hv.id)
+      vm.migrate(@hv.id,  hot: false)
       expect(vm.hypervisor_id).to eq @hv.id
       vm.start_up
       expect(vm.up?).to be true
@@ -206,10 +206,13 @@ describe 'Virtual Server actions tests' do
 
   describe 'Performance Options' do
     before :all do
-      @hv = @hypervisor.available_hypervisor_for_migration(@vm.hypervisor_id)
-      skip('There is no available hypervisors for segregation') unless @hv
-      @vm_new = VirtualServer.new(@vsa)
-      @vm_new.create(hypervisor_id: @hv.id)
+      @hv = @hypervisor.available_hypervisor_for_migration
+      if @hv
+        @vm_new = VirtualServer.new(@vsa)
+        @vm_new.create(hypervisor_id: @hv.id)
+      else
+        skip('There is no available hypervisors for segregation')
+      end
     end
 
     after :all do
@@ -219,14 +222,14 @@ describe 'Virtual Server actions tests' do
     it 'Segregate VS' do
       vm.segregate(@vm_new.id)
       expect(vm.strict_virtual_machine_id).to eq @vm_new.id
-      expect(vm.hot_migrate(@hv.id)['base']).to eq(['Virtual Server cannot be migrated'])
+      expect(vm.migrate(@hv.id)['base']).to eq(['Virtual Server cannot be migrated'])
       expect(vm.api_response_code).to eq '422'
     end
 
     it 'Desegregate VS' do
       vm.desegregate(@vm_new.id)
       expect(vm.strict_virtual_machine_id).to be nil
-      vm.hot_migrate(@hv.id)
+      vm.migrate(@hv.id)
       expect(vm.hypervisor_id).to eq @hv.id
       expect(vm.up?).to be true
     end

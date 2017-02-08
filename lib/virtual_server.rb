@@ -265,17 +265,10 @@ class VirtualServer
     wait_for_set_ssh_keys
   end
 
-  def hot_migrate(hv_id)
+  def migrate(hv_id, hot: true)
     response = interface.post("#{route}/migrate", {virtual_machine: {destination: hv_id}})
     return response.errors if api_response_code == '422'
-    wait_for_hot_migration
-    info_update
-  end
-
-  def cold_migrate(hv_id)
-    response = interface.post("#{route}/migrate", {virtual_machine: {destination: hv_id}})
-    return response.errors if api_response_code == '422'
-    wait_for_cold_migration
+    hot ? wait_for_hot_migration : wait_for_cold_migration
     info_update
   end
 
