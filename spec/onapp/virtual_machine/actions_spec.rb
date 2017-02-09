@@ -191,7 +191,7 @@ describe 'Virtual Server actions tests' do
       expect(vm.up?).to be true
       vm.migrate(@hv.id)
       expect(vm.hypervisor_id).to eq @hv.id
-      expect(vm.up?).to be true
+      expect(vm.exist_on_hv?).to be true
     end
 
     it 'Cold Migrate VS' do
@@ -200,7 +200,7 @@ describe 'Virtual Server actions tests' do
       vm.migrate(@hv.id,  hot: false)
       expect(vm.hypervisor_id).to eq @hv.id
       vm.start_up
-      expect(vm.up?).to be true
+      expect(vm.exist_on_hv?).to be true
     end
   end
 
@@ -231,7 +231,7 @@ describe 'Virtual Server actions tests' do
       expect(vm.strict_virtual_machine_id).to be nil
       vm.migrate(@hv.id)
       expect(vm.hypervisor_id).to eq @hv.id
-      expect(vm.up?).to be true
+      expect(vm.exist_on_hv?).to be true
     end
   end
 
@@ -280,7 +280,6 @@ describe 'Virtual Server actions tests' do
       expect(vm.api_response_code).to eq '422'
     end
 
-
     it 'should be impossible to add second primary disk with minimal available size to VS' do
       vm.add_disk(primary: true)
       expect(vm.api_response_code).to eq '422'
@@ -321,18 +320,22 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'primary disk should be migrated if there is available DS on a cloud' do
-      if vm.disk.available_data_store_for_migration
-        vm.disk.migrate
+      datastore_id = vm.disk.available_data_store_for_migration
+      if datastore_id
+        vm.disk.migrate(datastore_id)
         expect(vm.port_opened?).to be true
+        expect(vm.disk.data_store_id).to eq datastore_id
       else
         skip("skipped because we have not found available data stores for migration.")
       end
     end
 
     it 'additional disk should be migrated if there is additional DS' do
-      if @disk.available_data_store_for_migration
-        @disk.migrate
+      datastore_id = @disk.available_data_store_for_migration
+      if datastore_id
+        @disk.migrate(datastore_id)
         expect(vm.port_opened?).to be true
+        expect(@disk.data_store_id).to eq datastore_id
       else
         skip("skipped because we have not found available data stores for migration.")
       end

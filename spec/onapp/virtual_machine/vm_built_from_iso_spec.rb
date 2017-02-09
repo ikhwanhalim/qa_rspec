@@ -228,9 +228,11 @@ describe 'Virtual Server built from ISO actions tests' do
     end
 
     it 'Disk should be migrated if there is available DS on a cloud' do
-      if disk.available_data_store_for_migration
-        disk.migrate
+      datastore_id = disk.available_data_store_for_migration
+      if datastore_id
+        disk.migrate(datastore_id)
         expect(vm.exist_on_hv?).to be true
+        expect(disk.data_store_id).to eq datastore_id
       else
         skip('skipped because we have not found available data stores for migration.')
       end
