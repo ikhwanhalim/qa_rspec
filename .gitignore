@@ -87,3 +87,6 @@ pickle-email-*.html
 
 # Ignore application configuration
 /config/application.yml
+
+# ignore irb_init.rb initializator
+./irb_init.rb

@@ -1,5 +1,5 @@
 class VirtualServerActions
-  include FogOnapp, ApiClient, SshClient, Log
+  include ApiClient, SshClient, Log
 
   IDENTIFIER          = ENV['IDENTIFIER']
   TEMPLATE_MANAGER_ID = ENV['TEMPLATE_MANAGER_ID']
