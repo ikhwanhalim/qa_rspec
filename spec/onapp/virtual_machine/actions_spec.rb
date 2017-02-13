@@ -33,7 +33,6 @@ describe 'Virtual Server actions tests' do
 
     it 'Stop/Start Virtual Machine' do
       vm.stop
-      #binding.pry (added ssh_key onto cp server for user onapp)
       expect(vm.not_pinged?).to be true
       vm.start_up
       expect(vm.pinged? && vm.exist_on_hv?).to be true

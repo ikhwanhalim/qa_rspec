@@ -23,7 +23,7 @@ module Diagnostic
   # storageAPI:
 
   def get_orphaned_cache_lvs
-    API.is_get_cache_orphans(obtain_frontend_uuid)
+    StorageClient::API.is_get_cache_orphans(obtain_frontend_uuid)
   end
 
   # General:
