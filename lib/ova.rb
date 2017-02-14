@@ -89,6 +89,12 @@ class Ova
   def wait_for_removing
     wait_for_transaction(id, 'ImageTemplateBase', 'destroy_ova')
   end
+  def wait_for_copy
+    wait_for_transaction(id, 'ImageTemplateBase', 'copy_ova')
+  end
+  def wait_for_delete_ova_files
+    wait_for_transaction(id, 'ImageTemplateBase', 'delete_ova_files')
+  end
 
   def route
     "/template_ovas/#{id}"

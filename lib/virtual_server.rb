@@ -92,23 +92,35 @@ class VirtualServer
   end
 
   def wait_for_build(image: template, require_startup: true, rebuild: false)
-    if rebuild
-      disk('primary').wait_for_format
-      disk('swap').wait_for_format if image.allowed_swap
-    else
-      disk('primary').wait_for_build
-      disk('swap').wait_for_build if image.allowed_swap
-    end
-
-    if image.type == 'ImageTemplateIso'
-      wait_for_build_virtual_machine
-    else
-      image.operating_system == 'freebsd' ? disk('swap').wait_for_provision : disk('primary').wait_for_provision
+    if image.type == 'ImageTemplateOva' && hypervisor.hypervisor_type == 'vcenter'
+      template.wait_for_copy
+      wait_for_upload_ova
+      wait_for_provision_virtual_machine
+      template.wait_for_delete_ova_files
+      network_interface.wait_for_update_update_rate_limit
       wait_for_configure_operating_system
-      wait_for_provision_freebsd if image.operating_system == 'freebsd'
-      wait_for_provision_win if image.operating_system == 'windows'
-    end
+    elsif image.type == 'ImageTemplate' && hypervisor.hypervisor_type == 'vcenter'
+      wait_for_provision_virtual_machine
+      network_interface.wait_for_update_update_rate_limit
+      wait_for_configure_operating_system
+    else
+      if rebuild
+        disk('primary').wait_for_format
+        disk('swap').wait_for_format if image.allowed_swap
+      else
+        disk('primary').wait_for_build
+        disk('swap').wait_for_build if image.allowed_swap
+      end
 
+      if image.type == 'ImageTemplateIso'
+        wait_for_build_virtual_machine
+      else
+        image.operating_system == 'freebsd' ? disk('swap').wait_for_provision : disk('primary').wait_for_provision
+        wait_for_configure_operating_system
+        wait_for_provision_freebsd if image.operating_system == 'freebsd'
+        wait_for_provision_win if image.operating_system == 'windows'
+      end
+    end
     wait_for_start if require_startup
     info_update
   end
@@ -201,7 +213,9 @@ class VirtualServer
       interface.tunnel_execute(cred, script)
     end
   end
-
+  def unlock
+    interface.post("#{route}/unlock")
+  end
   def stop
     interface.post("#{route}/stop")
     wait_for_stop
