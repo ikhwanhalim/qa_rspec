@@ -1,4 +1,4 @@
-require './groups/virtual_serverr_on_vcenter'
+require './groups/virtual_server_on_vcenter'
 
 class VCenterVsTestCases
 
@@ -53,7 +53,7 @@ class VCenterVsSuspendOptions < VCenterVsTestCases
     env.virtual_machine.unsuspend
     env.virtual_machine.info_update
     Log.error('Virtual machine expect to be not suspended') if env.virtual_machine.suspended
-    Log.error('Virtual serverr still should be stopped after unsuspend') if !env.virtual_machine.down?
+    Log.error('Virtual server still should be stopped after unsuspend') if !env.virtual_machine.down?
     env.virtual_machine.start_up
     Log.error('Virtual server not running after startup') if !env.virtual_machine.up?
   end

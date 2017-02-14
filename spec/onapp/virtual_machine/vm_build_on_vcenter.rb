@@ -29,9 +29,4 @@ describe 'VIRTUAL MACHINE REGRESSION AUTOTEST' do
        @test.execute
     end
   end
-
-
-
-
-
 end
