@@ -23,19 +23,19 @@ describe 'Hypervizor Groups functionality tests' do
         expect(hypervizor_group.preconfigured_only).to be true
       end
 
-      it "HZ with 'smart' server type should be created" do
+      it "HZ with 'smart' server type should not be created" do
         hypervizor_group.create(server_type: 'smart', preconfigured_only: true)
         expect(hypervizor_group.errors['preconfigured_only']).to eq(["Preconfigured only option is not allowed for smart, baremetal and vpc servers"])
         expect(hypervizor_group.api_response_code).to eq '422'
       end
 
-      it "HZ with 'baremetal' server type should be created" do
+      it "HZ with 'baremetal' server type should not be created" do
         hypervizor_group.create(server_type: 'baremetal', preconfigured_only: true)
         expect(hypervizor_group.errors['preconfigured_only']).to eq(["Preconfigured only option is not allowed for smart, baremetal and vpc servers"])
         expect(hypervizor_group.api_response_code).to eq '422'
       end
 
-      it "HZ with 'vpc' server type should be created" do
+      it "HZ with 'vpc' server type should not be created" do
         hypervizor_group.create(server_type: 'vpc', preconfigured_only: true)
         expect(hypervizor_group.errors['preconfigured_only']).to eq(["Preconfigured only option is not allowed for smart, baremetal and vpc servers"])
         expect(hypervizor_group.api_response_code).to eq '422'

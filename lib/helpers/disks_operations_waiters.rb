@@ -49,4 +49,12 @@ module DiskOperationsWaiters
   def wait_for_lock
     wait_until { locked? }
   end
+
+  def wait_for_repair_vdisk(parent_id)
+    wait_for_transaction(parent_id, "Storage::Repair", "repair_disk")
+  end
+
+  def wait_for_rebalance_vdisk(parent_id)
+    wait_for_transaction(parent_id, "Storage::Repair", "rebalance_disk")
+  end
 end

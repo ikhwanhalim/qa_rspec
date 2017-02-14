@@ -21,10 +21,10 @@ module Transaction
   private
 
   def appeared_transaction(parent_id, parent_type, action)
-    wait_until(300, 5) do
+    wait_until(360, 5) do
       transactions = transaction_list.select do |t|
         t['parent_id'] == parent_id && t['parent_type'] == parent_type && t['action'] == action &&
-          t['id'] > interface.last_transaction_id
+            t['id'] > interface.last_transaction_id
       end
       return transactions.first if transactions.any?
     end

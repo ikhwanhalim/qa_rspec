@@ -9,6 +9,8 @@ class Disk
     @interface = virtual_machine.interface
     @vm_route = virtual_machine.route
     @acceptable_physycal_error_ratio=0.05
+    @data_store = DataStore.new(self)
+    @data_store.find(data_store_id)
   end
 
   def disks_route
@@ -16,35 +18,15 @@ class Disk
   end
 
   def data_store_identifier
-    interface.get("/settings/data_stores/#{data_store_id}").data_store.identifier
-  end
-
-  #probably it make sense to move this method to another place? to hv class
-  def assigned_data_stores_to_hv
-    data_stores_ids=Array.new
-    ds_joins=interface.get("/settings/hypervisors/#{@virtual_machine.hypervisor_id}/data_store_joins")
-    Log.warn(ds_joins)
-    ds_joins.each do |join|
-      data_stores_ids << join["data_store_join"]["data_store_id"]
-    end
-    data_stores_ids
-  end
-
-  ##probably it make sense to move this method to another place? to hvz class?
-  def assigned_data_store_to_hv_group
-    data_stores_ids=Array.new
-    ds_joins=interface.get("/settings/hypervisor_zones/#{@virtual_machine.hypervisor_group_id}/data_store_joins")
-    ds_joins.each do |join|
-      data_stores_ids << join["data_store_join"]["data_store_id"]
-    end
-    data_stores_ids
+    @data_store.identifier
   end
 
   def available_data_store_for_migration
-    (assigned_data_stores_to_hv + assigned_data_store_to_hv_group).uniq.detect { |id| id != data_store_id }
+    ds = @data_store.select_available_data_store_for_migration
+    ds ? ds.id : ds
   end
 
-  def migrate(ds_id = available_data_store_for_migration)
+  def migrate(ds_id)
     interface.post("#{@route}/migrate",  {disk: {data_store_id: ds_id}})
     return if interface.conn.page.code != '201'
     wait_for_disk_migrate
