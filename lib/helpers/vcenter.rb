@@ -1,6 +1,6 @@
 require './lib/hypervisor'
 class VCenter < Hypervisor
-  DS_ID='26'
+
   def find_by_virt(hvz_id = nil)
     max_free = 0
     hv = nil
@@ -15,6 +15,4 @@ class VCenter < Hypervisor
     Log.info("vCenter with id #{hv.id} has been selected")
     self
   end
-
-
 end

@@ -92,15 +92,11 @@ class VirtualServer
   end
 
   def wait_for_build(image: template, require_startup: true, rebuild: false)
-    if image.type == 'ImageTemplateOva' && hypervisor.hypervisor_type == 'vcenter'
-      template.wait_for_copy
-      wait_for_upload_ova
+    if hypervisor.hypervisor_type == 'vcenter'
+      template.wait_for_copy if image.type == 'ImageTemplateOva'
+      wait_for_upload_ova if image.type == 'ImageTemplateOva'
       wait_for_provision_virtual_machine
-      template.wait_for_delete_ova_files
-      network_interface.wait_for_update_update_rate_limit
-      wait_for_configure_operating_system
-    elsif image.type == 'ImageTemplate' && hypervisor.hypervisor_type == 'vcenter'
-      wait_for_provision_virtual_machine
+      template.wait_for_delete_ova_files if image.type == 'ImageTemplateOva'
       network_interface.wait_for_update_update_rate_limit
       wait_for_configure_operating_system
     else
@@ -213,9 +209,11 @@ class VirtualServer
       interface.tunnel_execute(cred, script)
     end
   end
+
   def unlock
     interface.post("#{route}/unlock")
   end
+
   def stop
     interface.post("#{route}/stop")
     wait_for_stop
