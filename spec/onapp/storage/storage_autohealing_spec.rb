@@ -39,7 +39,7 @@ describe 'Autohealing =>' do
       storage_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect { storage_disk.repair_transaction_wait }.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     after :all do
@@ -107,7 +107,7 @@ describe 'Autohealing =>' do
       degraded_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect { degraded_disk.repair_transaction_wait }.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     it 'should send email about failed diagnostic requirements to a customer' do
@@ -154,7 +154,7 @@ describe 'Autohealing =>' do
       degraded_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect {degraded_disk.repair_transaction_wait}.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     it 'should send email about failed diagnostic requirements to a customer' do
@@ -195,7 +195,7 @@ describe 'Autohealing =>' do
       degraded_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect {degraded_disk.repair_transaction_wait}.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     it 'should send email about failed diagnostic requirements to a customer' do
@@ -234,7 +234,7 @@ describe 'Autohealing =>' do
       degraded_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect {degraded_disk.repair_transaction_wait}.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     it 'should send email about failed diagnostic requirements to a customer' do
@@ -272,7 +272,7 @@ describe 'Autohealing =>' do
       degraded_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect {degraded_disk.repair_transaction_wait}.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     it 'should send email about failed diagnostic requirements to a customer' do
@@ -315,7 +315,7 @@ describe 'Autohealing =>' do
       degraded_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect {degraded_disk.repair_transaction_wait}.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     it 'should send email about failed diagnostic requirements to a customer' do
@@ -357,7 +357,7 @@ describe 'Autohealing =>' do
       degraded_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect {degraded_disk.repair_transaction_wait}.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     it 'should send email about failed diagnostic requirements to a customer' do
@@ -402,7 +402,7 @@ describe 'Autohealing =>' do
       degraded_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect {degraded_disk.repair_transaction_wait}.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     it 'should send email about failed diagnostic requirements to a customer' do
@@ -448,7 +448,7 @@ describe 'Autohealing =>' do
       degraded_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect {degraded_disk.repair_transaction_wait}.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     it 'should send email about failed diagnostic requirements to a customer' do
@@ -486,7 +486,7 @@ describe 'Autohealing =>' do
       degraded_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect {degraded_disk.repair_transaction_wait}.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     it 'should send email about failed diagnostic requirements to a customer' do
@@ -530,7 +530,7 @@ describe 'Autohealing =>' do
       degraded_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect {degraded_disk.repair_transaction_wait}.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     it 'should send email about failed diagnostic requirements to a customer' do
@@ -614,7 +614,7 @@ describe 'Autohealing =>' do
       degraded_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect {degraded_disk.repair_transaction_wait}.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     it 'should send email about failed diagnostic requirements to a customer' do
@@ -658,7 +658,7 @@ describe 'Autohealing =>' do
       degraded_disk.get_repair_parent_id
       sda.run_on_cp(enable_autohealing)
       expect {degraded_disk.repair_transaction_wait}.
-          to raise_error(RuntimeError, "Unable to find transaction according to credentials")
+          to raise_error(RuntimeError)
     end
 
     it 'should send email about failed diagnostic requirements to a customer' do
