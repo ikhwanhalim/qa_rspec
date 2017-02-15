@@ -6,18 +6,19 @@ class Backup
   def initialize(obj)
     @interface = obj.interface
     @obj_route = obj.route
+    @iso_vm = obj.built_from_iso
   end
 
   def create
-    data = interface.post("#{@obj_route}/backups", { backup: { note: '' }} )
-    return data['errors'] if interface.conn.page.code != '201'
-    info_update(data)
+    response = interface.post("#{@obj_route}/backups", { backup: { note: '' }} )
+    return response.errors if api_response_code != '201'
+    info_update(response)
     incremental_allowed? ? wait_for_take_incremental_backup : wait_for_take_backup
     self
   end
 
   def incremental_allowed?
-    interface.settings.allow_incremental_backups
+    interface.settings.allow_incremental_backups && !@iso_vm
   end
 
   def info_update(info=false)
@@ -34,7 +35,8 @@ class Backup
 
   def convert(**params)
     data = convert_params.merge(params)
-    interface.post("#{@route}/convert", { image_template: data })
+    response = interface.post("#{@route}/convert", { image_template: data })
+    return response.errors if api_response_code == '422'
     wait_for_convert_backup
     interface.template.find_by_label(data[:label])
   end
@@ -50,5 +52,9 @@ class Backup
   def remove
     interface.delete @route
     wait_for_destroy_backup
+  end
+
+  def api_response_code
+    interface.conn.page.code
   end
 end

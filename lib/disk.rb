@@ -2,15 +2,14 @@ class Disk
   include DiskOperationsWaiters, Waiter
   attr_reader :interface, :route, :add_to_freebsd_fstab, :add_to_linux_fstab,:built,:burst_bw,:burst_iops,:created_at,:data_store_id,
               :disk_size,:disk_vm_number,:file_system,:id,:identifier, :iqn,:is_swap, :label,:locked,:max_bw,
-              :max_iops, :min_iops, :mount_point, :primary, :updated_at,:virtual_machine_id, :volume_id,:has_autobackups, :errors
+              :max_iops, :min_iops, :mount_point, :primary, :updated_at,:virtual_machine_id, :volume_id,:has_autobackups, :errors, :built_from_iso
 
   def initialize(virtual_machine)
     @virtual_machine = virtual_machine
     @interface = virtual_machine.interface
     @vm_route = virtual_machine.route
+    @built_from_iso = virtual_machine.built_from_iso
     @acceptable_physycal_error_ratio=0.05
-    @data_store = DataStore.new(self)
-    @data_store.find(data_store_id)
   end
 
   def disks_route
@@ -18,11 +17,11 @@ class Disk
   end
 
   def data_store_identifier
-    @data_store.identifier
+    interface.get("/settings/data_stores/#{data_store_id}").data_store.identifier
   end
 
   def available_data_store_for_migration
-    ds = @data_store.select_available_data_store_for_migration
+    ds =  DataStore.new(self).select_available_data_store_for_migration
     ds ? ds.id : ds
   end
 

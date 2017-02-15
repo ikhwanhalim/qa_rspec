@@ -241,50 +241,48 @@ describe 'Virtual Server built from ISO actions tests' do
 
   describe 'Backups' do
 
-    before { @incremental_backups_enabled = @ivsa.settings.allow_incremental_backups }
-
-    it 'Normal backups should not be supported for VS built from ISO' do
-      if !@incremental_backups_enabled
-        expect(vm.disk.create_backup['base']).to eq(['Backups are not supported'])
-        expect(vm.api_response_code).to eq '422'
-        expect(vm.exist_on_hv?).to be true
-      else
-        skip('Skipped as normal backups are disabled at CP settings')
+    context 'Normal' do
+      before :all do
+        @backup = @vm.disk.create_backup
       end
-    end
 
-    it 'Incremental backups should not be supported for VS built from ISO' do
-      #TODO
-      skip('https://onappdev.atlassian.net/browse/CORE-7781')
-      if @incremental_backups_enabled
-        expect(vm.create_backup['base']).to eq(['Backups are not supported'])
-        expect(vm.api_response_code).to eq '422'
-        expect(vm.exist_on_hv?).to be true
-       else
-         skip('Skipped as incremental backups are disabled at CP settings')
+      let(:backup) { @backup }
+
+      it 'should not be visible in /files route' do
+        ids = vm.get_backups('incremental').map { |b| b.backup.id }
+        expect(ids).not_to include backup.id
       end
-    end
 
-    it 'Getting all backups for VS built from ISO should return error' do
-      expect(vm.get_backups['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
-      expect(vm.api_response_code).to eq '422'
-    end
+      it 'should be visible in /images route' do
+        ids =  vm.get_backups('normal').map { |b| b.backup.id }
+        expect(ids).to include backup.id
+      end
 
-    it 'Getting normal backups for VS built from ISO should return error' do
-      expect(vm.get_backups('normal')['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
-      expect(vm.api_response_code).to eq '422'
-    end
+      it 'should be visible in /disks/:disk_id/backups route' do
+        ids =  vm.disk.get_backups.map { |b| b.backup.id }
+        expect(ids).to include backup.id
+      end
 
-    it 'Getting incremental backups for VS built from ISO should return error' do
-      expect(vm.get_backups('incremental')['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
-      expect(vm.api_response_code).to eq '422'
-    end
+      it 'should restore from backup' do
+        backup.restore
+        expect(vm.exist_on_hv?).to be true
+      end
 
-    it 'Getting disk backups for VS built from ISO should return error' do
-      #TODO
-      skip('https://onappdev.atlassian.net/browse/CORE-7781')
-      expect(vm.disk.get_backups['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
-      expect(vm.api_response_code).to eq '422'
+      it 'should not convert to template' do
+        expect(backup.convert['base']).to eq(["Conversion to template isn't supported by the backup's target."])
+        expect(backup.api_response_code).to eq '422'
+      end
+
+      it 'should enable normal autobackups' do
+        vm.disk.autobackup('enable')
+        expect(vm.wait_for_building_backups).to be true
+        expect(vm.disk.has_autobackups).to be true
+      end
+
+      it 'should be available if get all backups' do
+        expect(vm.get_backups).not_to be_empty
+        expect(vm.api_response_code).to eq '200'
+      end
     end
   end
 
