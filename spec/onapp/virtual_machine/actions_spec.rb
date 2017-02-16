@@ -197,7 +197,7 @@ describe 'Virtual Server actions tests' do
     it 'Cold Migrate VS' do
       vm.stop
       expect(vm.down?).to be true
-      vm.migrate(@hv.id,  hot: false)
+      vm.migrate(@hv.id, hot: false)
       expect(vm.hypervisor_id).to eq @hv.id
       vm.start_up
       expect(vm.exist_on_hv?).to be true
@@ -216,7 +216,7 @@ describe 'Virtual Server actions tests' do
     end
 
     after :all do
-      @vm_new.destroy
+      @vm_new.destroy if @vm_new
     end
 
     it 'Segregate VS' do

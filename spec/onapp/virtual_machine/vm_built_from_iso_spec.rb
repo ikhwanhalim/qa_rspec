@@ -7,6 +7,7 @@ describe 'Virtual Server built from ISO actions tests' do
     if @ivsa
       @vm = @ivsa.virtual_machine
       @iso = @ivsa.iso
+      @hypervisor = @ivsa.hypervisor
     else
       fail('/data not mounted')
     end
@@ -88,6 +89,51 @@ describe 'Virtual Server built from ISO actions tests' do
     it 'Set SSH keys for VS built from ISO should not be supported' do
       expect(vm.set_ssh_keys['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
       expect(vm.api_response_code).to eq '422'
+    end
+  end
+
+  describe 'Migrate VS' do
+    before do
+      @hv = @hypervisor.available_hypervisor_for_migration
+      skip('There is no available hypervisors for migration') unless @hv
+    end
+
+    it 'Only cold migrate allowed' do
+      expect(vm.booted).to be true
+      vm.migrate(@hv.id, hot: false)
+      expect(vm.hypervisor_id).to eq @hv.id
+      expect(vm.exist_on_hv?).to be true
+    end
+  end
+
+  describe 'Performance Options' do
+    before :all do
+      @hv = @hypervisor.available_hypervisor_for_migration
+      if @hv
+        @vm_new = VirtualServer.new(@ivsa)
+        @vm_new.create(hypervisor_id: @hv.id)
+      else
+        skip('There is no available hypervisors for segregation')
+      end
+    end
+
+    after :all do
+      @vm_new.destroy if @vm_new
+    end
+
+    it 'Segregate VS' do
+      vm.segregate(@vm_new.id)
+      expect(vm.strict_virtual_machine_id).to eq @vm_new.id
+      expect(vm.migrate(@hv.id, hot: false)['base']).to eq(['Virtual Server cannot be migrated'])
+      expect(vm.api_response_code).to eq '422'
+    end
+
+    it 'Desegregate VS' do
+      vm.desegregate(@vm_new.id)
+      expect(vm.strict_virtual_machine_id).to be nil
+      vm.migrate(@hv.id, hot: false)
+      expect(vm.hypervisor_id).to eq @hv.id
+      expect(vm.exist_on_hv?).to be true
     end
   end
 
