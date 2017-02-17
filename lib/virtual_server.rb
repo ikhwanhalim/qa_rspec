@@ -94,10 +94,10 @@ class VirtualServer
   def wait_for_build(image: template, require_startup: true, rebuild: false)
     if rebuild
       disk('primary').wait_for_format
-      disk('swap').wait_for_format if image.allowed_swap && image.manager_id == 'cdn' # CORE-8860
+      disk('swap').wait_for_format if image.allowed_swap
     else
       disk('primary').wait_for_build
-      disk('swap').wait_for_build if image.allowed_swap && image.manager_id == 'cdn'
+      disk('swap').wait_for_build if image.allowed_swap
     end
 
     if image.type == 'ImageTemplateIso'
