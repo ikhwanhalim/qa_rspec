@@ -104,6 +104,16 @@ class CdnServer < VirtualServer
   def route
     "/#{CDN_SERVER}s/#{identifier}"
   end
+
+  def add_note(**params)
+    interface.put(route, {ENV['CDN_SERVER'] => params})
+    info_update
+  end
+
+  def destroy_note(type)
+    interface.delete("#{route}/note", {type: "#{type}"})
+    info_update
+  end
 end
 
 #TODO update_os should be failed

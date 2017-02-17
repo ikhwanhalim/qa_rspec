@@ -427,16 +427,6 @@ class VirtualServer
     interface.post("#{route}/set_vip")
     info_update
   end
-
-  def add_note(**params)
-    interface.put(route, {ENV['CDN_SERVER'] => params})
-    info_update
-  end
-
-  def destroy_note(type)
-    interface.delete("#{route}/note", {type: "#{type}"})
-    info_update
-  end
 end
 
 
