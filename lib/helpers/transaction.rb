@@ -28,6 +28,7 @@ module Transaction
       end
       return transactions.first if transactions.any?
     end
+    Log.error("Unable to find transaction according to credentials, with parent id = #{parent_id}, parent_type#{parent_type} and action #{action}")
   end
 
   def transaction_list

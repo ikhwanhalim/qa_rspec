@@ -20,6 +20,10 @@ module VmOperationsWaiters
     wait_for_transaction(id, 'VirtualMachine', 'provision_win')
   end
 
+  def wait_for_provision_virtual_machine
+    wait_for_transaction(id, 'VirtualMachine', 'provision_virtual_machine')
+  end
+
   def wait_for_build_virtual_machine
     wait_for_transaction(id, 'VirtualMachine','build_virtual_machine')
   end
@@ -67,6 +71,10 @@ module VmOperationsWaiters
   end
 
   #VmNetwork
+  def wait_for_update_rate_limit
+    wait_for_transaction(network_interface_id, 'NetworkInterface', 'update_rate_limit')
+  end
+
   def wait_for_update_firewall
     wait_for_transaction(network_interface_id, 'NetworkInterface', 'update_firewall')
   end
@@ -106,6 +114,10 @@ module VmOperationsWaiters
       return false
     end
     wait_until(10800, 10) { !building_backups_exist? }
+  end
+
+  def wait_for_upload_ova
+    wait_for_transaction(id, 'VirtualMachine', 'upload_ova')
   end
 
   def building_backups_exist?

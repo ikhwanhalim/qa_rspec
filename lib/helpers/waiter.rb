@@ -6,5 +6,7 @@ module Waiter
       end
       value
     end
+  rescue Timeout::Error
+    return false
   end
 end
