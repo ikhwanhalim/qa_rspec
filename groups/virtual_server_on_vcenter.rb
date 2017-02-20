@@ -2,7 +2,7 @@ class VirtualServerOnVCenter
   include ApiClient, Log, SshClient
 
   attr_accessor :vcenter, :template_obj
-  attr_reader virtual_machine
+  attr_reader :virtual_machine
 
   alias template template_obj
   alias hypervisor vcenter
