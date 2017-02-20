@@ -118,6 +118,7 @@ class VirtualServer
       end
     end
     wait_for_start if require_startup
+    wait_for_create_cdn_server if image.manager_id == 'cdn'
     info_update
   end
 
@@ -432,6 +433,11 @@ class VirtualServer
       wait_for_check_or_install_zabbix_agent
       wait_for_enable_auto_scaling
     end
+  end
+
+  def set_vip
+    interface.post("#{route}/set_vip")
+    info_update
   end
 end
 
