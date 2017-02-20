@@ -59,10 +59,6 @@ class CdnServer < VirtualServer
     self
   end
 
-  def locked?
-    interface.get(route).virtual_machine.locked
-  end
-
   def all
     interface.get("/#{CDN_SERVER}s").map &CDN_SERVER.to_sym
   end
