@@ -2,8 +2,8 @@ require 'virtual_server'
 
 class CdnServer < VirtualServer
 
-  CDN_SERVER          = ENV['CDN_SERVER']       # edge_server or storage_server
-  CDN_SERVER_TYPE     = ENV['CDN_SERVER_TYPE']  # streaming or http
+  CDN_SERVER      = ENV['CDN_SERVER']       # edge_server or storage_server
+  CDN_SERVER_TYPE = ENV['CDN_SERVER_TYPE']  # streaming or http
 
   attr_reader :edge_status
 
@@ -17,14 +17,14 @@ class CdnServer < VirtualServer
   end
 
   def build_params
-    type = unless CDN_SERVER == 'accelerator'
-             {"#{ENV['CDN_SERVER']}_type" => ENV['CDN_SERVER_TYPE']}
-           else
+    type = if CDN_SERVER == 'accelerator'
              {
                cpus: '4',
                memory: '4096',
                primary_disk_size: '100'
              }
+           else
+             {"#{ENV['CDN_SERVER']}_type" => ENV['CDN_SERVER_TYPE']}
            end
 
     main_params.merge(type)
