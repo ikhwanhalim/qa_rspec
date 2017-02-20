@@ -97,7 +97,7 @@ class VirtualServer
       wait_for_upload_ova if image.type == 'ImageTemplateOva'
       wait_for_provision_virtual_machine
       template.wait_for_delete_ova_files if image.type == 'ImageTemplateOva'
-      network_interface.wait_for_update_update_rate_limit
+      network_interface.wait_for_update_rate_limit
       wait_for_configure_operating_system
     else
       if rebuild

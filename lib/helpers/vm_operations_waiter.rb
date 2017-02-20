@@ -71,7 +71,7 @@ module VmOperationsWaiters
   end
 
   #VmNetwork
-  def wait_for_update_update_rate_limit
+  def wait_for_update_rate_limit
     wait_for_transaction(network_interface_id, 'NetworkInterface', 'update_rate_limit')
   end
 
