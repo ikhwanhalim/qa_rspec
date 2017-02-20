@@ -39,6 +39,38 @@ describe 'Virtual Server built from ISO actions tests' do
     end
   end
 
+  describe  'Admin/User note' do
+    it 'Add admin note' do
+      vm.add_note
+      expect(vm.admin_note).to eq('admin note')
+    end
+
+    it 'Edit admin note' do
+      vm.add_note(admin_note: true, note: 'edited admin note')
+      expect(vm.admin_note).to eq('edited admin note')
+    end
+
+    it 'Delete admin note' do
+      vm.remove_note('admin_note')
+      expect(vm.admin_note).to be nil
+    end
+
+    it 'Add user note' do
+      vm.add_note(admin_note: false, note: 'user note')
+      expect(vm.note).to eq('user note')
+    end
+
+    it 'Edit user note' do
+      vm.add_note(admin_note: false, note: 'edited user note')
+      expect(vm.note).to eq('edited user note')
+    end
+
+    it 'Delete user note' do
+      vm.remove_note('note')
+      expect(vm.note).to be nil
+    end
+  end
+
   describe 'VM power operations' do
     it { expect(vm.exist_on_hv?).to be true }
 
@@ -96,6 +128,7 @@ describe 'Virtual Server built from ISO actions tests' do
     before do
       @hv = @hypervisor.available_hypervisor_for_migration
       skip('There is no available hypervisors for migration') unless @hv
+      skip("The data folder is not mounted on selected hypervisor #{@hv.id}") unless @hv.is_data_mounted?
     end
 
     it 'Only cold migrate allowed' do
@@ -109,11 +142,11 @@ describe 'Virtual Server built from ISO actions tests' do
   describe 'Performance Options' do
     before :all do
       @hv = @hypervisor.available_hypervisor_for_migration
-      if @hv
+      if @hv && @hv.is_data_mounted?
         @vm_new = VirtualServer.new(@ivsa)
         @vm_new.create(hypervisor_id: @hv.id)
       else
-        skip('There is no available hypervisors for segregation')
+        skip('There is no available hypervisors for segregation or data folder is not mounted on it')
       end
     end
 

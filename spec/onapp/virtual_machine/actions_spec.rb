@@ -11,7 +11,7 @@ describe 'Virtual Server actions tests' do
 
   after :all do
     unless VirtualServerActions::IDENTIFIER
-      @vm.destroy
+      @vm.destroy if @vm
       @template.remove if @vm.find_by_template(@template.id).empty?
     end
   end
@@ -24,11 +24,45 @@ describe 'Virtual Server actions tests' do
     expect(@vsa.get("/users/#{vm.user_id}/virtual_machines")).not_to be_empty
   end
 
+  describe  'Admin/User note' do
+    it 'Add admin note' do
+      vm.add_note
+      expect(vm.admin_note).to eq('admin note')
+    end
+
+    it 'Edit admin note' do
+      vm.add_note(admin_note: true, note: 'edited admin note')
+      expect(vm.admin_note).to eq('edited admin note')
+    end
+
+    it 'Delete admin note' do
+      vm.remove_note('admin_note')
+      expect(vm.admin_note).to be nil
+    end
+
+    it 'Add user note' do
+      vm.add_note(admin_note: false, note: 'user note')
+      expect(vm.note).to eq('user note')
+    end
+
+    it 'Edit user note' do
+      vm.add_note(admin_note: false, note: 'edited user note')
+      expect(vm.note).to eq('edited user note')
+    end
+
+    it 'Delete user note' do
+      vm.remove_note('note')
+      expect(vm.note).to be nil
+    end
+  end
+
   describe 'VM power operations' do
     describe 'After build', :smoke do
       it { expect(vm.pinged?).to be true }
 
       it { expect(vm.exist_on_hv?).to be true }
+
+      it { expect(vm.ssh_execute(SshCommands::OnVirtualServer.domain, true)).to include vm.domain }
     end
 
     it 'Stop/Start Virtual Machine' do

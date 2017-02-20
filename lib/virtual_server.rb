@@ -5,7 +5,7 @@ class VirtualServer
   attr_reader :interface, :add_to_marketplace, :admin_note, :allowed_hot_migrate, :allowed_swap, :booted, :built,
               :cores_per_socket, :cpu_shares, :cpu_sockets, :cpu_threads, :cpu_units, :cpus, :created_at,
               :customer_network_id, :deleted_at, :edge_server_type, :enable_autoscale, :enable_monitis,
-              :firewall_notrack, :hostname, :hot_add_cpu, :hot_add_memory, :hypervisor_id,
+              :firewall_notrack, :hostname, :hot_add_cpu, :hot_add_memory, :hypervisor_id, :domain,
               :id, :identifier, :initial_root_password,:initial_root_password_encrypted,
               :instance_type_id, :iso_id, :label, :local_remote_access_ip_address, :local_remote_access_port,
               :locked,:memory, :min_disk_size, :note, :operating_system, :operating_system_distro, :preferred_hvs,
@@ -282,6 +282,20 @@ class VirtualServer
     response = interface.post("#{route}/migrate", {virtual_machine: {destination: hv_id}})
     return response.errors if api_response_code == '422'
     hot ? wait_for_hot_migration : wait_for_cold_migration
+    info_update
+  end
+
+  def add_note(admin_note: true, note: 'admin note')
+    if admin_note
+      interface.put(route, {virtual_machine: {admin_note: note}})
+    else
+      interface.put(route, {virtual_machine: {note: note}})
+    end
+      info_update
+  end
+
+  def remove_note(note_type)
+    interface.delete("#{route}/note", {type: "#{note_type}"})
     info_update
   end
 

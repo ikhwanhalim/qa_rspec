@@ -21,7 +21,7 @@ class VirtualServerActions
       @hypervisor = Hypervisor.new(self)
       @hypervisor.find_by_virt(VIRT_TYPE)
 
-      @virtual_machine.create
+      @virtual_machine.create(domain: 'autotest.qa.com')
     end
 
     self

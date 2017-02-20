@@ -81,6 +81,10 @@ module SshCommands
     def drop_caches
       'sync && echo 3 > /proc/sys/vm/drop_caches && echo $?'
     end
+
+    def domain
+      "cat /etc/resolv.conf | grep domain | awk '{print $2}'"
+    end
   end
 
   module OnHypervisor
