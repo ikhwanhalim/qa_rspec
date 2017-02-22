@@ -14,7 +14,8 @@ class ImageTemplate
   end
 
   def find_by_manager_id(manager_id)
-    remove_after_install
+    #remove_after_install  temporary comment out this method to avoid deleting templates on CPs that are using shared resources
+    manager_id = manager_id ? manager_id : select_template_by_os
     info = get_template(manager_id)
     info_update(info)
     self
@@ -53,6 +54,21 @@ class ImageTemplate
         Log.warn('Settings has not been defined')
       end
     end
+  end
+
+  def select_template_by_os(operating_system: 'linux')
+    template_list = Array.new
+    interface.get('/templates/available').map(&:remote_template).each do |t|
+      if t.operating_system == operating_system && !t.cdn && !t.application_server && t.operating_system_distro !='lbva'
+        template_list << t.manager_id
+      end
+    end
+    interface.get('/templates/all').map(&:image_template).each do |t|
+      if t.operating_system == operating_system && !t.cdn && !t.application_server && t.operating_system_distro !='lbva'
+        template_list << t.manager_id
+      end
+    end
+    template_list.sample
   end
 
   private

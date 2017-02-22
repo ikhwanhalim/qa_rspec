@@ -1,7 +1,7 @@
 class Ova
   include Transaction, TemplateManager
   attr_reader :interface, :errors, :id, :label, :min_memory_size, :version, :operating_system, :operating_system_distro,
-              :virtualization, :user_id, :min_disk_size, :file_name, :allowed_swap, :type, :backup_server_id
+              :virtualization, :user_id, :min_disk_size, :file_name, :allowed_swap, :type, :backup_server_id, :manager_id
 
   def initialize(interface)
     @interface = interface

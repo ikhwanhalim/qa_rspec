@@ -45,16 +45,19 @@ class Hypervisor
     self
   end
 
-  def find_by_virt(virt, hvz_id = nil, exclude_current: false)
+  def find_by_virt(virt = nil, hvz_id = nil, exclude_current: false)
     max_free = 0
     hv = nil
-    virtualization = select_virtualization(virt)
-    distro = select_distro(virt)
+    virtualization = select_virtualization(virt) if virt
+    distro = select_distro(virt) if virt
     interface.get("/hypervisors").map(&:hypervisor).each do |h|
-      if max_free < h.free_memory && h.distro == distro && h.hypervisor_type == virtualization &&
-          h.enabled && h.server_type == 'virtual' && h.online && h.label !~ /fake/i && h.hypervisor_group_id != nil
+      if max_free < h.free_memory && h.enabled && h.server_type == 'virtual' && h.online && h.label !~ /fake/i && h.hypervisor_group_id != nil &&
+          h.hypervisor_type != 'vcenter'
         if exclude_current
           next if h.id == id
+        end
+        if virt
+          next unless h.distro == distro && h.hypervisor_type == virtualization
         end
         hv = hvz_id ? (h if hvz_id == h.hypervisor_group_id) : h
         max_free = h.free_memory
