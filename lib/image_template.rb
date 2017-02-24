@@ -59,9 +59,7 @@ class ImageTemplate
 
   def select_template_by_os(operating_system: 'linux')
     templates =  get_available.map(&:remote_template) + get_installed.map(&:image_template)
-    template_list = []
-    templates.each{ |t| template_list << t.manager_id if template_compatible?(t, operating_system)}
-    template_list.sample
+    templates.select { |t| template_compatible?(t, operating_system) }.sample.manager_id
   end
 
   def template_compatible?(template, operating_system)
