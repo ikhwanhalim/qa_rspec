@@ -50,16 +50,22 @@ class Hypervisor
     hv = nil
     virtualization = select_virtualization(virt) if virt
     distro = select_distro(virt) if virt
+    cb_ids = cloud_boot_ids
     interface.get("/hypervisors").map(&:hypervisor).each do |h|
-      if max_free < h.free_memory && h.enabled && h.server_type == 'virtual' && h.online && h.label !~ /fake/i && h.hypervisor_group_id != nil &&
-          h.hypervisor_type != 'vcenter'
+      if max_free < h.free_memory && online_suitable_hv?(h)
+        if cb_ids
+          next if cb_ids.include?(h.id)
+        end
         if exclude_current
           next if h.id == id
         end
         if virt
           next unless h.distro == distro && h.hypervisor_type == virtualization
         end
-        hv = hvz_id ? (h if hvz_id == h.hypervisor_group_id) : h
+        if hvz_id
+          next if hvz_id != h.hypervisor_group_id
+        end
+        hv = h
         max_free = h.free_memory
       end
     end
@@ -76,6 +82,22 @@ class Hypervisor
         hv ? info_update(hv) : Log.error('Hypervisor was not found')
         Log.info("Hypervisor with id #{hv.id} has been selected")
         self
+    end
+  end
+
+  def online_suitable_hv?(hypervisor)
+      hypervisor.enabled && hypervisor.server_type == 'virtual' && hypervisor.online && hypervisor.label !~ /fake/i &&
+          hypervisor.hypervisor_group_id != nil && hypervisor.hypervisor_type != 'vcenter'  &&
+          interface.template.virtualization.include?(hypervisor.hypervisor_type)
+  end
+
+  def cloud_boot_ids
+    if interface.settings.cloud_boot_enabled
+      cloud_boot_ids = []
+      interface.get('/cloud_boot_ip_addresses').each{ |ip| cloud_boot_ids << ip['ip_address']['hypervisor_id'] }
+      return cloud_boot_ids
+    else
+      return false
     end
   end
 

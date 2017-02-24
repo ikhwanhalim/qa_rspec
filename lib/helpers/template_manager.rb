@@ -15,18 +15,32 @@ module TemplateManager
     template
   end
 
+  def get_inactive
+    interface.get('/templates/inactive')
+  end
+
+  def get_available
+    interface.get('/templates/available')
+  end
+
+  def get_installed
+    interface.get('/templates/all')
+  end
+
+  def get_installs
+    interface.get('/templates/installs')
+  end
+
   def download_template
-    inactive = interface.get("/templates/inactive").select { |t| t['image_template']['manager_id'] == @manager_id}
-    available = interface.get("/templates/available").select { |t| t['remote_template']['manager_id'] == @manager_id }
-    installed = (interface.get("/templates/all") + interface.get('/templates/installs')).select do |t|
-      t['image_template']['manager_id'] == @manager_id
-    end
+    inactive = get_inactive.select { |t| t['image_template']['manager_id'] == @manager_id}
+    available = get_available.select { |t| t['remote_template']['manager_id'] == @manager_id }
+    installed = (get_installed + get_installs).select { |t| t['image_template']['manager_id'] == @manager_id }
     if inactive.any?
-      interface.post("/templates/installs/#{inactive.first['image_template']['id']}/restart")["image_template"]
+      interface.post("/templates/installs/#{inactive.first['image_template']['id']}/restart")['image_template']
     elsif installed.any?
       installed.max_by { |t| t['image_template']['version'].to_f }['image_template']
     elsif available.any?
-      interface.post("/templates", {'image_template' => {'manager_id' => @manager_id}})["image_template"]
+      interface.post("/templates", {'image_template' => {'manager_id' => @manager_id}})['image_template']
     end
   end
 

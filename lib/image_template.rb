@@ -14,7 +14,7 @@ class ImageTemplate
   end
 
   def find_by_manager_id(manager_id)
-    #remove_after_install  temporary comment out this method to avoid deleting templates on CPs that are using shared resources
+    remove_after_install
     manager_id = manager_id ? manager_id : select_template_by_os
     info = get_template(manager_id)
     info_update(info)
@@ -43,7 +43,8 @@ class ImageTemplate
     interface.query("update templates set allow_resize_without_reboot=1 where id=#{id}")
   end
 
-  def remove_after_install
+  def remove_after_install(enable: false)
+    return Log.info("The delete_template_source_after_install option won't be enabled at CP settings") unless enable
     if defined?(interface.settings)
       if interface.settings
         unless interface.settings.delete_template_source_after_install
@@ -57,18 +58,14 @@ class ImageTemplate
   end
 
   def select_template_by_os(operating_system: 'linux')
-    template_list = Array.new
-    interface.get('/templates/available').map(&:remote_template).each do |t|
-      if t.operating_system == operating_system && !t.cdn && !t.application_server && t.operating_system_distro !='lbva'
-        template_list << t.manager_id
-      end
-    end
-    interface.get('/templates/all').map(&:image_template).each do |t|
-      if t.operating_system == operating_system && !t.cdn && !t.application_server && t.operating_system_distro !='lbva'
-        template_list << t.manager_id
-      end
-    end
+    templates =  get_available.map(&:remote_template) + get_installed.map(&:image_template)
+    template_list = []
+    templates.each{ |t| template_list << t.manager_id if template_compatible?(t, operating_system)}
     template_list.sample
+  end
+
+  def template_compatible?(template, operating_system)
+    template.operating_system == operating_system && !template.cdn && !template.application_server && template.operating_system_distro !='lbva'
   end
 
   private
