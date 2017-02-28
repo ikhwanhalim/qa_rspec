@@ -9,6 +9,8 @@ class CdnServerActions
   attr_reader   :settings, :virtual_machine
 
   def precondition
+    Log.error("The CDN_SERVER variable is not set, please do it") unless CdnServer::CDN_SERVER
+
     @virtual_machine = CdnServer.new(self)
     @settings = Settings.new(self)
 
