@@ -14,7 +14,6 @@ class FederationSupplier
   end
 
   def get_publishing_resources
-    require 'pry'; binding.pry
     hv = Hypervisor.new(self).find_by_virt(ENV['VIRT_TYPE'])
     if hv
       hvz_id = hv.hypervisor_group_id || Log.error("Hypervisor not attached")
