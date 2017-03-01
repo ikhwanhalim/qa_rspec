@@ -2,10 +2,11 @@ class FederationSupplier
   include ApiClient, TemplateManager, Waiter, SshClient
 
   attr_accessor :published_zone, :vm, :resources, :hypervisor
-  attr_reader :federation, :template
+  attr_reader :federation, :template, :settings
 
   def initialize(federation)
     @federation = federation
+    @settings = Settings.new(self)
   end
 
   def interface
@@ -13,6 +14,7 @@ class FederationSupplier
   end
 
   def get_publishing_resources
+    require 'pry'; binding.pry
     hv = Hypervisor.new(self).find_by_virt(ENV['VIRT_TYPE'])
     if hv
       hvz_id = hv.hypervisor_group_id || Log.error("Hypervisor not attached")
