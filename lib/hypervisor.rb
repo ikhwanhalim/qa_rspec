@@ -80,7 +80,7 @@ class Hypervisor
   def online_suitable_hv?(hypervisor)
       hypervisor.enabled && hypervisor.server_type == 'virtual' && hypervisor.online && hypervisor.label !~ /fake/i &&
           hypervisor.hypervisor_group_id != nil && hypervisor.hypervisor_type != 'vcenter'  &&
-          interface.template.virtualization.include?(hypervisor.hypervisor_type)
+          (!ENV['TEMPLATE_MANAGER_ID'] || interface.template.virtualization.include?(hypervisor.hypervisor_type) )
   end
 
   def cloud_boot_ids
