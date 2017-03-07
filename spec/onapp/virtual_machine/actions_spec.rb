@@ -109,6 +109,24 @@ describe 'Virtual Server actions tests' do
   end
 
   describe 'Administrative Options' do
+
+    describe 'Change owner' do
+      before do
+        @new_user = User.new(@vsa).create( first_name: 'Change',last_name: 'Owner',)
+        @owner = vm.user_id
+      end
+
+      after do
+        vm.change_owner(@owner)
+        @new_user.remove
+      end
+
+      it 'Change owner' do
+        vm.change_owner(@new_user.id)
+        expect(vm.user_id).to eq @new_user.id
+      end
+    end
+
     describe 'Reset root password' do
       before :all do
         @root_password = 'ownPassword123!'

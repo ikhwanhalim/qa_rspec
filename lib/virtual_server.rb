@@ -311,6 +311,12 @@ class VirtualServer
     info_update
   end
 
+  def change_owner(user_id)
+    response = interface.post("#{route}/change_owner", {user_id: user_id})
+    return response.errors if api_response_code == '422'
+    info_update
+  end
+
   #Keyword arguments - label, cpus, cpu_shares, memory
   def edit(**kwargs)
     interface.put(route, {virtual_machine: kwargs})

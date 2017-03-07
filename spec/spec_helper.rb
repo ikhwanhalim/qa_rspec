@@ -1,7 +1,7 @@
 require 'rubygems'
 Bundler.require(:default)
 
-Dir["lib/helpers/*.rb", "lib/helpers/storage/*.rb", "lib/*.rb", "lib/recipe/*.rb", "groups/*.rb", "lib/storage/*.rb", "groups/test_cases/*.rb"].each {|file| require Dir.pwd + '/' + file }
+Dir["lib/helpers/*.rb", "lib/helpers/storage/*.rb", "lib/*.rb", "lib/recipe/*.rb", "groups/*.rb", "lib/storage/*.rb", "groups/test_cases/*.rb", "lib/billing/*.rb"].each {|file| require Dir.pwd + '/' + file }
 
 
 RSpec.configure do |c|
