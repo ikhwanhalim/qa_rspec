@@ -9,6 +9,7 @@ class IsoVirtualServerActions
   alias template iso
 
   def precondition
+    @settings = Settings.new(self)
     @hypervisor = Hypervisor.new(self)
     @hypervisor.find_by_virt(ENV['VIRT_TYPE'])
     return false unless @hypervisor.is_data_mounted?
@@ -29,8 +30,6 @@ class IsoVirtualServerActions
     else
       @virtual_machine.create
     end
-
-    @settings = Settings.new(self)
 
     self
   end

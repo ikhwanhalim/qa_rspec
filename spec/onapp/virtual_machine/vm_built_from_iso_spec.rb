@@ -113,6 +113,24 @@ describe 'Virtual Server built from ISO actions tests' do
   end
 
   describe 'Administrative Options' do
+
+    describe 'Change owner' do
+      before do
+        @new_user = User.new(@ivsa).create( first_name: 'Change',last_name: 'Owner',)
+        @owner = vm.user_id
+      end
+
+      after do
+        vm.change_owner(@owner)
+        @new_user.remove
+      end
+
+      it 'Change owner' do
+        vm.change_owner(@new_user.id)
+        expect(vm.user_id).to eq @new_user.id
+      end
+    end
+
     it 'Reset VS root password for VS built from ISO should not be supported' do
       expect(vm.reset_root_password['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
       expect(vm.api_response_code).to eq '422'
