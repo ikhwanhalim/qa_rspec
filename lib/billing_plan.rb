@@ -1,4 +1,4 @@
-class BillingPlanTest
+class BillingPlan
 
   attr_reader :interface, :resources, :id
 
