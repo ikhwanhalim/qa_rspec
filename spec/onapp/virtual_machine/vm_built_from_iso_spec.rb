@@ -5,6 +5,7 @@ describe 'Virtual Server built from ISO actions tests' do
   before :all do
     @ivsa = IsoVirtualServerActions.new.precondition
     if @ivsa
+      @cp_version = @ivsa.version
       @vm = @ivsa.virtual_machine
       @iso = @ivsa.iso
       @hypervisor = @ivsa.hypervisor
@@ -236,6 +237,7 @@ describe 'Virtual Server built from ISO actions tests' do
       end
 
       it 'Reboot VS from ISO if incorrect virtualization type' do
+        skip ("CORE-5721 fixed in Onapp 5.4, but this is OnApp #{@cp_version}") unless @cp_version >= 5.4
         virt = vm.hypervisor_type == 'xen' ? 'kvm' : 'xen'
         iso_new.edit(virtualization: virt)
         expect(vm.reboot_from_iso(iso_new.id)['error']).to eq("Template virtualization is not compatible with compute resource type")
@@ -260,6 +262,7 @@ describe 'Virtual Server built from ISO actions tests' do
       end
 
       it 'Boot VS from ISO if incorrect virtualization type' do
+        skip ("CORE-5721 fixed in Onapp 5.4, but this is OnApp #{@cp_version}") unless @cp_version >= 5.4
         virt = vm.hypervisor_type == 'xen' ? 'kvm' : 'xen'
         iso_new.edit(virtualization: virt)
         vm.shut_down if vm.exist_on_hv?
@@ -337,6 +340,8 @@ describe 'Virtual Server built from ISO actions tests' do
   end
 
   describe 'Backups' do
+
+    before { skip ("Backups for VS built from ISO added in OnApp 5.4, but this is OnApp #{@cp_version}") unless @cp_version >= 5.4 }
 
     context 'Normal' do
       before :all do

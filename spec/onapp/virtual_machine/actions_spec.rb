@@ -4,6 +4,7 @@ require './groups/virtual_server_actions'
 describe 'Virtual Server actions tests' do
   before :all do
     @vsa = VirtualServerActions.new.precondition
+    @cp_version = @vsa.version
     @vm = @vsa.virtual_machine
     @template = @vsa.template
     @hypervisor = @vsa.hypervisor
@@ -128,6 +129,9 @@ describe 'Virtual Server actions tests' do
     end
 
     describe 'Reset root password' do
+
+      before { skip ("CORE-8441 & CORE-8436 fixed in Onapp 5.3, but this is OnApp #{@cp_version}") unless @cp_version >= 5.3 }
+
       before :all do
         @root_password = 'ownPassword123!'
         @passphrase = 'test'
@@ -566,6 +570,7 @@ describe 'Virtual Server actions tests' do
       end
 
       it 'Reboot VS from ISO if incorrect virtualization type' do
+        skip ("CORE-5721 fixed in Onapp 5.4, but this is OnApp #{@cp_version}") unless @cp_version >= 5.4
         virt = vm.hypervisor_type == 'xen' ? 'kvm' : 'xen'
         iso.edit(virtualization: virt)
         expect(vm.reboot_from_iso(iso.id)['error']).to eq("Template virtualization is not compatible with compute resource type")
@@ -590,6 +595,7 @@ describe 'Virtual Server actions tests' do
       end
 
       it 'Boot VS from ISO if incorrect virtualization type' do
+        skip ("CORE-5721 fixed in Onapp 5.4, but this is OnApp #{@cp_version}") unless @cp_version >= 5.4
         virt = vm.hypervisor_type == 'xen' ? 'kvm' : 'xen'
         iso.edit(virtualization: virt)
         vm.shut_down if vm.exist_on_hv?
