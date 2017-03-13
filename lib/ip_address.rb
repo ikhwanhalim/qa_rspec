@@ -14,9 +14,13 @@ class IpAddress
   end
 
   def info_update(join)
-    @join_id = join.id
-    join.ip_address.each { |k,v| instance_variable_set("@#{k}", v) }
-    @ip_address_join_route = "#{@ip_addresses_route}/#{join.id}"
+    if interface.version < 5.4
+      @join_id = join.id
+      join.ip_address.each { |k,v| instance_variable_set("@#{k}", v) }
+      @ip_address_join_route = "#{@ip_addresses_route}/#{join.id}"
+    else
+      join.ip_address.each { |k,v| instance_variable_set("@#{k}", v) }
+    end
     self
   end
 
