@@ -71,20 +71,24 @@ module VmOperationsWaiters
   end
 
   #VmNetwork
+  def network_parent_type
+    interface.version < 5.4 ?  'NetworkInterface' : 'Networking::NetworkInterface'
+  end
+
   def wait_for_update_rate_limit
-    wait_for_transaction(network_interface_id, 'NetworkInterface', 'update_rate_limit')
+    wait_for_transaction(network_interface_id, network_parent_type, 'update_rate_limit')
   end
 
   def wait_for_update_firewall
-    wait_for_transaction(network_interface_id, 'NetworkInterface', 'update_firewall')
+    wait_for_transaction(network_interface_id, network_parent_type, 'update_firewall')
   end
 
   def wait_for_attach_network_interface
-    wait_for_transaction(network_interface_id, 'NetworkInterface', 'attach_network_interface')
+    wait_for_transaction(network_interface_id, network_parent_type, 'attach_network_interface')
   end
 
   def wait_for_detach_network_interface
-    wait_for_transaction(network_interface_id, 'NetworkInterface', 'detach_network_interface')
+    wait_for_transaction(network_interface_id, network_parent_type, 'detach_network_interface')
   end
 
   def wait_for_update_custom_firewall_rule

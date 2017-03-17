@@ -24,20 +24,34 @@ class IpAddress
     self
   end
 
-  def attach(network_interface_id, ip_address_id)
-    data = {
-      ip_address_join: {
-        network_interface_id: network_interface_id,
-        ip_address_id: ip_address_id
+  def attach(network_interface_id, ip_address_id=nil, address=nil)
+    if interface.version < 5.4
+      data = {
+          ip_address_join: {
+              network_interface_id: network_interface_id,
+              ip_address_id: ip_address_id
+          }
       }
-    }
+    else
+      data = {
+          ip_address: {
+              network_interface_id: network_interface_id,
+              address: address
+          }
+      }
+    end
     join = interface.post(@ip_addresses_route, data)
     return if join.errors
-    info_update(join.ip_address_join)
+    interface.version < 5.4 ? info_update(join.ip_address_join) : info_update(join)
   end
 
   def detach(rebuild_network = false)
-    interface.delete(@ip_address_join_route, {ip_address_join: {rebuild_network: rebuild_network}})
+    if interface.version < 5.4
+      interface.delete(@ip_address_join_route, {ip_address_join: {rebuild_network: rebuild_network}})
+    else
+      interface.delete(@ip_addresses_route, {ip_address: {rebuild_network: rebuild_network}})
+    end
+
   end
 
   def exist_on_vm

@@ -429,12 +429,12 @@ describe 'Virtual Server actions tests' do
         @vm.network_interface.allocate_new_ip
         @vm.rebuild_network
         @primary_network_interface_exist = @vm.network_interface.any?
-        @free_addresses = @vm.network_interface.ip_address.all
+        @free_addresses = @vm.network_interface.ip_address.all if @cp_version < 5.4
       end
 
       before do
         fail('Primary network interface does not exist') unless @primary_network_interface_exist
-        skip('There are no free ip addresses') if @free_addresses.empty?
+        (skip('There are no free ip addresses') if @free_addresses.empty?) if @cp_version < 5.4
       end
 
       it 'Second IP address should be appeared in the interface' do

@@ -92,7 +92,7 @@ class NetworkInterface
         end
       end
     else
-      interface.get(ip_addresses_route).map { |ip| IpAddress.new(self).info_update(ip)}
+      interface.get(ip_addresses_route).map { |ip| IpAddress.new(self).info_update(ip) }
     end
   end
 
