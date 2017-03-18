@@ -2,7 +2,8 @@ class Disk
   include DiskOperationsWaiters, Waiter
   attr_reader :interface, :route, :add_to_freebsd_fstab, :add_to_linux_fstab,:built,:burst_bw,:burst_iops,:created_at,:data_store_id,
               :disk_size,:disk_vm_number,:file_system,:id,:identifier, :iqn,:is_swap, :label,:locked,:max_bw,
-              :max_iops, :min_iops, :mount_point, :primary, :updated_at,:virtual_machine_id, :volume_id,:has_autobackups, :errors, :built_from_iso
+              :max_iops, :min_iops, :mount_point, :primary, :updated_at,:virtual_machine_id, :volume_id,:has_autobackups, :errors, :built_from_iso,
+              :io_limits
 
   def initialize(virtual_machine)
     @virtual_machine = virtual_machine
@@ -77,13 +78,13 @@ class Disk
 
   def build_params
     {
-      label: "Disk-#{SecureRandom.hex(4)}",
-      disk_size: 1,
-      is_swap: false,
-      require_format_disk: true,
-      add_to_linux_fstab: true,
-      file_system: 'ext3',
-      hot_attach: 0
+        label: "Disk-#{SecureRandom.hex(4)}",
+        disk_size: 1,
+        is_swap: false,
+        require_format_disk: true,
+        add_to_linux_fstab: true,
+        file_system: 'ext3',
+        hot_attach: 0
     }
   end
 

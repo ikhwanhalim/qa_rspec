@@ -85,6 +85,30 @@ module SshCommands
     def domain
       "cat /etc/resolv.conf | grep domain | awk '{print $2}'"
     end
+
+    def install_ioping_ubuntu
+      'echo "nameserver 8.8.8.8" >> /etc/resolv.conf && sudo apt-get -y install ioping && echo $?'
+    end
+
+    def install_ioping_centos
+      'wget http://dl.fedoraproject.org/pub/epel/7/x86_64/i/ioping-1.0-1.el7.x86_64.rpm ; yum install -y ioping-1.0-1.el7.x86_64.rpm'
+    end
+
+    def measure_read_iops(partition)
+      "ioping -p 100 -c 200 -i 0 -q /dev/#{partition} | awk '{ print \\$3 }' | sed -n 2p"
+    end
+
+    def measure_write_iops(mount_path)
+      "cd #{mount_path} && dd if=/dev/zero of=testfile bs=512K count=500; ioping -p 100 -c 200 -i 0 -q -WWW testfile | awk '{ print \\$3 }' | sed -n 2p"
+    end
+
+    def measure_read_throughput(partiiton)
+      "dd if=/dev/#{partiiton} of=/dev/null bs=512K count=500 iflag=direct 2>&1 | sed -n 3p | awk '{print \\$8}'"
+    end
+
+    def measure_write_throughput(mount_path)
+      "cd #{mount_path} && dd if=/dev/zero of=test_io_write oflag=direct count=500 bs=512K 2>&1 | sed -n 3p | awk '{print \\$8}'"
+    end
   end
 
   module OnHypervisor
@@ -144,6 +168,18 @@ module SshCommands
 
     def run_autohealing_task
       'cd /onapp/interface; RAILS_ENV=production rake storage_auto_healing:perform_hourly'
+    end
+
+    def disable_io_limiting
+      'sed -i "s/io_limiting_enabled: true/io_limiting_enabled: false/" /onapp/interface/config/on_app.yml'
+    end
+
+    def enable_io_limiting
+      'sed -i "s/io_limiting_enabled: false/io_limiting_enabled: true/" /onapp/interface/config/on_app.yml'
+    end
+
+    def restart_httpd
+      'sudo service httpd restart'
     end
   end
 

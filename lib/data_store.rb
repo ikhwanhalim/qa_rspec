@@ -1,6 +1,6 @@
 class DataStore
   attr_reader :interface, :id, :label,:identifier, :data_store_size, :data_store_group_id, :enabled, :data_store_type,
-              :data_store_size, :usage
+              :data_store_size, :usage, :io_limits
 
   def initialize(disk)
     @disk = disk
