@@ -109,6 +109,10 @@ module SshCommands
     def find_file(path, file_name)
       "find #{path} -name #{file_name}"
     end
+
+    def nic_rate_limit(nic_identifier)
+      "tc -s qdisc ls dev #{nic_identifier} | head -1 | awk '{print \\$8/1000}'"
+    end
   end
 
   module OnControlPanel

@@ -168,9 +168,9 @@ class VirtualServer
     end
   end
 
-  def attach_network_interface(**params)
+  def attach_network_interface(existed=true, **params)
     nti = NetworkInterface.new(self)
-    params[:network_join_id] = if params[:primary]
+    params[:network_join_id] = if params[:primary] and existed
                                  network_interface.network_join_id
                                else
                                  available_network_join_ids.first

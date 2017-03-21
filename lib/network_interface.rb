@@ -27,10 +27,17 @@ class NetworkInterface
 
   def create(**params)
     data = {network_interface: build_params.merge(params)}
-    network_interface = interface.post("#{interfaces_route}", data).network_interface
-    return if interface.conn.page.code != '201'
-    info_update(network_interface)
+    response = interface.post("#{interfaces_route}", data)
+    return response.errors if interface.conn.page.code != '201'
+    info_update(response.network_interface)
     wait_for_network_interface_transaction('create')
+  end
+
+  def edit(params)
+    response = interface.put("#{interfaces_route}/#{id}", {network_interface: params})
+    return response if interface.conn.page.code != '204'
+    wait_for_update_rate_limit if params[:rate_limit]
+    info_update
   end
 
   def any?
@@ -150,6 +157,11 @@ class NetworkInterface
   def amount
     command = SshCommands::OnVirtualServer.network_interfaces_amount
     virtual_machine.ssh_execute(command).last.to_i
+  end
+
+  def port_speed
+    command = SshCommands::OnHypervisor.nic_rate_limit(identifier)
+    interface.hypervisor.ssh_execute(command).last.to_i
   end
 
   def reset_firewall_rules

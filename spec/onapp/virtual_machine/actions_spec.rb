@@ -484,6 +484,7 @@ describe 'Virtual Server actions tests' do
     describe 'Network interfaces' do
       before :all do
         @ids = @vm.available_network_join_ids
+        @vm.port_opened?
       end
 
       before do
@@ -516,8 +517,30 @@ describe 'Virtual Server actions tests' do
         expect(vm.pinged?).to be true
       end
 
-      it 'Ability create two primary interfaces should be blocked' do
-        skip
+      it 'Ability to create two primary interfaces should be blocked' do
+        skip('Doest not work on gentoo') if @vm.operating_system_distro == 'gentoo'
+        amount = vm.network_interface.amount
+        expect(vm.attach_network_interface(existed=false, primary: true)['primary']).to eq(["already has primary allocation."])
+        expect(vm.port_opened?).to be true
+        expect(vm.network_interface.amount).to eq amount
+      end
+
+      it 'Update port speed' do
+        port_speed = 200
+        vm.network_interface.edit(rate_limit: port_speed)
+        expect(vm.port_opened?).to be true
+        expect(vm.network_interface.rate_limit).to eq port_speed
+        expect(vm.network_interface.port_speed).to eq port_speed
+      end
+
+      it 'Edit network interface' do
+        vm.network_interface.edit(label: 'eth1', primary: false)
+        expect(vm.port_opened?).to be true
+        expect(vm.network_interface.label).to eq('eth1')
+        expect(vm.network_interface.primary).to be false
+        vm.network_interface.edit(primary: true, )
+        expect(vm.network_interface.primary).to be true
+        expect(vm.port_opened?).to be true
       end
     end
   end
