@@ -390,7 +390,7 @@ describe 'Virtual Server built from ISO actions tests' do
 
   describe 'Network operations' do
     it 'Add and remove an IP address' do
-      skip('There are no free ip addresses') if vm.network_interface.ip_address.all.empty?
+      (skip('There are no free ip addresses') if vm.network_interface.ip_address.all.empty?) if @cp_version < 5.4
       ips_count_before_test = vm.ip_addresses.count
       vm.network_interface.allocate_new_ip
       expect(vm.ip_addresses.count).to eq ips_count_before_test + 1
@@ -413,6 +413,26 @@ describe 'Virtual Server built from ISO actions tests' do
     it 'Rebuild Network should not be supported for VS built from ISO' do
       expect(vm.rebuild_network['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
       expect(vm.api_response_code).to eq '422'
+    end
+
+    it 'Ability to create two primary interfaces should be blocked' do
+      expect(vm.attach_network_interface(existed=false, primary: true)['primary']).to eq(["already has primary allocation."])
+      expect(vm.network_interfaces.count).to eq 1
+    end
+
+    it 'Update port speed' do
+      port_speed = 200
+      vm.network_interface.edit(rate_limit: port_speed)
+      expect(vm.network_interface.rate_limit).to eq port_speed
+      expect(vm.network_interface.port_speed).to eq port_speed
+    end
+
+    it 'Edit network interface' do
+      vm.network_interface.edit(label: 'eth1', primary: false)
+      expect(vm.network_interface.label).to eq('eth1')
+      expect(vm.network_interface.primary).to be false
+      vm.network_interface.edit(primary: true)
+      expect(vm.network_interface.primary).to be true
     end
   end
 

@@ -538,7 +538,7 @@ describe 'Virtual Server actions tests' do
         expect(vm.port_opened?).to be true
         expect(vm.network_interface.label).to eq('eth1')
         expect(vm.network_interface.primary).to be false
-        vm.network_interface.edit(primary: true, )
+        vm.network_interface.edit(primary: true)
         expect(vm.network_interface.primary).to be true
         expect(vm.port_opened?).to be true
       end
