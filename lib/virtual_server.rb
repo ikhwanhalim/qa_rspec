@@ -261,7 +261,7 @@ class VirtualServer
     else
       response = interface.post("#{route}/reset_password")
     end
-    return response if api_response_code == '422'
+    return response.errors if api_response_code == '422'
     wait_for_stop
     wait_for_reset_root_password
     wait_for_start
@@ -269,7 +269,8 @@ class VirtualServer
   end
 
   def decrypt_root_password(passphrase)
-    interface.get("#{route}/with_decrypted_password", {initial_root_password_encryption_key: passphrase})
+    response = interface.get("#{route}/with_decrypted_password", {initial_root_password_encryption_key: passphrase})
+    api_response_code == '422' ? response.errors : response.virtual_machine.initial_root_password
   end
 
   def set_ssh_keys
