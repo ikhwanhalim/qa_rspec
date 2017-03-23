@@ -275,7 +275,7 @@ class VirtualServer
 
   def set_ssh_keys
     response = interface.post("#{route}/set_ssh_keys")
-    return response if api_response_code == '422'
+    return response.errors if api_response_code == '422'
     wait_for_set_ssh_keys
   end
 

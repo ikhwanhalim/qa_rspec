@@ -132,6 +132,7 @@ class NetworkInterface
     ip_address(number).detach(rebuild_network)
     return if interface.conn.page.code != '204'
     wait_for_update_firewall
+    wait_for_rebuild_network if rebuild_network
     ip_addresses
   end
 

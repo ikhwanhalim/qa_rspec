@@ -20,6 +20,7 @@ class IpAddress
       @ip_address_join_route = "#{@ip_addresses_route}/#{join.id}"
     else
       join.ip_address.each { |k,v| instance_variable_set("@#{k}", v) }
+      @ip_address_route = "#{@ip_addresses_route}/#{id}"
     end
     self
   end
@@ -49,7 +50,7 @@ class IpAddress
     if interface.version < 5.4
       interface.delete(@ip_address_join_route, {ip_address_join: {rebuild_network: rebuild_network}})
     else
-      interface.delete(@ip_addresses_route, {ip_address: {rebuild_network: rebuild_network}})
+      interface.delete(@ip_address_route, {rebuild_network: rebuild_network})
     end
 
   end

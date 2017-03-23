@@ -133,12 +133,12 @@ describe 'Virtual Server built from ISO actions tests' do
     end
 
     it 'Reset VS root password for VS built from ISO should not be supported' do
-      expect(vm.reset_root_password['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
+      expect(vm.reset_root_password).to eq(["The action is not available to the virtual server because it's built from ISO."])
       expect(vm.api_response_code).to eq '422'
     end
 
     it 'Set SSH keys for VS built from ISO should not be supported' do
-      expect(vm.set_ssh_keys['errors']).to eq(["The action is not available to the virtual server because it's built from ISO."])
+      expect(vm.set_ssh_keys).to eq(["The action is not available to the virtual server because it's built from ISO."])
       expect(vm.api_response_code).to eq '422'
     end
   end
