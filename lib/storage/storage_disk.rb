@@ -81,8 +81,6 @@ class StorageDisk
 
   # VDISK METHODS:
 
-
-
   def execute_vdisks_list
     ssh_execute(SshCommands::OnCloudbootHypervisor.get_vdisks_list)
   end
