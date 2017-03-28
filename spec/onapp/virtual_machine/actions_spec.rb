@@ -63,26 +63,33 @@ describe 'Virtual Server actions tests' do
 
       it { expect(vm.exist_on_hv?).to be true }
 
+      it { expect(vm.network_interface.ip_address.check_firewall_rules).to eq(2) }
+
       it { expect(vm.ssh_execute(SshCommands::OnVirtualServer.domain, true)).to include vm.domain }
     end
 
     it 'Stop/Start Virtual Machine' do
       vm.stop
       expect(vm.not_pinged?).to be true
+      expect(vm.network_interface.ip_address.check_firewall_rules).to eq(0)
       vm.start_up
       expect(vm.pinged? && vm.exist_on_hv?).to be true
+      expect(vm.network_interface.ip_address.check_firewall_rules).to eq(2)
     end
 
     it 'ShutDown/Start Virtual Machine' do
       vm.shut_down
       expect(vm.not_pinged?).to be true
+      expect(vm.network_interface.ip_address.check_firewall_rules).to eq(0)
       vm.start_up
       expect(vm.pinged? && vm.exist_on_hv?).to be true
+      expect(vm.network_interface.ip_address.check_firewall_rules).to eq(2)
     end
 
     it 'Reboot Virtual Machine' do
       vm.reboot
       expect(vm.pinged? && vm.exist_on_hv?).to be true
+      expect(vm.network_interface.ip_address.check_firewall_rules).to eq(2)
     end
 
     it 'Suspend/Unsuspend Virtual Machine' do
@@ -443,8 +450,27 @@ describe 'Virtual Server actions tests' do
         expect(ping_states + exist_states).to_not include false
       end
 
+      it 'Remove second IP' do
+        vm.network_interface.remove_ip(1)
+        vm.rebuild_network
+        expect(vm.ip_addresses.count).to eq 1
+      end
+
+      it 'Allocate the same IP' do
+        expect(vm.ip_addresses.count).to eq 1
+        expect(vm.network_interface.allocate_new_ip(address: vm.ip_address)['selected_ip_address']).to eq(["Ip Address is already leased", "Ip Address is already allocated to this network card"])
+        expect(vm.api_response_code).to eq '422'
+      end
+
       it 'Allocate used IP' do
-        skip
+        @vm_new = VirtualServer.new(@vsa).create
+        used_ip = @vm_new.ip_address
+        skip('The user has no suitable used IP') unless used_ip
+        vm.network_interface.allocate_new_ip(used_ip= 1, address: used_ip)
+        expect(vm.ip_addresses.map &:ip_address).to include(used_ip)
+        expect(vm.ip_addresses.count).to eq 2
+        @vm_new.destroy
+
       end
     end
 
@@ -510,7 +536,7 @@ describe 'Virtual Server actions tests' do
         vm.attach_network_interface(primary: true)
         vm.network_interface.allocate_new_ip
         vm.rebuild_network
-        expect(vm.pinged?).to be true
+        expect(vm.port_opened?).to be true
       end
 
       it 'Ability to create two primary interfaces should be blocked' do

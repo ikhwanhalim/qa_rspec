@@ -137,6 +137,10 @@ module SshCommands
     def nic_rate_limit(nic_identifier)
       "tc -s qdisc ls dev #{nic_identifier} | head -1 | awk '{print \\$8/1000}'"
     end
+
+    def firewall_rules(remote_ip)
+      "iptables -L | grep #{remote_ip} | awk '{print \\$4,\\$5}' | wc -l"
+    end
   end
 
   module OnControlPanel

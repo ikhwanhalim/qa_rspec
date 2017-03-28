@@ -3,7 +3,7 @@ class IpAddress
 
   attr_reader :interface, :network_interface, :address, :broadcast, :created_at, :customer_network_id,
               :disallowed_primary, :gateway, :hypervisor_id, :id, :ip_address_pool_id, :network_address, :network_id,
-              :pxe, :updated_at, :user_id, :free, :netmask, :join_id
+              :pxe, :updated_at, :user_id, :free, :netmask, :join_id, :ip_range_id
 
   alias ip_address address
 
@@ -25,7 +25,7 @@ class IpAddress
     self
   end
 
-  def attach(network_interface_id, ip_address_id=nil, address=nil)
+  def attach(network_interface_id, ip_address_id=nil, used_ip=0, address= nil)
     if interface.version < 5.4
       data = {
           ip_address_join: {
@@ -37,12 +37,13 @@ class IpAddress
       data = {
           ip_address: {
               network_interface_id: network_interface_id,
-              address: address
+              address: address,
+              used_ip: used_ip
           }
       }
     end
     join = interface.post(@ip_addresses_route, data)
-    return if join.errors
+    return join.errors if join.errors
     interface.version < 5.4 ? info_update(join.ip_address_join) : info_update(join)
   end
 
@@ -58,6 +59,11 @@ class IpAddress
   def exist_on_vm
     command = SshCommands::OnVirtualServer.ip_addresses
     network_interface.virtual_machine.ssh_execute(command).include?(address)
+  end
+
+  def check_firewall_rules
+    command = SshCommands::OnHypervisor.firewall_rules(address)
+    interface.hypervisor.ssh_execute(command).last.to_i
   end
 
   def all(used: false)
