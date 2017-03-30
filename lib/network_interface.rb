@@ -120,7 +120,7 @@ class NetworkInterface
     end
   end
 
-  def allocate_new_ip(ip_address_id = nil, used_ip= 0, address: nil)
+  def allocate_new_ip(ip_address_id: nil, used_ip: 0, address: nil)
     ip = IpAddress.new(self)
     response = ip.attach(id, ip_address_id, used_ip, address)
     return response if interface.conn.page.code != '201'

@@ -30,7 +30,8 @@ class IpAddress
       data = {
           ip_address_join: {
               network_interface_id: network_interface_id,
-              ip_address_id: ip_address_id
+              ip_address_id: ip_address_id,
+              used_ip: used_ip
           }
       }
     else
@@ -53,7 +54,6 @@ class IpAddress
     else
       interface.delete(@ip_address_route, {rebuild_network: rebuild_network})
     end
-
   end
 
   def exist_on_vm
@@ -61,15 +61,26 @@ class IpAddress
     network_interface.virtual_machine.ssh_execute(command).include?(address)
   end
 
-  def check_firewall_rules
-    command = SshCommands::OnHypervisor.firewall_rules(address)
-    interface.hypervisor.ssh_execute(command).last.to_i
-  end
-
   def all(used: false)
     interface.get("/settings/networks/#{network_id}/ip_addresses").select do |ip|
       used ? ip.ip_address.free == false : ip.ip_address.free == true
     end
+  end
+
+  def used_ips
+    used_ips = []
+    interface.get("/networking/api/ip_addresses", {ip_range_id: ip_range_id}).map(&:ip_address).each do
+      |ip| used_ips << IPAddr.new(ip['address']).to_i
+    end
+    used_ips
+  end
+
+  def free_ip
+    used_ips_in_range = used_ips
+    ip_range = IpRange.new(self).get(ip_range_id)
+    start_address = IPAddr.new(ip_range.start_address).to_i
+    end_address = IPAddr.new(ip_range.end_address).to_i
+    (start_address..end_address).each { |ip| return IPAddr.new(ip, Socket::AF_INET).to_s unless used_ips_in_range.include?(ip) }
   end
 
   def private?
