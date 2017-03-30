@@ -41,6 +41,17 @@ class BillingPlan
     resources
   end
 
+  #TODO think about rewriting the next two methods
+  def create_limit_eg_for_current_bp(billing_plan_id, eg_id, **params)
+    resources = BillingPlanResource.new(self).add_to_current_bp_limit_eg(billing_plan_id, eg_id, params)
+    @resources << resources
+    resources
+  end
+
+  def get_current_bp_id
+    interface.get('/profile').user.billing_plan_id
+  end
+
   def copy_billing_plan
     interface.post route_copy_billing_plan
   end

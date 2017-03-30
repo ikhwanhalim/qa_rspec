@@ -3,14 +3,14 @@ require './spec/onapp/cdn/constants_cdn'
 class CdnSsl
   include ConstantsCdn
 
-  attr_reader :interface, :id
+  attr_reader :interface, :id, :cdn_resources, :cdn_reference, :name
 
   def initialize(interface)
     @interface = interface
   end
 
   def attrs_update(attrs=nil)
-    attrs ||= interface.get(route_edge_group)
+    attrs ||= interface.get(route_ssl_certificate)
     attrs.values.first.each { |k,v| instance_variable_set("@#{k}", v) }
 
     self
@@ -32,6 +32,11 @@ class CdnSsl
 
   def edit(**params)
     interface.put(route_ssl_certificate, params)
+  end
+
+  def get
+    json_response = interface.get(route_ssl_certificate)
+    attrs_update json_response
   end
 
   def remove_ssl_certificate

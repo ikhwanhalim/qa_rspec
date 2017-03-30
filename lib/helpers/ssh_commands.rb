@@ -185,6 +185,10 @@ module SshCommands
     def restart_httpd
       'sudo service httpd restart'
     end
+
+    def location_id_of_cdn_server(type_of_server, label_of_cdn_server)
+      "cd /onapp/interface; RAILS_ENV=production rails runner \"p Aflexi::#{type_of_server}.get(name: '#{label_of_cdn_server}').first.location.id\""
+    end
   end
 
   module OnCloudbootHypervisor

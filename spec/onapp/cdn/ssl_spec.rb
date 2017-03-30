@@ -1,86 +1,130 @@
 require 'spec_helper'
 require './groups/cdn_ssl_actions'
 require './spec/onapp/cdn/constants_cdn'
+# the next needs for creating cdn_resource
+require './groups/edge_group_actions'
+require './groups/billing_plan_actions'
+require './groups/cdn_resource_actions'
 
-describe 'Ssl Cerificate' do
+describe 'Ssl Certificate' do
+  before :all do
+    @csa = CdnSslActions.new.precondition
+  end
 
-  context 'Create' do
-    before(:all) do
-      @csa = CdnSslActions.new.precondition
+  let (:ssl_cert) {@csa.ssl_cert}
+
+
+  context 'Create ->' do
+    context 'with name ->' do
+      it 'is create' do
+        ssl_cert.create_ssl_certificate
+        expect(@csa.conn.page.code).to eq '201'
+        expect(ssl_cert.id).not_to be nil
+        expect(ssl_cert.cdn_reference.class).to eq Fixnum
+        ssl_cert.get
+        expect(ssl_cert.cdn_resources.empty?).to be true
+      end
+
+      it 'is delete' do
+        ssl_cert.remove_ssl_certificate
+        expect(@csa.conn.page.code).to eq '204'
+      end
+
+      it 'make sure ssl cert is deleted' do
+        @csa.get(ssl_cert.route_ssl_certificate)
+        expect(@csa.conn.page.code).to eq '404'
+      end
     end
 
-    let (:ssl_cert) {@csa.ssl_cert}
+    context 'without name ->' do
+      it 'is create' do
+        ssl_cert.create_ssl_certificate(name: '')
+        expect(@csa.conn.page.code).to eq '201'
+        expect(ssl_cert.id).not_to be nil
+        expect(ssl_cert.cdn_reference.class).to eq Fixnum
+        expect(ssl_cert.cdn_resources.empty?).to be true
+      end
 
-    it 'should be created' do
-      expect(ssl_cert.id).not_to be nil
+      it 'is delete' do
+        ssl_cert.remove_ssl_certificate
+        expect(@csa.conn.page.code).to eq '204'
+      end
+
+      it 'make sure ssl cert is deleted' do
+        @csa.get(ssl_cert.route_ssl_certificate)
+        expect(@csa.conn.page.code).to eq '404'
+      end
     end
 
-    it 'should be deleted' do
-      ssl_cert.remove_ssl_certificate
-      expect(@csa.conn.page.code).to eq '204'
-    end
+    context 'name contain special characters ->' do
+      # https://onappdev.atlassian.net/browse/CORE-8586
 
-    it 'should make sure CDN Edge Group is deleted' do
-      @csa.get(ssl_cert.route_ssl_certificate)
-      expect(@csa.conn.page.code).to eq '404'
+      it 'is create' do
+        ssl_cert.create_ssl_certificate(name: 'test-%^&%#$')
+        expect(@csa.conn.page.code).to eq '201'
+        expect(ssl_cert.id).not_to be nil
+        expect(ssl_cert.cdn_reference.class).to eq Fixnum
+        expect(ssl_cert.cdn_resources.empty?).to be true
+      end
+
+      it 'is delete' do
+        ssl_cert.remove_ssl_certificate
+        expect(@csa.conn.page.code).to eq '204'
+      end
+
+      it 'make sure ssl cert is deleted' do
+        @csa.get(ssl_cert.route_ssl_certificate)
+        expect(@csa.conn.page.code).to eq '404'
+      end
     end
   end
 
-  context 'Edit' do
-    before(:all) do
-      @csa = CdnSslActions.new.precondition
+  context 'Edit ->' do
+    before :all do
+      @csa.ssl_cert.create_ssl_certificate
     end
 
-    let (:ssl_cert) {@csa.ssl_cert}
-
-    it 'should be created' do
-      expect(ssl_cert.id).not_to be nil
+    after :all do
+      @csa.ssl_cert.remove_ssl_certificate
     end
 
-    it 'should be editable Edge Group' do
+    it 'is edit name' do
       ssl_cert.edit({cdn_ssl_certificate: {name: ConstantsCdn::NAME_SSL_EDIT}})
       expect(@csa.conn.page.code).to eq '204'
     end
 
-    it 'make sure CDN SSL cert is edited' do
-      @csa.get(ssl_cert.route_ssl_certificate)
-      expect(@csa.conn.page.body.cdn_ssl_certificate.name).to eq ConstantsCdn::NAME_SSL_EDIT
-      expect(@csa.conn.page.body.cdn_ssl_certificate.cdn_reference.size).to be > 3
-      #TODO expect(@csa.conn.page.body.cdn_ssl_certificate.cdn_reference).not_to be_nil
-    end
-
-    it 'should be deleted' do
-      ssl_cert.remove_ssl_certificate
-      expect(@csa.conn.page.code).to eq '204'
-    end
-
-    it 'should make sure CDN Edge Group is deleted' do
-      @csa.get(ssl_cert.route_ssl_certificate)
-      expect(@csa.conn.page.code).to eq '404'
+    it 'make sure name is edited' do
+      ssl_cert.get
+      expect(ssl_cert.name).to eq ConstantsCdn::NAME_SSL_EDIT
+      expect(ssl_cert.cdn_reference.size).to be > 3
+      expect(ssl_cert.cdn_reference.class).to eq Fixnum
     end
   end
 
   context 'Complex' do
-    before(:all) do
-      @csa = CdnSslActions.new.precondition
+    before :all do
+      @csa.ssl_cert.create_ssl_certificate
     end
 
-    let (:ssl_cert) {@csa.ssl_cert}
+    after :all do
+      @csa.ssl_cert.remove_ssl_certificate
+    end
 
-    it 'should be created' do
+    it 'is created' do
       expect(ssl_cert.id).not_to be nil
+      expect(ssl_cert.cdn_reference.class).to eq Fixnum
     end
 
-    it 'should be editable Edge Group' do
+    it 'is edit name' do
       ssl_cert.edit({cdn_ssl_certificate: {name: ConstantsCdn::NAME_SSL_EDIT}})
       expect(@csa.conn.page.code).to eq '204'
     end
 
-    it 'make sure CDN SSL cert is edited' do
-      @csa.get(ssl_cert.route_ssl_certificate)
-      expect(@csa.conn.page.body.cdn_ssl_certificate.name).to eq ConstantsCdn::NAME_SSL_EDIT
-      expect(@csa.conn.page.body.cdn_ssl_certificate.cdn_reference.size).to be > 3
-      #TODO expect(@csa.conn.page.body.cdn_ssl_certificate.cdn_reference).not_to be_nil
+    it 'make sure name is edited' do
+      ssl_cert.get
+      expect(ssl_cert.name).to eq ConstantsCdn::NAME_SSL_EDIT
+      expect(ssl_cert.cdn_reference.size).to be > 3
+      expect(ssl_cert.cdn_reference.class).to eq Fixnum
     end
 
     it 'should get list of SSL certificates' do
@@ -88,71 +132,78 @@ describe 'Ssl Cerificate' do
       expect(@csa.conn.page.code).to eq '200'
       expect(@csa.conn.page.body.count).to be >= 1
     end
+  end
 
-    it 'should be deleted' do
-      ssl_cert.remove_ssl_certificate
-      expect(@csa.conn.page.code).to eq '204'
-    end
-
-    it 'should make sure CDN Edge Group is deleted' do
-      @csa.get(ssl_cert.route_ssl_certificate)
-      expect(@csa.conn.page.code).to eq '404'
-    end
+  context 'Get SSL Certificate details which is bound to cdn resource' do
+   # it is implemented in resource_pull_spec (create->basic->positive->ssl_certificate)
   end
 
   context 'negative tests' do
-    before(:all) do
-      @csa = CdnSslActions.new.precondition
-    end
-
-    let (:ssl_cert) {@csa.ssl_cert}
-
-    it 'should not be created with empty name' do
-      skip("https://onappdev.atlassian.net/browse/CORE-8586")
-      ssl_cert.create_ssl_certificate({name: ''})
-    end
-
-    it 'should not be created with name[special characters]' do
-      skip("https://onappdev.atlassian.net/browse/CORE-8586")
-    end
-
-    it 'should not be created with name > 255' do
-      ssl_cert.create_ssl_certificate({name: ConstantsCdn::NAME_255_SSL })
-      expect(@csa.conn.page.body.errors.name.first).to eq 'is too long (maximum is 255 characters)'
-    end
-
-    it 'should not be created with all params are empty' do
-      # https://onappdev.atlassian.net/browse/CORE-8589, should be "can't be blank"
-      ssl_cert.create_ssl_certificate({name:'', cert: '', key: ''})
-      expect(@csa.conn.page.body.errors.cert.first).to eq 'is invalid'
-      expect(@csa.conn.page.body.errors.to_a[1][1].first).to eq 'is invalid'
-    end
-
-    it 'should not be created with wrong format[key, cert]' do
-      ssl_cert.create_ssl_certificate({name:'', cert: 'asdasd', key: 'asdqwe'})
-      expect(@csa.conn.page.body.errors.base.first).to eq 'An error occurred managing the resource remotely, please try again later. cert must not be malformed'
+    context 'is not create ->' do
+      it 'with name > 255' do
+        ssl_cert.create_ssl_certificate({name: ConstantsCdn::NAME_255_SSL })
+        expect(@csa.conn.page.body.errors.name).to eq ["is too long (maximum is 255 characters)"]
       end
 
-    it 'should not be created with wrong format[key]' do
-      ssl_cert.create_ssl_certificate({name:'', cert: ConstantsCdn::SSL_CERT, key: 'asdqwe'})
-      expect(@csa.conn.page.body.errors.base.first).to eq 'An error occurred managing the resource remotely, please try again later. SSL private key must pkcs8 compatible'
+      it 'with all params are empty' do
+        # https://onappdev.atlassian.net/browse/CORE-8589, should be "can't be blank"
+        ssl_cert.create_ssl_certificate({name:'', cert: '', key: ''})
+        expect(@csa.conn.page.code).to eq '422'
+        expect(@csa.conn.page.body.errors.cert).to eq ["is invalid"]
+        expect(@csa.conn.page.body.errors.to_a[1][1]).to eq ["is invalid"]
       end
 
-    it 'should not be created with wrong format[cert]' do
-      ssl_cert.create_ssl_certificate({name:'', cert: 'asdasd', key: ConstantsCdn::SSL_KEY})
-      expect(@csa.conn.page.body.errors.base.first).to eq 'An error occurred managing the resource remotely, please try again later. cert must not be malformed'
+      it 'with wrong format[key, cert]' do
+        ssl_cert.create_ssl_certificate({name:'', cert: 'asdasd', key: 'asdqwe'})
+        expect(@csa.conn.page.code).to eq '422'
+        expect(@csa.conn.page.body.errors.base).to eq ["An error occurred managing the resource remotely, please try again later. cert must not be malformed"]
+        end
+
+      it 'with wrong format[key]' do
+        ssl_cert.create_ssl_certificate({name:'', cert: ConstantsCdn::SSL_CERT, key: 'asdqwe'})
+        expect(@csa.conn.page.code).to eq '422'
+        expect(@csa.conn.page.body.errors.base).to eq ["An error occurred managing the resource remotely, please try again later. SSL private key must pkcs8 compatible"]
+        end
+
+      it 'with wrong format[cert]' do
+        ssl_cert.create_ssl_certificate({name:'', cert: 'asdasd', key: ConstantsCdn::SSL_KEY})
+        expect(@csa.conn.page.code).to eq '422'
+        expect(@csa.conn.page.body.errors.base).to eq ["An error occurred managing the resource remotely, please try again later. cert must not be malformed"]
+      end
     end
 
-    it 'should be deleted' do
-      ssl_cert.remove_ssl_certificate
-      expect(@csa.conn.page.code).to eq '204'
-    end
+    context 'is not edit ->' do
+      before :all do
+        @csa.ssl_cert.create_ssl_certificate
+      end
 
-    it 'should make sure CDN Edge Group is deleted' do
-      @csa.get(ssl_cert.route_ssl_certificate)
-      expect(@csa.conn.page.code).to eq '404'
+      after :all do
+        @csa.ssl_cert.remove_ssl_certificate
+      end
+
+      it 'with incorrect name' do
+        ssl_cert.edit({cdn_ssl_certificate: {name: 'тест'}})
+        expect(@csa.conn.page.code).to eq '422'
+        expect(@csa.conn.page.body.errors.name).to eq ["is invalid"]
+      end
+
+      it 'with empty cert' do
+        ssl_cert.edit({cdn_ssl_certificate: {cert: ''}})
+        expect(@csa.conn.page.code).to eq '422'
+        expect(@csa.conn.page.body.errors.cert).to eq ["is invalid"]
+      end
+
+      it 'with incorrect cert' do
+        ssl_cert.edit({cdn_ssl_certificate: {cert: 'iohlgk'}})
+        expect(@csa.conn.page.code).to eq '422'
+        expect(@csa.conn.page.body.errors.base).to eq ["An error occurred managing the resource remotely, please try again later. cert must not be malformed"]
+      end
+
+      it 'with empty key' do
+        ssl_cert.edit({cdn_ssl_certificate: {key: 'asdfsdgf'}})
+        expect(@csa.conn.page.code).to eq '422'
+        expect(@csa.conn.page.body.errors.base).to eq ["An error occurred managing the resource remotely, please try again later. SSL private key must pkcs8 compatible"]
+      end
     end
   end
-
-  #TODO 'Add Custom SNI SSL Certificate to CDN Resource'
 end

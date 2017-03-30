@@ -505,6 +505,7 @@ describe 'EdgeGroup' do
     before(:all) do
       @ega = EdgeGroupActions.new.precondition
       @bpa = BillingPlanActions.new.precondition
+      @bpa.billing_plan.create_billing_plan
       @eg_limit = @bpa.billing_plan.create_limit_eg(@ega.edge_group.id)
     end
 
