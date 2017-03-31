@@ -139,7 +139,7 @@ module SshCommands
     end
 
     def firewall_rules(remote_ip)
-      "iptables -L | grep #{remote_ip} | awk '{print \\$4,\\$5}' | wc -l"
+      "iptables -L | grep '#{remote_ip} ' | awk '{print \\$4,\\$5}' | wc -l"
     end
   end
 

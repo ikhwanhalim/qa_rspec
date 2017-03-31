@@ -452,14 +452,15 @@ describe 'Virtual Server actions tests' do
 
       it 'Second IP address should be appeared in the interface' do
         expect(vm.ip_addresses.count).to eq 2
-        expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 2 if @second_ip
+        @second_ip = vm.network_interface.ip_address(2).address if @cp_version < 5.4
+        expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 2
       end
 
       it 'All IPs should be pinged and visible inside VM' do
         ping_states = vm.ip_addresses.map &:pinged?
         exist_states = vm.ip_addresses.map &:exist_on_vm
         expect(ping_states + exist_states).to_not include false
-        expect(vm.ip_addresses.map(&:check_firewall_rules)).to_not include 0
+        expect(vm.ip_addresses.map(&:check_firewall_rules)).to match_array([2, 2])
       end
 
       it 'Remove second IP' do
@@ -536,11 +537,11 @@ describe 'Virtual Server actions tests' do
     describe 'Network interfaces' do
       before :all do
         @ids = @vm.available_network_join_ids
-        @vm.port_opened?
       end
 
       before do
         skip('Additional network has not been attached to HV or HVZ') if @ids.empty?
+        @vm.port_opened?
       end
 
       it 'Attach new' do
@@ -563,10 +564,12 @@ describe 'Virtual Server actions tests' do
         ip = vm.ip_address
         vm.network_interface.remove
         expect(vm.not_pinged?(remote_ip: ip)).to be true
+        expect(vm.check_firewall_rules(remote_ip: ip)).to eq 0
         vm.attach_network_interface(primary: true)
         vm.network_interface.allocate_new_ip
         vm.rebuild_network
         expect(vm.port_opened?).to be true
+        expect(vm.check_firewall_rules).to eq 2
       end
 
       it 'Ability to create two primary interfaces should be blocked' do
