@@ -68,19 +68,17 @@ class IpAddress
   end
 
   def used_ips
-    used_ips = []
-    interface.get("/networking/api/ip_addresses", {ip_range_id: ip_range_id}).map(&:ip_address).each do
-      |ip| used_ips << IPAddr.new(ip['address']).to_i
-    end
-    used_ips
+    @used_ips ||=
+      interface.get("/networking/api/ip_addresses", {ip_range_ids: ip_range_id}).inject([]) do |used_ips, ip|
+        used_ips << IPAddr.new(ip.ip_address['address']).to_i
+      end
   end
 
   def free_ip
-    used_ips_in_range = used_ips
     ip_range = IpRange.new(self).get(ip_range_id)
     start_address = IPAddr.new(ip_range.start_address).to_i
     end_address = IPAddr.new(ip_range.end_address).to_i
-    (start_address..end_address).each { |ip| return IPAddr.new(ip, Socket::AF_INET).to_s unless used_ips_in_range.include?(ip) }
+    (start_address..end_address).each { |ip| return IPAddr.new(ip, Socket::AF_INET).to_s unless used_ips.include?(ip) }
   end
 
   def private?

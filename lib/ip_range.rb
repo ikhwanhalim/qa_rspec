@@ -10,6 +10,7 @@ class IpRange
   end
 
   def info_update(response)
+    return Log.warn(response['errors']) if response['errors']
     ip_range = response['ip_range'] if response['ip_range']
     ip_range.each { |k, v| instance_variable_set("@#{k}", v)}
   end
