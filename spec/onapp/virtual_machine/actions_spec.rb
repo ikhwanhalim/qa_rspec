@@ -63,7 +63,7 @@ describe 'Virtual Server actions tests' do
 
       it { expect(vm.exist_on_hv?).to be true }
 
-      it { expect(vm.network_interface.ip_address.check_firewall_rules).to eq(2) }
+      it { expect(vm.check_firewall_rules).to eq(2) }
 
       it { expect(vm.ssh_execute(SshCommands::OnVirtualServer.domain, true)).to include vm.domain }
     end
@@ -71,37 +71,39 @@ describe 'Virtual Server actions tests' do
     it 'Stop/Start Virtual Machine' do
       vm.stop
       expect(vm.not_pinged?).to be true
-      expect(vm.network_interface.ip_address.check_firewall_rules).to eq(0)
+      expect(vm.check_firewall_rules).to eq(0)
       vm.start_up
       expect(vm.pinged? && vm.exist_on_hv?).to be true
-      expect(vm.network_interface.ip_address.check_firewall_rules).to eq(2)
+      expect(vm.check_firewall_rules).to eq(2)
     end
 
     it 'ShutDown/Start Virtual Machine' do
       vm.shut_down
       expect(vm.not_pinged?).to be true
-      expect(vm.network_interface.ip_address.check_firewall_rules).to eq(0)
+      expect(vm.check_firewall_rules).to eq(0)
       vm.start_up
       expect(vm.pinged? && vm.exist_on_hv?).to be true
-      expect(vm.network_interface.ip_address.check_firewall_rules).to eq(2)
+      expect(vm.check_firewall_rules).to eq(2)
     end
 
     it 'Reboot Virtual Machine' do
       vm.reboot
       expect(vm.pinged? && vm.exist_on_hv?).to be true
-      expect(vm.network_interface.ip_address.check_firewall_rules).to eq(2)
+      expect(vm.check_firewall_rules).to eq(2)
     end
 
     it 'Suspend/Unsuspend Virtual Machine' do
       vm.suspend
       expect(vm.not_pinged?).to be true
       expect(vm.exist_on_hv?).to be false
+      expect(vm.check_firewall_rules).to eq(0)
       vm.start_up
       expect(vm.api_response_code).to eq '422'
       vm.unsuspend
       expect(vm.down?).to be true
       vm.start_up
       expect(vm.pinged? && vm.exist_on_hv?).to be true
+      expect(vm.check_firewall_rules).to eq(2)
     end
 
     it 'Reboot in recovery Operations' do
@@ -251,15 +253,18 @@ describe 'Virtual Server actions tests' do
       vm.migrate(@hv.id)
       expect(vm.hypervisor_id).to eq @hv.id
       expect(vm.exist_on_hv?).to be true
+      expect(vm.check_firewall_rules).to eq(2)
     end
 
     it 'Cold Migrate VS' do
       vm.stop
       expect(vm.down?).to be true
+      expect(vm.check_firewall_rules).to eq(0)
       vm.migrate(@hv.id, hot: false)
       expect(vm.hypervisor_id).to eq @hv.id
       vm.start_up
       expect(vm.exist_on_hv?).to be true
+      expect(vm.check_firewall_rules).to eq(2)
     end
   end
 
@@ -429,10 +434,15 @@ describe 'Virtual Server actions tests' do
   describe 'Network operations' do
     describe 'IP addresses' do
       before :all do
-        @vm.network_interface.allocate_new_ip
+        if @cp_version < 5.4
+          @vm.network_interface.allocate_new_ip
+          @free_addresses = @vm.network_interface.ip_address.all
+        else
+          @second_ip = vm.network_interface.ip_address.free_ip
+          @vm.network_interface.allocate_new_ip(address: @second_ip)
+        end
         @vm.rebuild_network
         @primary_network_interface_exist = @vm.network_interface.any?
-        @free_addresses = @vm.network_interface.ip_address.all if @cp_version < 5.4
       end
 
       before do
@@ -442,35 +452,56 @@ describe 'Virtual Server actions tests' do
 
       it 'Second IP address should be appeared in the interface' do
         expect(vm.ip_addresses.count).to eq 2
+        @second_ip = vm.network_interface.ip_address(2).address if @cp_version < 5.4
+        expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 2
       end
 
       it 'All IPs should be pinged and visible inside VM' do
         ping_states = vm.ip_addresses.map &:pinged?
         exist_states = vm.ip_addresses.map &:exist_on_vm
         expect(ping_states + exist_states).to_not include false
+        expect(vm.ip_addresses.map(&:check_firewall_rules)).to match_array([2, 2])
       end
 
       it 'Remove second IP' do
-        vm.network_interface.remove_ip(1)
+        vm.network_interface.remove_ip(2)
         vm.rebuild_network
         expect(vm.ip_addresses.count).to eq 1
+        expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 0
       end
 
-      it 'Allocate the same IP' do
-        expect(vm.ip_addresses.count).to eq 1
-        expect(vm.network_interface.allocate_new_ip(address: vm.ip_address)['selected_ip_address']).to eq(["Ip Address is already leased", "Ip Address is already allocated to this network card"])
+      it 'Allocate the same IP should not be allowed' do
+        if @cp_version < 5.4
+          expect(vm.network_interface.allocate_new_ip(ip_address_id: vm.network_interface.ip_address.id, used_ip: 1)['ip_address_id']).to eq(["is already allocated to this network card"])
+        else
+          expect(vm.network_interface.allocate_new_ip(used_ip: 1, address: vm.ip_address)['selected_ip_address']).to eq(["Ip Address is already allocated to this network card"])
+        end
         expect(vm.api_response_code).to eq '422'
+        expect(vm.ip_addresses.count).to eq 1
+        expect(vm.check_firewall_rules).to eq 2
+      end
+
+      it 'Remove primary IP' do
+        primary_ip = vm.ip_address
+        vm.network_interface.remove_ip
+        vm.rebuild_network
+        expect(vm.ip_addresses.count).to eq 0
+        expect(vm.check_firewall_rules(remote_ip: primary_ip)).to eq 0
       end
 
       it 'Allocate used IP' do
         @vm_new = VirtualServer.new(@vsa).create
-        used_ip = @vm_new.ip_address
-        skip('The user has no suitable used IP') unless used_ip
-        vm.network_interface.allocate_new_ip(used_ip= 1, address: used_ip)
-        expect(vm.ip_addresses.map &:ip_address).to include(used_ip)
-        expect(vm.ip_addresses.count).to eq 2
+        used_ip_address =  @vm_new.ip_address
+        skip('The user has no suitable used IP') unless used_ip_address
+        if @cp_version < 5.4
+          vm.network_interface.allocate_new_ip(ip_address_id: @vm_new.network_interface.ip_address.id, used_ip: 1)
+        else
+          vm.network_interface.allocate_new_ip(used_ip: 1, address: used_ip_address)
+        end
+        expect(vm.ip_address).to eq(used_ip_address)
+        expect(vm.ip_addresses.count).to eq 1
         @vm_new.destroy
-
+        expect(vm.check_firewall_rules(remote_ip: used_ip_address)).to eq 2
       end
     end
 
@@ -506,11 +537,11 @@ describe 'Virtual Server actions tests' do
     describe 'Network interfaces' do
       before :all do
         @ids = @vm.available_network_join_ids
-        @vm.port_opened?
       end
 
       before do
         skip('Additional network has not been attached to HV or HVZ') if @ids.empty?
+        @vm.port_opened?
       end
 
       it 'Attach new' do
@@ -533,10 +564,12 @@ describe 'Virtual Server actions tests' do
         ip = vm.ip_address
         vm.network_interface.remove
         expect(vm.not_pinged?(remote_ip: ip)).to be true
+        expect(vm.check_firewall_rules(remote_ip: ip)).to eq 0
         vm.attach_network_interface(primary: true)
         vm.network_interface.allocate_new_ip
         vm.rebuild_network
         expect(vm.port_opened?).to be true
+        expect(vm.check_firewall_rules).to eq 2
       end
 
       it 'Ability to create two primary interfaces should be blocked' do

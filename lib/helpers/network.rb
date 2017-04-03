@@ -35,6 +35,11 @@ module Network
     not_pinged? && port_closed?
   end
 
+  def check_firewall_rules(remote_ip: ip_address)
+    command = SshCommands::OnHypervisor.firewall_rules(remote_ip)
+    interface.hypervisor.ssh_execute(command).last.to_i
+  end
+
   private
 
   def exit_ok?(command)
