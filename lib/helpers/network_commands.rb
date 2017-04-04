@@ -1,6 +1,6 @@
 require_relative 'waiter'
 
-module Network
+module NetworkCommands
   include Waiter
 
   def port_opened?(remote_ip: ip_address, port: 22)

@@ -1,5 +1,5 @@
 class IpAddress
-  include Network
+  include NetworkCommands
 
   attr_reader :interface, :network_interface, :address, :broadcast, :created_at, :customer_network_id,
               :disallowed_primary, :gateway, :hypervisor_id, :id, :ip_address_pool_id, :network_address, :network_id,
