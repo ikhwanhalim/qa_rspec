@@ -139,7 +139,7 @@ module SshCommands
     end
 
     def firewall_rules(remote_ip)
-      "iptables -nL FORWARD | grep -wc '#{remote_ip}' "
+      "iptables -nL FORWARD | grep -wc '#{remote_ip}'"
     end
   end
 
