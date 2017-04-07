@@ -1,8 +1,8 @@
 class IpRange
   attr_reader  :interface, :id, :start_address, :end_address, :default_gateway, :ipv4
 
-  def initialize(ip_address)
-    @interface = ip_address.interface
+  def initialize(ip_net)
+    @interface = ip_net.interface
   end
 
   def get(id)
