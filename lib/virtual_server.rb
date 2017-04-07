@@ -1,5 +1,5 @@
 class VirtualServer
-  include VmOperationsWaiters, Network, SshCommands
+  include VmOperationsWaiters, NetworkCommands, SshCommands
 
   attr_accessor :maxmem
   attr_reader :interface, :add_to_marketplace, :admin_note, :allowed_hot_migrate, :allowed_swap, :booted, :built,
