@@ -1,4 +1,4 @@
-require 'virtual_server'
+require_relative 'virtual_server'
 
 class CdnServer < VirtualServer
 
