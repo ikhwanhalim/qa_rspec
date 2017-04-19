@@ -92,15 +92,11 @@ class NetworkInterface
   end
 
   def ip_addresses
-    if interface.version < 5.4
-      interface.get(ip_addresses_route).map do |ip_join|
-        if ip_join.ip_address_join.network_interface_id.to_s == id.to_s
-          IpAddress.new(self).info_update(ip_join.ip_address_join)
-        end
+    interface.get(ip_addresses_route).map do |ip_join|
+      if ip_join.ip_address_join.network_interface_id.to_s == id.to_s
+        IpAddress.new(self).info_update(ip_join.ip_address_join)
+       end
       end
-    else
-      interface.get(ip_addresses_route).map { |ip| IpAddress.new(self).info_update(ip) }
-    end
   end
 
   def firewall_rules
