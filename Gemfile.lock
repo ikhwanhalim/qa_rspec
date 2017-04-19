@@ -1,3 +1,11 @@
+GIT
+  remote: git@bitbucket.org:onappcore/marketapi.git
+  revision: 459b2465c2878ff11801dda987651df08b339331
+  branch: master
+  specs:
+    onapp_market (1.18.0)
+      rest-client (~> 1.6.7)
+
 GEM
   specs:
     activesupport (4.2.5)
@@ -106,6 +114,7 @@ DEPENDENCIES
   mechanize (= 2.7.5)
   net-ssh
   nokogiri
+  onapp_market (= 1.18.0)!
   page-object
   pry
   rest-client (= 1.6.9)
