@@ -1,6 +1,8 @@
 require_relative 'virtual_server'
+require_relative '../lib/helpers/ssh_commands'
 
 class CdnServer < VirtualServer
+  include SshCommands, SshClient
 
   CDN_SERVER      = ENV['CDN_SERVER']       # edge_server or storage_server
   CDN_SERVER_TYPE = ENV['CDN_SERVER_TYPE']  # streaming or http
@@ -28,6 +30,16 @@ class CdnServer < VirtualServer
            end
 
     main_params.merge(type)
+  end
+
+  def get_server_location
+    creds = {'vm_host' => interface.ip, 'vm_user' => 'onapp'}
+
+    if CDN_SERVER == 'storage_server'
+      interface.execute_with_pass(creds, "#{SshCommands::OnControlPanel.location_id_of_cdn_server('Origin', label)}").last
+    else
+      interface.execute_with_pass(creds, "#{SshCommands::OnControlPanel.location_id_of_cdn_server('Edge', label)}").last
+    end
   end
 
   def main_params
@@ -68,7 +80,6 @@ class CdnServer < VirtualServer
         ENV['CDN_SERVER'] => {
             template_id: image.id,
             required_startup: required_startup.to_s,
-            # licensing_type: build_params[:licensing_type]
         }
     }
     response = interface.post("#{route}/build", params)

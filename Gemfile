@@ -1,3 +1,5 @@
+source 'https://rubygems.org'
+
 gem 'json'
 gem 'mechanize', '2.7.5'
 gem 'nokogiri'

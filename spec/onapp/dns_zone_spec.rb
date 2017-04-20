@@ -31,6 +31,16 @@ describe 'DnsZone' do
     expect(@dza.conn.page.code).to eq '200'
   end
 
+  it 'is Get dns domain details' do
+    @dza.get("/settings/dns_setup")
+    expect(@dza.conn.page.code).to eq '200'
+  end
+
+  it 'is Get dns domain details' do
+    @dza.get("/settings/dns_setup/glue_records")
+    expect(@dza.conn.page.code).to eq '200'
+  end
+
  # TODO it 'should Get List of Name Servers' do
  # error: undefined method `each_pair' for "ns1.qaonapp.net":String
  # it 'should Get List of Name Servers' do
