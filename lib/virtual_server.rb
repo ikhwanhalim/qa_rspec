@@ -282,7 +282,7 @@ class VirtualServer
   def migrate(hv_id, hot: true)
     response = interface.post("#{route}/migrate", {virtual_machine: {destination: hv_id}})
     return response.errors if api_response_code == '422'
-    hot ? wait_for_hot_migration : wait_for_cold_migration
+    hot and template.allowed_hot_migrate ? wait_for_hot_migration : wait_for_cold_migration
     info_update
   end
 
@@ -449,8 +449,9 @@ class VirtualServer
   end
 
   def autoscale_enable
-    interface.post("#{route}/autoscale_enable")
-    if interface.conn.page.code == '201'
+    response = interface.post("#{route}/autoscale_enable")
+    return response if api_response_code == '422'
+    if api_response_code == '201'
       wait_for_check_or_install_zabbix_agent
       wait_for_enable_auto_scaling
     end

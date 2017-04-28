@@ -1,5 +1,6 @@
 require 'spec_helper'
 require './groups/virtual_server_built_from_iso'
+require './spec/onapp/virtual_machine/vs_shared_tests/notes_spec'
 
 describe 'Virtual Server built from ISO actions tests' do
   before :all do
@@ -41,35 +42,7 @@ describe 'Virtual Server built from ISO actions tests' do
   end
 
   describe  'Admin/User note' do
-    it 'Add admin note' do
-      vm.add_note
-      expect(vm.admin_note).to eq('admin note')
-    end
-
-    it 'Edit admin note' do
-      vm.add_note(admin_note: true, note: 'edited admin note')
-      expect(vm.admin_note).to eq('edited admin note')
-    end
-
-    it 'Delete admin note' do
-      vm.remove_note('admin_note')
-      expect(vm.admin_note).to be nil
-    end
-
-    it 'Add user note' do
-      vm.add_note(admin_note: false, note: 'user note')
-      expect(vm.note).to eq('user note')
-    end
-
-    it 'Edit user note' do
-      vm.add_note(admin_note: false, note: 'edited user note')
-      expect(vm.note).to eq('edited user note')
-    end
-
-    it 'Delete user note' do
-      vm.remove_note('note')
-      expect(vm.note).to be nil
-    end
+    include_examples 'notes'
   end
 
   describe 'VM power operations' do

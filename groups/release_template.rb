@@ -2,13 +2,14 @@ class ReleaseTemplate
   include ApiClient, SshClient, Log, Mysql
 
   attr_accessor :hypervisor, :template
-  attr_reader   :virtual_machine, :backup_server
+  attr_reader   :virtual_machine, :backup_server, :settings
 
   def interface
     self
   end
 
   def precondition
+    @settings = Settings.new(self)
     @template = ImageTemplate.new(self)
     @template.find_by_manager_id(ENV['TEMPLATE_MANAGER_ID'])
 

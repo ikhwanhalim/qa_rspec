@@ -20,7 +20,7 @@ class User
         last_name: 'Test',
         billing_plan_id:' 1',#@billing_plan_id,
         email: Faker::Internet.email('autotest'),
-        password: Faker::Internet.password(10),
+        password: interface.settings.generate_password,
         role_ids: ['1']
     }
   end

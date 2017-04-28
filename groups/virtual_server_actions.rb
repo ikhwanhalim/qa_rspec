@@ -3,6 +3,7 @@ class VirtualServerActions
 
   IDENTIFIER          = ENV['IDENTIFIER']
   TEMPLATE_MANAGER_ID = ENV['TEMPLATE_MANAGER_ID']
+  OPERATING_SYSTEM    = ENV['OPERATING_SYSTEM']
   VIRT_TYPE           = ENV['VIRT_TYPE']
 
   attr_accessor :hypervisor, :template, :iso, :user
@@ -16,7 +17,7 @@ class VirtualServerActions
       @virtual_machine.find(IDENTIFIER)
     else
       @template = ImageTemplate.new(self)
-      @template.find_by_manager_id(TEMPLATE_MANAGER_ID)
+      OPERATING_SYSTEM ? @template.find_by_manager_id(operating_system: OPERATING_SYSTEM) : @template.find_by_manager_id(manager_id:TEMPLATE_MANAGER_ID)
 
       @hypervisor = Hypervisor.new(self)
       @hypervisor.find_by_virt(VIRT_TYPE)
