@@ -13,9 +13,9 @@ class ImageTemplate
     @interface = interface
   end
 
-  def find_by_manager_id(manager_id: nil, operating_system: 'linux')
+  def find_by_manager_id(manager_id)
     remove_after_install
-    manager_id = manager_id ? manager_id : select_template_by_os(operating_system)
+    manager_id = manager_id ? manager_id : select_template_by_os
     info = get_template(manager_id)
     info_update(info)
     self
@@ -57,7 +57,7 @@ class ImageTemplate
     end
   end
 
-  def select_template_by_os(operating_system)
+  def select_template_by_os(operating_system: 'linux')
     templates =  get_available.map(&:remote_template) + get_installed.map(&:image_template)
     templates.select { |t| template_compatible?(t, operating_system) }.sample.manager_id
   end

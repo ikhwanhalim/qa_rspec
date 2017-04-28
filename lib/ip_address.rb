@@ -3,7 +3,7 @@ class IpAddress
 
   attr_reader :interface, :network_interface, :address, :broadcast, :created_at, :customer_network_id,
               :disallowed_primary, :gateway, :hypervisor_id, :id, :ip_address_pool_id, :network_address, :network_id,
-              :pxe, :updated_at, :user_id, :free, :netmask, :join_id, :ip_range_id, :ip_net_id
+              :pxe, :updated_at, :user_id, :free, :netmask, :join_id, :ip_range_id
 
   alias ip_address address
 
@@ -40,11 +40,15 @@ class IpAddress
     end
     join = interface.post(@ip_addresses_route, data)
     return join.errors if join.errors
-    info_update(join.ip_address_join)
+    interface.version < 5.4 ? info_update(join.ip_address_join) : info_update(join)
   end
 
   def detach(rebuild_network = false)
-    interface.delete(@ip_address_join_route, {ip_address_join: {rebuild_network: rebuild_network}})
+    if interface.version < 5.4
+      interface.delete(@ip_address_join_route, {ip_address_join: {rebuild_network: rebuild_network}})
+    else
+      interface.delete(@ip_address_route, {rebuild_network: rebuild_network})
+    end
   end
 
   def exist_on_vm
@@ -60,13 +64,13 @@ class IpAddress
 
   def used_ips
     @used_ips ||=
-      interface.get("/settings/networks/#{network_id}/ip_addresses").inject([]) do |used_ips, ip|
+      interface.get("/networking/api/ip_addresses", {ip_range_ids: ip_range_id}).inject([]) do |used_ips, ip|
         used_ips << IPAddr.new(ip.ip_address['address']).to_i
       end
   end
 
   def free_ip
-    ip_range = IpRange.new(self).get(network_id, ip_net_id, ip_range_id)
+    ip_range = IpRange.new(self).get(ip_range_id)
     start_address = IPAddr.new(ip_range.start_address).to_i
     end_address = IPAddr.new(ip_range.end_address).to_i
     (start_address..end_address).each { |ip| return IPAddr.new(ip, Socket::AF_INET).to_s unless used_ips.include?(ip) }

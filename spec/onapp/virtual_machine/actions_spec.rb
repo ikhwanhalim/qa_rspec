@@ -143,7 +143,7 @@ describe 'Virtual Server actions tests' do
 
       before :all do
         @password_encryption_enabled = @vsa.settings.allow_initial_root_password_encryption
-        @own_password = @vsa.settings.generate_password
+        @root_password = 'ownPassword123!'
         @passphrase = 'test'
       end
 
@@ -151,11 +151,7 @@ describe 'Virtual Server actions tests' do
         expect(vm.pinged? && vm.exist_on_hv?).to be true
       end
 
-      after :all do
-        vm.reset_root_password
-      end
-
-      let(:own_password) {@own_password}
+      let(:root_password) {@root_password}
       let(:passphrase) {@passphrase}
 
       it 'Reset VS root password with generated password' do
@@ -168,55 +164,54 @@ describe 'Virtual Server actions tests' do
       end
 
       it 'Reset VS root password with own password' do
-        vm.reset_root_password(root_pass: own_password)
+        vm.reset_root_password(root_pass: root_password)
         expect(vm.up?).to be true
-        creds = {'vm_host' => vm.ip_address, 'vm_pass' => own_password}
-        expect(vm.initial_root_password).to eq(own_password)
+        creds = {'vm_host' => vm.ip_address, 'vm_pass' => root_password}
+        expect(vm.initial_root_password).to eq(root_password)
         expect(vm.interface.execute_with_pass(creds, 'hostname').join(' ')).to match vm.hostname
       end
 
-      context 'Encrypt password'  do
+      it 'Reset VS root password encrypt generated password' do
+        skip('Allow VS password encryption option is disabled at CP settings') unless @password_encryption_enabled
+        vm.reset_root_password(passphrase: passphrase, confirmation_passphrase: passphrase)
+        expect(vm.up?).to be true
+        vm_pass = vm.decrypt_root_password(passphrase)
+        creds = {'vm_host' => vm.ip_address, 'vm_pass' => vm_pass}
+        expect(vm_pass).to_not eq(root_password)
+        expect(vm.interface.execute_with_pass(creds, 'hostname').join(' ')).to match vm.hostname
+      end
 
-        before {  skip('Allow VS password encryption option is disabled at CP settings') unless @password_encryption_enabled }
+      it 'Reset VS root password set own password and encrypt' do
+        skip('Allow VS password encryption option is disabled at CP settings') unless @password_encryption_enabled
+        vm.reset_root_password(root_pass: root_password, passphrase: passphrase, confirmation_passphrase: passphrase)
+        expect(vm.up?).to be true
+        vm_pass = vm.decrypt_root_password(passphrase)
+        expect(vm_pass).to eq(root_password)
+        creds = {'vm_host' => vm.ip_address, 'vm_pass' => vm_pass}
+        expect(vm.interface.execute_with_pass(creds, 'hostname').join(' ')).to match vm.hostname
+      end
 
-        it 'Reset VS root password encrypt generated password' do
-          vm.reset_root_password(passphrase: passphrase, confirmation_passphrase: passphrase)
-          expect(vm.up?).to be true
-          vm_pass = vm.decrypt_root_password(passphrase)
-          creds = {'vm_host' => vm.ip_address, 'vm_pass' => vm_pass}
-          expect(vm_pass).to_not eq(own_password)
-          expect(vm.interface.execute_with_pass(creds, 'hostname').join(' ')).to match vm.hostname
-        end
+      it 'Reset VS root password decrypt root password with incorrect passphrase' do
+        skip('Allow VS password encryption option is disabled at CP settings') unless @password_encryption_enabled
+        vm.reset_root_password(passphrase: passphrase, confirmation_passphrase: passphrase)
+        expect(vm.up?).to be true
+        expect(vm.decrypt_root_password('testttttt')).to eq(['Encryption passphrase is invalid'])
+      end
 
-        it 'Reset VS root password set own password and encrypt' do
-          vm.reset_root_password(root_pass: own_password, passphrase: passphrase, confirmation_passphrase: passphrase)
-          expect(vm.up?).to be true
-          vm_pass = vm.decrypt_root_password(passphrase)
-          expect(vm_pass).to eq(own_password)
-          creds = {'vm_host' => vm.ip_address, 'vm_pass' => vm_pass}
-          expect(vm.interface.execute_with_pass(creds, 'hostname').join(' ')).to match vm.hostname
-        end
+      it 'Reset VS root password encrypt generated password with incorrect confirmation passphrase' do
+        skip('Allow VS password encryption option is disabled at CP settings') unless @password_encryption_enabled
+        response = vm.reset_root_password(passphrase: passphrase, confirmation_passphrase: 'testttttt')
+        expect(vm.up?).to be true
+        expect(response['initial_root_password_encryption_key_confirmation']).to eq(["doesn't match confirmation"])
+        expect(response['base']).to eq(['Virtual server root password cannot be reset at the moment. '])
+      end
 
-        it 'Reset VS root password decrypt root password with incorrect passphrase' do
-          vm.reset_root_password(passphrase: passphrase, confirmation_passphrase: passphrase)
-          expect(vm.up?).to be true
-          expect(vm.decrypt_root_password('testttttt')).to eq(['Encryption passphrase is invalid'])
-        end
-
-        it 'Reset VS root password encrypt generated password with incorrect confirmation passphrase' do
-          skip('Allow VS password encryption option is disabled at CP settings') unless @password_encryption_enabled
-          response = vm.reset_root_password(passphrase: passphrase, confirmation_passphrase: 'testttttt')
-          expect(vm.up?).to be true
-          expect(response['initial_root_password_encryption_key_confirmation']).to eq(["doesn't match confirmation"])
-          expect(response['base']).to eq(['Virtual server root password cannot be reset at the moment. '])
-        end
-
-        it 'Reset VS root password set own password and encrypt with incorrect confirmation passphrase' do
-          response = vm.reset_root_password(root_pass: own_password, passphrase: passphrase, confirmation_passphrase: 'testttt')
-          expect(vm.up?).to be true
-          expect(response['initial_root_password_encryption_key_confirmation']).to eq(["doesn't match confirmation"])
-          expect(response['base']).to eq(['Virtual server root password cannot be reset at the moment. '])
-        end
+      it 'Reset VS root password set own password and encrypt with incorrect confirmation passphrase' do
+        skip('Allow VS password encryption option is disabled at CP settings') unless @password_encryption_enabled
+        response = vm.reset_root_password(root_pass: root_password, passphrase: passphrase, confirmation_passphrase: 'testttt')
+        expect(vm.up?).to be true
+        expect(response['initial_root_password_encryption_key_confirmation']).to eq(["doesn't match confirmation"])
+        expect(response['base']).to eq(['Virtual server root password cannot be reset at the moment. '])
       end
     end
 
@@ -254,7 +249,6 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'Hot Migrate VS' do
-      skip("Hot migrate for template #{@template.label} is not allowed") unless @template.allowed_hot_migrate
       expect(vm.up?).to be true
       vm.migrate(@hv.id)
       expect(vm.hypervisor_id).to eq @hv.id
@@ -480,7 +474,7 @@ describe 'Virtual Server actions tests' do
         if @cp_version < 5.4
           expect(vm.network_interface.allocate_new_ip(ip_address_id: vm.network_interface.ip_address.id, used_ip: 1)['ip_address_id']).to eq(["is already allocated to this network card"])
         else
-          expect(vm.network_interface.allocate_new_ip(used_ip: 1, address: vm.ip_address)['selected_ip_address']).to eq(["is already allocated to this network card"])
+          expect(vm.network_interface.allocate_new_ip(used_ip: 1, address: vm.ip_address)['selected_ip_address']).to eq(["Ip Address is already allocated to this network card"])
         end
         expect(vm.api_response_code).to eq '422'
         expect(vm.ip_addresses.count).to eq 1

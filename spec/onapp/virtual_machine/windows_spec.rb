@@ -1,6 +1,5 @@
 require 'spec_helper'
 require './groups/virtual_server_actions'
-require './spec/onapp/virtual_machine/vs_shared_tests/notes_spec'
 
 describe 'Windows Virtual Server actions tests' do
   before :all do
@@ -53,10 +52,6 @@ describe 'Windows Virtual Server actions tests' do
     vm.unsuspend
     vm.start_up
     expect(vm.port_opened?).to be true
-  end
-
-  describe  'Admin/User note' do
-    include_examples 'notes'
   end
 
   describe 'Perform disk action' do
