@@ -5,8 +5,8 @@ class IpRange
     @interface = ip_net.interface
   end
 
-  def get(id)
-    info_update interface.get("/networking/api/ip_ranges/#{id}")
+  def get(network_id, ip_net_id, ip_range_id)
+    info_update interface.get("/settings/networks/#{network_id}/ip_nets/#{ip_net_id}/ip_ranges/#{ip_range_id}")
   end
 
   def info_update(response)

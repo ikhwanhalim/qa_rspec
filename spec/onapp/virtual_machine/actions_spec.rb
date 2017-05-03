@@ -249,6 +249,7 @@ describe 'Virtual Server actions tests' do
     end
 
     it 'Hot Migrate VS' do
+      skip("Hot migrate for template #{@template.label} is not allowed") unless @template.allowed_hot_migrate
       expect(vm.up?).to be true
       vm.migrate(@hv.id)
       expect(vm.hypervisor_id).to eq @hv.id
@@ -472,9 +473,9 @@ describe 'Virtual Server actions tests' do
 
       it 'Allocate the same IP should not be allowed' do
         if @cp_version < 5.4
-          expect(vm.network_interface.allocate_new_ip(ip_address_id: vm.network_interface.ip_address.id, used_ip: 1)['ip_address_id']).to eq(["is already allocated to this network card"])
+          expect(vm.network_interface.allocate_new_ip(ip_address_id: vm.network_interface.ip_address.id, used_ip: 1)['ip_address_id']).to eq(['is already allocated to this network card'])
         else
-          expect(vm.network_interface.allocate_new_ip(used_ip: 1, address: vm.ip_address)['selected_ip_address']).to eq(["Ip Address is already allocated to this network card"])
+          expect(vm.network_interface.allocate_new_ip(used_ip: 1, address: vm.ip_address)['selected_ip_address']).to eq(['is already allocated to this network card'])
         end
         expect(vm.api_response_code).to eq '422'
         expect(vm.ip_addresses.count).to eq 1

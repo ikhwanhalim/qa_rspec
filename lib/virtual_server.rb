@@ -282,7 +282,7 @@ class VirtualServer
   def migrate(hv_id, hot: true)
     response = interface.post("#{route}/migrate", {virtual_machine: {destination: hv_id}})
     return response.errors if api_response_code == '422'
-    hot ? wait_for_hot_migration : wait_for_cold_migration
+    hot and template.allowed_hot_migrate ? wait_for_hot_migration : wait_for_cold_migration
     info_update
   end
 
