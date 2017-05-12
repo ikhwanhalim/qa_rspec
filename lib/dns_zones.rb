@@ -15,9 +15,8 @@ class DnsZone
 
   def create_params
     {
-        name: "#{SecureRandom.hex}.com",
-        #name: "#{(0...10).map { ('a'..'z').to_a[rand(5)] }.join}.com",
-        auto_populate: '1'
+       name: Faker::Internet.domain_name,
+       auto_populate: '1'
     }
   end
 
@@ -41,15 +40,15 @@ class DnsZone
   end
 
   def generate_ipv4
-    IPAddr.new(rand(2**32),Socket::AF_INET).to_s
+    Faker::Internet.ip_v4_address
   end
 
   def generate_ipv6
-    IPAddr.new(rand(2**128),Socket::AF_INET6).to_s
+    Faker::Internet.ip_v6_address
   end
 
   def generate_number
-    SecureRandom.random_number(2).to_s
+    Faker::Number.number(2)
   end
 
   def create_dns_record(**params)
