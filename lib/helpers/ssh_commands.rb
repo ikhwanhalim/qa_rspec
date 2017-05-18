@@ -7,6 +7,8 @@ module SshCommands
         "yum update -y --nogpgcheck;echo $?"
       elsif operating_system_distro == 'ubuntu'
         "apt-get update;apt-get --allow-unauthenticated upgrade -y;echo $?"
+      elsif operating_system_distro == 'gentoo'
+         "emerge --sync; emerge -avuDN --with-bdeps y --keep-going world;echo $?"
       end
     end
 
