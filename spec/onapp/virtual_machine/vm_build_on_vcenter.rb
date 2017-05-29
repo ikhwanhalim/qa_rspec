@@ -16,7 +16,6 @@ describe 'VIRTUAL MACHINE ON VMWARE (VCENTER) REGRESSION AUTOTEST' do
 
   it 'Power Options' do
     @test = VCenterVsPowerOptions.new(@env)
-    skip('')
     skip('Test case could not be executed. Some configuration do not satisfy requirements') if !@test.executable?
     @test.execute
   end
@@ -28,14 +27,12 @@ describe 'VIRTUAL MACHINE ON VMWARE (VCENTER) REGRESSION AUTOTEST' do
   end
 
   it 'Rebuild Option' do
-    skip('')
     @test = VCenterVsRebuildOperation.new(@env)
     skip('Test case could not be executed. Some configuration do not satisfy requirements') if !@test.executable?
     @test.execute
   end
 
   it 'Primary disk operations' do
-    skip('')
     @test = VCenterVSPrimaryDiskOperations.new(@env)
     skip('Test case could not be executed. Some configuration do not satisfy requirements') if !@test.executable?
     @test.execute
