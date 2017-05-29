@@ -16,13 +16,13 @@ class DnsRecord
 
   def create_params_dns_record
     {
-        ttl: generate_number,
-        name: "#{SecureRandom.hex}"
+       ttl: generate_number,
+       name: Faker::Internet.domain_word
     }
   end
 
   def generate_number
-    SecureRandom.random_number(3).to_s
+    Faker::Number.number(3)
   end
 
   def get

@@ -8,15 +8,15 @@ module ConstantsCdn
   end
 
   ### Edge Group ###
-  EG_LABEL_255 = ""; 5.times{ EG_LABEL_255 << generate_name(57) } # 285
-  EG_LABEL_EDITED = "test-eg-qa-ant-edited".freeze
-  EG_FAKE_LOCATION = "3424345321211".freeze
-  EG_SAME_NAME = "ad-qa-ant-test-same-name".freeze
+  EG_LABEL_255 = generate_name(285)
+  EG_LABEL_EDITED = Faker::Internet.domain_word
+  EG_FAKE_LOCATION = Faker::Number.number(10)
+  EG_SAME_NAME = Faker::Internet.domain_word
   EG_SPEC_NAME = "^%$#@"
 
   ### SSL Cert ###
-  NAME_255_SSL = ""; 5.times{ NAME_255_SSL << generate_name(57) } # 285
-  NAME_SSL_EDIT = "test-ssl-qa-ant-edited".freeze
+  NAME_255_SSL = generate_name(285)
+  NAME_SSL_EDIT = Faker::Internet.domain_word
   SSL_CERT = "-----BEGIN CERTIFICATE-----
 MIIE+DCCA+CgAwIBAgISESG3JjBw9nYz6gxzVAXyZc1UMA0GCSqGSIb3DQEBCwUA
 MGAxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52LXNhMTYwNAYD

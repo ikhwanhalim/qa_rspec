@@ -6,13 +6,12 @@ describe 'DnsZone' do
   before(:all) do
     @dza = DnsZoneActions.new.precondition
     @ns_record = @dza.dns_zone.create_dns_record(type: "NS",
-                                                  hostname: "#{SecureRandom.hex}.com")
+                                                  hostname: Faker::Internet.domain_name)
   end
 
   let(:dns_zone) { @dza.dns_zone }
 
   it 'should be created' do
-    # puts dns_zone.name
     expect(dns_zone.name).not_to be nil
   end
 
@@ -51,7 +50,7 @@ describe 'DnsZone' do
   describe 'NS record'  do
     before(:all) do
         @ns_record = @dza.dns_zone.create_dns_record(type: "NS",
-                                                     hostname: "#{SecureRandom.hex}.com")
+                                                     hostname: Faker::Internet.domain_name)
     end
 
     it 'should get the record' do
@@ -91,7 +90,7 @@ describe 'DnsZone' do
   describe 'A record' do
     before :all do
       @a_record = @dza.dns_zone.create_dns_record(type: "A",
-                                                  name: "#{SecureRandom.hex}.com",
+                                                  name: Faker::Internet.domain_name,
                                                   ip: @dza.dns_zone.generate_ipv4)
     end
 
@@ -132,7 +131,7 @@ describe 'DnsZone' do
   describe 'AAAA record' do
     before :all do
       @aaaa_record = @dza.dns_zone.create_dns_record(type: "AAAA",
-                                                     name: "#{SecureRandom.hex}.com",
+                                                     name: Faker::Internet.domain_name,
                                                      ip: @dza.dns_zone.generate_ipv6)
     end
 
@@ -173,7 +172,7 @@ describe 'DnsZone' do
   describe 'CNAME record' do
     before :all do
       @cname_record = @dza.dns_zone.create_dns_record(type: "CNAME",
-                                                      hostname: "#{SecureRandom.hex}.com")
+                                                      hostname: Faker::Internet.domain_name)
     end
 
     it 'should get the record' do
@@ -213,7 +212,7 @@ describe 'DnsZone' do
   describe 'MX record' do
     before :all do
       @mx_record = @dza.dns_zone.create_dns_record(type: "MX",
-                                                   hostname: "#{SecureRandom.hex}.com",
+                                                   hostname: Faker::Internet.domain_name,
                                                    priority: @dza.dns_zone.generate_number)
     end
 
@@ -386,7 +385,7 @@ describe 'Negative tests' do
     it 'should not be created with incorrect name(empty)' do
       @dza.dns_zone.create_dns_record(name: "",
                                       type: "NS",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.name).to eq ["Domain Name has incorrect format"]
     end
@@ -394,7 +393,7 @@ describe 'Negative tests' do
     it 'should not be created with incorrect name(specific symbols)' do
       @dza.dns_zone.create_dns_record(name: "(*&^%$",
                                       type: "NS",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.name).to eq ["Domain Name has incorrect format"]
     end
@@ -402,32 +401,33 @@ describe 'Negative tests' do
     it 'should not be created with incorrect name(the @ symbol only)' do
       @dza.dns_zone.create_dns_record(name: "@",
                                       type: "NS",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       # don't know why we are getting nil
       expect(@dza.conn.page.body.errors.base).to eq ["NS record for root domain must not be manually created"]
     end
 
     it 'should not be created with incorrect ttl(less)' do
-      @dza.dns_zone.create_dns_record(ttl: "-3",
+      @dza.dns_zone.create_dns_record(ttl: Faker::Number.negative.to_i,
                                       type: "NS",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["must be greater than or equal to 0"]
     end
 
     it 'should not be created with incorrect ttl(more)' do
-      @dza.dns_zone.create_dns_record(ttl: "2147483648",
+      big_ttl = Faker::Number.number(11)
+      @dza.dns_zone.create_dns_record(ttl: big_ttl,
                                       type: "NS",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["must be less than 2147483648"]
     end
 
     it 'should not be created with incorrect ttl(text)' do
-      @dza.dns_zone.create_dns_record(ttl: "#{SecureRandom.hex}",
+      @dza.dns_zone.create_dns_record(ttl: Faker::Internet.domain_name,
                                       type: "NS",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["is not a number"]
     end
@@ -435,21 +435,13 @@ describe 'Negative tests' do
     it 'should not be created with incorrect ttl(empty)' do
       @dza.dns_zone.create_dns_record(ttl: " ",
                                       type: "NS",
-                                      hostname: "#{SecureRandom.hex}.com" )
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["can't be blank", "is not a number"]
     end
 
     it 'should not be created with incorrect hostname' do
-      @dza.dns_zone.create_dns_record(hostname: "aasdasa",
-                                      type: "NS")
-      expect(@dza.conn.page.code).to eq '422'
-      expect(@dza.conn.page.body.errors.hostname[0]).to eq "Domain Name has incorrect format"
-      expect(@dza.conn.page.body.errors.hostname[1]).to eq "Name can not be a top level domain"
-    end
-
-    it 'should not be created with incorrect hostname' do
-      @dza.dns_zone.create_dns_record(hostname: "32423",
+      @dza.dns_zone.create_dns_record(hostname: Faker::Internet.domain_word,
                                       type: "NS")
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.hostname[0]).to eq "Domain Name has incorrect format"
@@ -496,18 +488,19 @@ describe 'Negative tests' do
     end
 
     it 'should not be created with incorrect ttl(less)' do
-      @dza.dns_zone.create_dns_record(ttl: "-3",
+      @dza.dns_zone.create_dns_record(ttl: Faker::Number.negative.to_i,
                                       type: "A",
-                                      name: "#{SecureRandom.hex}.com",
+                                      name: Faker::Internet.domain_name,
                                       ip: @dza.dns_zone.generate_ipv4)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["must be greater than or equal to 0"]
     end
 
     it 'should not be created with incorrect ttl(more)' do
-      @dza.dns_zone.create_dns_record(ttl: "2147483648",
+      big_ttl = Faker::Number.number(11)
+      @dza.dns_zone.create_dns_record(ttl: big_ttl,
                                       type: "A",
-                                      name: "#{SecureRandom.hex}.com",
+                                      name: Faker::Internet.domain_name,
                                       ip: @dza.dns_zone.generate_ipv4)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["must be less than 2147483648"]
@@ -516,7 +509,7 @@ describe 'Negative tests' do
     it 'should not be created with incorrect ttl(text)' do
       @dza.dns_zone.create_dns_record(ttl: "#{SecureRandom.hex}",
                                       type: "A",
-                                      name: "#{SecureRandom.hex}.com",
+                                      name: Faker::Internet.domain_name,
                                       ip: @dza.dns_zone.generate_ipv4)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["is not a number"]
@@ -525,7 +518,7 @@ describe 'Negative tests' do
     it 'should not be created with incorrect ttl(empty)' do
       @dza.dns_zone.create_dns_record(ttl: " ",
                                       type: "A",
-                                      name: "#{SecureRandom.hex}.com",
+                                      name: Faker::Internet.domain_name,
                                       ip: @dza.dns_zone.generate_ipv4)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["can't be blank", "is not a number"]
@@ -533,7 +526,7 @@ describe 'Negative tests' do
 
     it 'should not be created new dns record type A with incorrect ip' do
       @dza.dns_zone.create_dns_record(ip: "256.1.1.1",
-                                      name: "#{SecureRandom.hex}.com",
+                                      name: Faker::Internet.domain_name,
                                       type: "A")
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ip).to eq ["is invalid IPv4 address"]
@@ -541,7 +534,7 @@ describe 'Negative tests' do
 
     it 'should not be created new dns record type A with incorrect ip(empty)' do
       @dza.dns_zone.create_dns_record(ip: " ",
-                                      name: "#{SecureRandom.hex}.com",
+                                      name: Faker::Internet.domain_name,
                                       type: "A")
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ip).to eq ["can't be blank", "is invalid IPv4 address"]
@@ -580,18 +573,19 @@ describe 'Negative tests' do
     end
 
     it 'should not be created new dns record type AAAA with incorrect ttl(less)' do
-      @dza.dns_zone.create_dns_record(ttl: "-3",
+      @dza.dns_zone.create_dns_record(ttl: Faker::Number.negative.to_i,
                                       type: "AAAA",
-                                      name: "#{SecureRandom.hex}.com",
+                                      name: Faker::Internet.domain_name,
                                       ip: @dza.dns_zone.generate_ipv6)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["must be greater than or equal to 0"]
     end
 
     it 'should not be created new dns record type AAAA with incorrect ttl(more)' do
-      @dza.dns_zone.create_dns_record(ttl: "2147483648",
+      big_ttl = Faker::Number.number(11)
+      @dza.dns_zone.create_dns_record(ttl: big_ttl,
                                       type: "AAAA",
-                                      name: "#{SecureRandom.hex}.com",
+                                      name: Faker::Internet.domain_name,
                                       ip: @dza.dns_zone.generate_ipv6)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["must be less than 2147483648"]
@@ -600,7 +594,7 @@ describe 'Negative tests' do
     it 'should not be created new dns record type AAAA with incorrect ttl(text)' do
       @dza.dns_zone.create_dns_record(ttl: "#{SecureRandom.hex}",
                                       type: "AAAA",
-                                      name: "#{SecureRandom.hex}.com",
+                                      name: Faker::Internet.domain_name,
                                       ip: @dza.dns_zone.generate_ipv6)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["is not a number"]
@@ -609,7 +603,7 @@ describe 'Negative tests' do
     it 'should not be created new dns record type AAAA with incorrect ttl(empty)' do
       @dza.dns_zone.create_dns_record(ttl: " ",
                                       type: "AAAA",
-                                      name: "#{SecureRandom.hex}.com",
+                                      name: Faker::Internet.domain_name,
                                       ip: @dza.dns_zone.generate_ipv6 )
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["can't be blank", "is not a number"]
@@ -618,18 +612,18 @@ describe 'Negative tests' do
     it 'should not be created new dns record type AAAA with incorrect ip' do
       @dza.dns_zone.create_dns_record(ip: "0:0:0:0:0:0",
                                       type: "AAAA",
-                                      name: "#{SecureRandom.hex}.com")
+                                      name: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ip).to eq ["is invalid IPv6 address"]
     end
 
     it 'should not be created new dns record type AAAA with incorrect ip' do
-    @dza.dns_zone.create_dns_record(ip: " ",
-                                    type: "AAAA",
-                                    name: "#{SecureRandom.hex}.com")
-    expect(@dza.conn.page.code).to eq '422'
-    expect(@dza.conn.page.body.errors.ip).to eq ["can't be blank", "is invalid IPv6 address"]
-  end
+      @dza.dns_zone.create_dns_record(ip: " ",
+                                      type: "AAAA",
+                                      name: Faker::Internet.domain_name)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.ip).to eq ["can't be blank", "is invalid IPv6 address"]
+    end
   end
 
   context 'CNAME record' do
@@ -650,7 +644,7 @@ describe 'Negative tests' do
     it 'should not be created new dns record type CNAME with incorrect name(empty)' do
       @dza.dns_zone.create_dns_record(name: " ",
                                       type: "CNAME",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.name.first).to eq "Domain Name has incorrect format"
     end
@@ -658,7 +652,7 @@ describe 'Negative tests' do
     it 'should not be created new dns record type CNAME with incorrect name(specific symbols)' do
       @dza.dns_zone.create_dns_record(name: "(*&^%$",
                                       type: "CNAME",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.name).to eq ["Domain Name has incorrect format"]
     end
@@ -678,17 +672,18 @@ describe 'Negative tests' do
     end
 
     it 'should not be created new dns record type CNAME with incorrect ttl(less)' do
-      @dza.dns_zone.create_dns_record(ttl: "-3",
+      @dza.dns_zone.create_dns_record(ttl: Faker::Number.negative.to_i,
                                       type: "CNAME",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["must be greater than or equal to 0"]
     end
 
     it 'should not be created new dns record type CNAME with incorrect ttl(more)' do
-      @dza.dns_zone.create_dns_record(ttl: "2147483648",
+      big_ttl = Faker::Number.number(11)
+      @dza.dns_zone.create_dns_record(ttl: big_ttl,
                                       type: "CNAME",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["must be less than 2147483648"]
     end
@@ -696,18 +691,18 @@ describe 'Negative tests' do
     it 'should not be created new dns record type CNAME with incorrect ttl(text)' do
       @dza.dns_zone.create_dns_record(ttl: "#{SecureRandom.hex}",
                                       type: "CNAME",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["is not a number"]
     end
 
     it 'should not be created new dns record type CNAME with incorrect ttl(empty)' do
-    @dza.dns_zone.create_dns_record(ttl: " ",
-                                    type: "CNAME",
-                                    hostname: "#{SecureRandom.hex}.com")
-    expect(@dza.conn.page.code).to eq '422'
-    expect(@dza.conn.page.body.errors.ttl).to eq ["can't be blank", "is not a number"]
-  end
+      @dza.dns_zone.create_dns_record(ttl: " ",
+                                      type: "CNAME",
+                                      hostname: Faker::Internet.domain_name)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.ttl).to eq ["can't be blank", "is not a number"]
+    end
   end
 
   context 'MX record' do
@@ -728,7 +723,7 @@ describe 'Negative tests' do
     it 'should not be created new dns record type MX with incorrect name(empty)' do
       @dza.dns_zone.create_dns_record(name: " ",
                                       type: "MX",
-                                      hostname: "#{SecureRandom.hex}.com",
+                                      hostname: Faker::Internet.domain_name,
                                       priority: @dza.dns_zone.generate_number)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.name.first).to eq "Domain Name has incorrect format"
@@ -737,7 +732,7 @@ describe 'Negative tests' do
     it 'should not be created new dns record type MX with incorrect name(specific symbols)' do
       @dza.dns_zone.create_dns_record(name: "(*&^%$",
                                       type: "MX",
-                                      hostname: "#{SecureRandom.hex}.com",
+                                      hostname: Faker::Internet.domain_name,
                                       priority: @dza.dns_zone.generate_number)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.name).to eq ["Domain Name has incorrect format"]
@@ -760,18 +755,19 @@ describe 'Negative tests' do
     end
 
     it 'should not be created new dns record type MX with incorrect ttl(less)' do
-      @dza.dns_zone.create_dns_record(ttl: "-3",
+      @dza.dns_zone.create_dns_record(ttl: Faker::Number.negative.to_i,
                                       type: "MX",
-                                      hostname: "#{SecureRandom.hex}.com",
+                                      hostname:Faker::Internet.domain_name,
                                       priority: @dza.dns_zone.generate_number)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["must be greater than or equal to 0"]
     end
 
     it 'should not be created new dns record type MX with incorrect ttl(more)' do
-      @dza.dns_zone.create_dns_record(ttl: "2147483648",
+      big_ttl = Faker::Number.number(11)
+      @dza.dns_zone.create_dns_record(ttl: big_ttl,
                                       type: "MX",
-                                      hostname: "#{SecureRandom.hex}.com",
+                                      hostname: Faker::Internet.domain_name,
                                       priority: @dza.dns_zone.generate_number)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["must be less than 2147483648"]
@@ -780,7 +776,7 @@ describe 'Negative tests' do
     it 'should not be created new dns record type MX with incorrect ttl(text)' do
       @dza.dns_zone.create_dns_record(ttl: "#{SecureRandom.hex}",
                                       type: "MX",
-                                      hostname: "#{SecureRandom.hex}.com",
+                                      hostname: Faker::Internet.domain_name,
                                       priority: @dza.dns_zone.generate_number)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["is not a number"]
@@ -789,7 +785,7 @@ describe 'Negative tests' do
     it 'should not be created new dns record type MX with incorrect ttl(empty)' do
       @dza.dns_zone.create_dns_record(ttl: "",
                                       type: "MX",
-                                      hostname: "#{SecureRandom.hex}.com",
+                                      hostname: Faker::Internet.domain_name,
                                       priority: @dza.dns_zone.generate_number)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.ttl).to eq ["can't be blank", "is not a number"]
@@ -798,7 +794,7 @@ describe 'Negative tests' do
     it 'should not be created new dns record type MX with incorrect priority(less)' do
       @dza.dns_zone.create_dns_record(priority: "-3",
                                       type: "MX",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.priority).to eq ["must be greater than or equal to 0"]
     end
@@ -806,7 +802,7 @@ describe 'Negative tests' do
     it 'should not be created new dns record type MX with incorrect priority(text)' do
       @dza.dns_zone.create_dns_record(priority: "#{SecureRandom.hex}",
                                       type: "MX",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.priority).to eq ["is not a number"]
     end
@@ -814,7 +810,7 @@ describe 'Negative tests' do
     it 'should not be created new dns record type MX with incorrect priority(empty)' do
       @dza.dns_zone.create_dns_record(priority: " ",
                                       type: "MX",
-                                      hostname: "#{SecureRandom.hex}.com")
+                                      hostname: Faker::Internet.domain_name)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.priority).to eq ["is not a number"]
     end
@@ -852,7 +848,7 @@ describe 'Negative tests' do
     end
 
     it 'should not be created new dns record type TXT with incorrect ttl(less)' do
-      @dza.dns_zone.create_dns_record(ttl: "-3",
+      @dza.dns_zone.create_dns_record(ttl: Faker::Number.negative.to_i,
                                       type: "TXT",
                                       txt: "#{SecureRandom.hex}.#{SecureRandom.hex}")
       expect(@dza.conn.page.code).to eq '422'
@@ -860,7 +856,8 @@ describe 'Negative tests' do
     end
 
     it 'should not be created new dns record type TXT with incorrect ttl(more)' do
-      @dza.dns_zone.create_dns_record(ttl: "2147483648",
+      big_ttl = Faker::Number.number(11)
+      @dza.dns_zone.create_dns_record(ttl: big_ttl,
                                       type: "TXT",
                                       txt: "#{SecureRandom.hex}.#{SecureRandom.hex}")
       expect(@dza.conn.page.code).to eq '422'
@@ -876,12 +873,12 @@ describe 'Negative tests' do
     end
 
     it 'should not be created new dns record type TXT with incorrect ttl(empty)' do
-    @dza.dns_zone.create_dns_record(ttl: "",
-                                    type: "TXT",
-                                    txt: "#{SecureRandom.hex}.#{SecureRandom.hex}")
-    expect(@dza.conn.page.code).to eq '422'
-    expect(@dza.conn.page.body.errors.ttl).to eq ["can't be blank", "is not a number"]
-  end
+      @dza.dns_zone.create_dns_record(ttl: "",
+                                      type: "TXT",
+                                      txt: "#{SecureRandom.hex}.#{SecureRandom.hex}")
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.ttl).to eq ["can't be blank", "is not a number"]
+    end
   end
 
   context 'SRV record' do
@@ -901,217 +898,218 @@ describe 'Negative tests' do
     end
 
     it 'should not be created new dns record type SRV with incorrect name(empty)' do
-        @dza.dns_zone.create_dns_record(name: " ",
-                                        type: "SRV",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        priority: @dza.dns_zone.generate_number,
-                                        weight: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.base).to eq ["Invalid SRV record name format '_<service>._<protocol>.<host>'"]
-      end
+      @dza.dns_zone.create_dns_record(name: " ",
+                                      type: "SRV",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      priority: @dza.dns_zone.generate_number,
+                                      weight: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.base).to eq ["Invalid SRV record name format '_<service>._<protocol>.<host>'"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect name(specific symbols)' do
-        @dza.dns_zone.create_dns_record(name: "(*&^%$",
-                                        type: "SRV",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        priority: @dza.dns_zone.generate_number,
-                                        weight: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.base).to eq  ["Invalid SRV record name format '_<service>._<protocol>.<host>'"]
-      end
+      @dza.dns_zone.create_dns_record(name: "(*&^%$",
+                                      type: "SRV",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      priority: @dza.dns_zone.generate_number,
+                                      weight: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.base).to eq  ["Invalid SRV record name format '_<service>._<protocol>.<host>'"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect hostname(empty)' do
-        @dza.dns_zone.create_dns_record(hostname: " ",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        priority: @dza.dns_zone.generate_number,
-                                        weight: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.hostname.first).to eq "can't be blank"
-      end
+      @dza.dns_zone.create_dns_record(hostname: " ",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      priority: @dza.dns_zone.generate_number,
+                                      weight: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.hostname.first).to eq "can't be blank"
+    end
 
     it 'should not be created new dns record type SRV with incorrect hostname(specific symbols)' do
-        @dza.dns_zone.create_dns_record(hostname: "(*&^%$",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        priority: @dza.dns_zone.generate_number,
-                                        weight: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.hostname.first).to eq "Domain Name has incorrect format"
-      end
+      @dza.dns_zone.create_dns_record(hostname: "(*&^%$",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      priority: @dza.dns_zone.generate_number,
+                                      weight: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.hostname.first).to eq "Domain Name has incorrect format"
+    end
 
     it 'should not be created new dns record type SRV with incorrect ttl(less)' do
-        @dza.dns_zone.create_dns_record(ttl: "-3",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        priority: @dza.dns_zone.generate_number,
-                                        weight: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.ttl).to eq ["must be greater than or equal to 0"]
-      end
+      @dza.dns_zone.create_dns_record(ttl: Faker::Number.negative.to_i,
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      priority: @dza.dns_zone.generate_number,
+                                      weight: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.ttl).to eq ["must be greater than or equal to 0"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect ttl(more)' do
-        @dza.dns_zone.create_dns_record(ttl: "2147483648",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        priority: @dza.dns_zone.generate_number,
-                                        weight: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.ttl).to eq ["must be less than 2147483648"]
-      end
+      big_ttl = Faker::Number.number(11)
+      @dza.dns_zone.create_dns_record(ttl: big_ttl,
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      priority: @dza.dns_zone.generate_number,
+                                      weight: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.ttl).to eq ["must be less than 2147483648"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect ttl(text)' do
-        @dza.dns_zone.create_dns_record(ttl: "#{SecureRandom.hex}",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        priority: @dza.dns_zone.generate_number,
-                                        weight: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.ttl).to eq ["is not a number"]
-      end
+      @dza.dns_zone.create_dns_record(ttl: "#{SecureRandom.hex}",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{SecureRandom.hex}.hostname.com",
+                                      priority: @dza.dns_zone.generate_number,
+                                      weight: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.ttl).to eq ["is not a number"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect ttl(empty)' do
-        @dza.dns_zone.create_dns_record(ttl: "",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        priority: @dza.dns_zone.generate_number,
-                                        weight: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.ttl).to eq ["can't be blank", "is not a number"]
-      end
+      @dza.dns_zone.create_dns_record(ttl: "",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      priority: @dza.dns_zone.generate_number,
+                                      weight: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.ttl).to eq ["can't be blank", "is not a number"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect priority(less)' do
-        @dza.dns_zone.create_dns_record(priority: "-3",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        weight: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.priority).to eq ["must be greater than or equal to 0"]
-      end
+      @dza.dns_zone.create_dns_record(priority: "-3",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      weight: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.priority).to eq ["must be greater than or equal to 0"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect priority(text)' do
-        @dza.dns_zone.create_dns_record(priority: "#{SecureRandom.hex}",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        weight: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.priority).to eq ["is not a number"]
-      end
+      @dza.dns_zone.create_dns_record(priority: "#{SecureRandom.hex}",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      weight: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.priority).to eq ["is not a number"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect priority(empty)' do
-        @dza.dns_zone.create_dns_record(priority: " ",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        weight: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.priority).to eq ["can't be blank", "is not a number"]
-      end
+      @dza.dns_zone.create_dns_record(priority: " ",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      weight: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.priority).to eq ["can't be blank", "is not a number"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect weight(less)' do
-        @dza.dns_zone.create_dns_record(weight: "-3",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        priority: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.weight).to eq ["must be greater than or equal to 0"]
-      end
+      @dza.dns_zone.create_dns_record(weight: "-3",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      priority: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.weight).to eq ["must be greater than or equal to 0"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect weight(more)' do
-        @dza.dns_zone.create_dns_record(weight: "65536",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        priority: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.weight).to eq ["must be less than or equal to 65535"]
-      end
+      @dza.dns_zone.create_dns_record(weight: "65536",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      priority: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.weight).to eq ["must be less than or equal to 65535"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect weight(text)' do
-        @dza.dns_zone.create_dns_record(weight: "#{SecureRandom.hex}",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        priority: @dza.dns_zone.generate_number,
-                                        port:@dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.weight).to eq ["is not a number"]
-      end
+      @dza.dns_zone.create_dns_record(weight: "#{SecureRandom.hex}",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      priority: @dza.dns_zone.generate_number,
+                                      port:@dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.weight).to eq ["is not a number"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect weight(empty)' do
-        @dza.dns_zone.create_dns_record(weight: "",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        priority: @dza.dns_zone.generate_number,
-                                        port: @dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.weight).to eq ["can't be blank", "is not a number"]
-      end
+      @dza.dns_zone.create_dns_record(weight: "",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      priority: @dza.dns_zone.generate_number,
+                                      port: @dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.weight).to eq ["can't be blank", "is not a number"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect port(less)' do
-        @dza.dns_zone.create_dns_record(port: "-3",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        priority: @dza.dns_zone.generate_number,
-                                        weight: @dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.port).to eq ["must be greater than or equal to 0"]
-      end
+      @dza.dns_zone.create_dns_record(port: "-3",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      priority: @dza.dns_zone.generate_number,
+                                      weight: @dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.port).to eq ["must be greater than or equal to 0"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect port(more)' do
-        @dza.dns_zone.create_dns_record(port: "65536",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        priority: @dza.dns_zone.generate_number,
-                                        weight: @dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.port).to eq ["must be less than or equal to 65535"]
-      end
+      @dza.dns_zone.create_dns_record(port: "65536",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      priority: @dza.dns_zone.generate_number,
+                                      weight: @dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.port).to eq ["must be less than or equal to 65535"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect port(text)' do
-        @dza.dns_zone.create_dns_record(port: "#{SecureRandom.hex}",
-                                        type: "SRV",
-                                        name: "_sip._tcp",
-                                        hostname: "#{SecureRandom.hex}.hostname.com",
-                                        priority: @dza.dns_zone.generate_number,
-                                        weight: @dza.dns_zone.generate_number)
-        expect(@dza.conn.page.code).to eq '422'
-        expect(@dza.conn.page.body.errors.port).to eq ["is not a number"]
-      end
+      @dza.dns_zone.create_dns_record(port: "#{SecureRandom.hex}",
+                                      type: "SRV",
+                                      name: "_sip._tcp",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
+                                      priority: @dza.dns_zone.generate_number,
+                                      weight: @dza.dns_zone.generate_number)
+      expect(@dza.conn.page.code).to eq '422'
+      expect(@dza.conn.page.body.errors.port).to eq ["is not a number"]
+    end
 
     it 'should not be created new dns record type SRV with incorrect port(empty)' do
       @dza.dns_zone.create_dns_record(port: " ",
                                       type: "SRV",
                                       name: "_sip._tcp",
-                                      hostname: "#{SecureRandom.hex}.hostname.com",
+                                      hostname: "#{Faker::Internet.domain_word}.hostname.com",
                                       priority: @dza.dns_zone.generate_number,
                                       weight: @dza.dns_zone.generate_number)
       expect(@dza.conn.page.code).to eq '422'
       expect(@dza.conn.page.body.errors.port).to eq ["can't be blank", "is not a number"]
-  end
+    end
   end
 
   context 'wrong name for dns zone' do
@@ -2042,9 +2040,9 @@ describe 'rDNS zone' do
       before(:all) do
         @dza.dns_zone.create_dns_zone(name: '0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.8.ip6.arpa')
         @ns_record = @dza.dns_zone.create_dns_record(name: 'b.b.4.7.5.6.3.0.0.0.0.0.0.0.0.0',
-                                                        hostname: 'ns9.rdns-ipv6.pl',
-                                                        type: 'NS',
-                                                        ttl: 909)
+                                                     hostname: 'ns9.rdns-ipv6.pl',
+                                                     type: 'NS',
+                                                     ttl: 909)
       end
 
       it 'GET' do

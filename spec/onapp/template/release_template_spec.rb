@@ -17,7 +17,7 @@ describe 'Templates Tests' do
   let(:backup_server) { @rt.backup_server }
   let(:template) { @rt.template }
 
-  let(:distros) { %w(rhel ubuntu) }
+  let(:distros) { %w(rhel ubuntu gentoo) }
 
 
   it 'Virtual server should be stopped/started', base: true do
