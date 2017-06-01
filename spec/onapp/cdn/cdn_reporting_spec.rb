@@ -410,6 +410,81 @@ describe 'CDN Reporting ->' do
     end
   end
 
+  context 'Concurrent Statistics->' do
+    def concurrent_options(**kw)
+      @concurrent_options = {
+          concurrent_statistics: {
+              start_date: kw[:start_date] || "#{start_date} 00:00",
+              end_date: kw[:end_date] || "#{end_date} 00:00",
+              resources: kw[:resources] || "",
+              locations: kw[:locations] || ""
+          }
+      }
+    end
+
+    context 'positive ->' do
+      it 'is get page with default time range' do
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics)
+        expect(@cra.conn.page.code).to eq '200'
+        expect(@cra.conn.page.body.concurrent_statistics.count).to eq 1
+        expect(@cra.conn.page.body.concurrent_statistics.stream_concurrent_line_chart.class).to eq Array
+        expect(@cra.conn.page.body.concurrent_statistics.stream_concurrent_line_chart.count).to eq 2
+      end
+    end
+
+    context 'negative ->' do
+      it 'is not get page with start_date is not set' do
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(start_date: ''))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Start date is not set"]
+      end
+
+      it 'is not get page with end_date is not set' do
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(end_date: ''))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["End date is not set"]
+      end
+
+      it 'is not get page with start_date > end_date' do
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(end_date: "#{wrong_end_date}"))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["End date is lower than Start date"]
+      end
+
+      it 'is not get page with start_date and end_date are empty' do
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(start_date: "", end_date: ""))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Start date is not set and End date is not set"]
+      end
+
+      it 'is not get page with date is text' do
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
+      end
+
+      it 'is not get page with incorrect date(2017-02-30)' do
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(end_date: '2017-02-30'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
+      end
+
+      it 'is not get page without resources' do
+        skip "https://onappdev.atlassian.net/browse/CORE-9863"
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(resources: []))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Filters for CDN Resource is invalid because CDN Resources with 'remote_id' [0] is absent in Control Panel"]
+      end
+
+      it 'is not get page with locations id is text' do
+        skip "https://onappdev.atlassian.net/browse/CORE-9863"
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(locations: ['text']))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Filters for CDN Resource is invalid because CDN Resources with 'remote_id' [0] is absent in Control Panel"]
+      end
+    end
+  end
+
   context 'Admin ->' do
     def admin_options(**kw)
       @admin_options = {

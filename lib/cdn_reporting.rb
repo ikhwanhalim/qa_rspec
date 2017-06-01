@@ -38,6 +38,10 @@ class CdnReporting
     "#{route_cdn_reporting}/bandwidth_statistics"
   end
 
+  def route_reporting_concurrent_statistics
+    "#{route_cdn_reporting}/concurrent_statistics"
+  end
+
   def route_reporting_admin
     "#{route_cdn_reporting}/admin"
   end
