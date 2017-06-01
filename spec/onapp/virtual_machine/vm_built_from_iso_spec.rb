@@ -9,6 +9,7 @@ describe 'Virtual Server built from ISO actions tests' do
       @vm = @ivsa.virtual_machine
       @iso = @ivsa.iso
       @hypervisor = @ivsa.hypervisor
+      @settings = @ivsa.settings
     else
       fail('/data not mounted')
     end
@@ -147,14 +148,31 @@ describe 'Virtual Server built from ISO actions tests' do
     before do
       @hv = @hypervisor.available_hypervisor_for_migration
       skip('There is no available hypervisors for migration') unless @hv
-      skip("The data folder is not mounted on selected hypervisor #{@hv.id}") unless @hv.is_data_mounted?
+      #skip("The data folder is not mounted on selected hypervisor #{@hv.id}") unless @hv.is_data_mounted?
     end
 
-    it 'Only cold migrate allowed' do
+    it 'cold migrate' do
       expect(vm.booted).to be true
       vm.migrate(@hv.id, hot: false)
       expect(vm.hypervisor_id).to eq @hv.id
       expect(vm.exist_on_hv?).to be true
+    end
+
+    context 'hot migrate' do
+      before :all do
+        @iso.edit(allowed_hot_migrate: true,  min_memory_size: '512', min_disk_size: 5)
+      end
+
+      after :all do
+        @iso.edit(allowed_hot_migrate: false,  min_memory_size: '512', min_disk_size: 5)
+      end
+
+      it 'hot migrate' do
+        expect(vm.booted).to be true
+        vm.migrate(@hv.id)
+        expect(vm.hypervisor_id).to eq @hv.id
+        expect(vm.exist_on_hv?).to be true
+      end
     end
   end
 
@@ -176,14 +194,14 @@ describe 'Virtual Server built from ISO actions tests' do
     it 'Segregate VS' do
       vm.segregate(@vm_new.id)
       expect(vm.strict_virtual_machine_id).to eq @vm_new.id
-      expect(vm.migrate(@hv.id, hot: false)['base']).to eq(['Virtual Server cannot be migrated'])
+      expect(vm.migrate(@hv.id)['base']).to eq(['Virtual Server cannot be migrated'])
       expect(vm.api_response_code).to eq '422'
     end
 
     it 'Desegregate VS' do
       vm.desegregate(@vm_new.id)
       expect(vm.strict_virtual_machine_id).to be nil
-      vm.migrate(@hv.id, hot: false)
+      vm.migrate(@hv.id)
       expect(vm.hypervisor_id).to eq @hv.id
       expect(vm.exist_on_hv?).to be true
     end

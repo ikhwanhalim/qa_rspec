@@ -99,7 +99,8 @@ describe 'ISO functionality tests' do
         version: '2.0',
         operating_system: 'freebsd',
         operating_system_distro: 'debian',
-        virtualization: ["kvm", "kvm_virtio"]
+        virtualization: ["kvm", "kvm_virtio"],
+        allowed_hot_migrate: true
       }
       @iso.edit(@data)
     end
@@ -131,6 +132,14 @@ describe 'ISO functionality tests' do
     it 'Edit ISO virtualization type' do
       expect(iso.virtualization).to eq @data[:virtualization]
     end
+
+    it 'Edit ISO allowed_hot_migrate option' do
+      expect(iso.allowed_hot_migrate).to eq @data[:allowed_hot_migrate]
+    end
+  end
+
+  it 'Option allowed_hot_migrate should be false by default' do
+    expect(iso.allowed_hot_migrate).to be false
   end
 
   it 'Make ISO public' do
