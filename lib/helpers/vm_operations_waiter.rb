@@ -125,7 +125,8 @@ module VmOperationsWaiters
   end
 
   def building_backups_exist?
-    backups = interface.get("/users/#{user_id}/backups").map &:backup
+    #backups = interface.get("/users/#{user_id}/backups").map &:backup
+    backups = interface.virtual_machine.get_backups.map &:backup
     backups.select { |b| b.built == false }.any?
   end
 

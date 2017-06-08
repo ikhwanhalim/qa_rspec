@@ -143,7 +143,7 @@ describe 'Virtual Server actions tests' do
 
       before :all do
         @password_encryption_enabled = @vsa.settings.allow_initial_root_password_encryption
-        @root_password = 'ownPassword123!'
+        @root_password = @vsa.settings.generate_password
         @passphrase = 'test'
       end
 
@@ -261,7 +261,7 @@ describe 'Virtual Server actions tests' do
       vm.stop
       expect(vm.down?).to be true
       expect(vm.check_firewall_rules).to eq(0)
-      vm.migrate(@hv.id, hot: false)
+      vm.migrate(@hv.id)
       expect(vm.hypervisor_id).to eq @hv.id
       vm.start_up
       expect(vm.exist_on_hv?).to be true
@@ -848,7 +848,7 @@ describe 'Virtual Server actions tests' do
 
   describe 'Autoscale', :autoscale do
     before do
-      skip('Zabbix ip address is not available') unless  IPAddress.valid?(@vsa.settings.zabbix_host)
+      skip('Zabbix ip address is not available') unless IPAddress.valid?(@vsa.settings.zabbix_host)
     end
 
     after :all do
@@ -858,10 +858,15 @@ describe 'Virtual Server actions tests' do
     let(:zabbix_agent_status) { SshCommands::OnVirtualServer.zabbix_agent_status }
 
     it "zabbix agent should be enabled for #{ENV['TEMPLATE_MANAGER_ID']}" do
-      expect(vm.port_opened?).to be true
-      vm.autoscale_enable
-      exit_status = vm.ssh_execute(zabbix_agent_status).last.to_i
-      expect(exit_status.zero?).to be true
+      if @template.operating_system == 'linux' &&  @template.type != 'ImageTemplateIso'
+        expect(vm.port_opened?).to be true
+        vm.autoscale_enable
+        exit_status = vm.ssh_execute(zabbix_agent_status).last.to_i
+        expect(exit_status.zero?).to be true
+      else
+        expect(vm.autoscale_enable['enable_autoscale']).to eq(["Autoscale is not supported for this VS type."])
+        expect(vm.api_response_code).to eq '422'
+      end
     end
   end
 end

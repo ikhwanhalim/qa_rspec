@@ -153,26 +153,17 @@ describe 'Virtual Server built from ISO actions tests' do
 
     it 'cold migrate' do
       expect(vm.booted).to be true
-      vm.migrate(@hv.id, hot: false)
+      vm.migrate(@hv.id)
       expect(vm.hypervisor_id).to eq @hv.id
       expect(vm.exist_on_hv?).to be true
     end
 
-    context 'hot migrate' do
-      before :all do
-        @iso.edit(allowed_hot_migrate: true,  min_memory_size: '512', min_disk_size: 5)
-      end
-
-      after :all do
-        @iso.edit(allowed_hot_migrate: false,  min_memory_size: '512', min_disk_size: 5)
-      end
-
-      it 'hot migrate' do
-        expect(vm.booted).to be true
-        vm.migrate(@hv.id)
-        expect(vm.hypervisor_id).to eq @hv.id
-        expect(vm.exist_on_hv?).to be true
-      end
+    it 'hot migrate' do
+      @iso.edit(allowed_hot_migrate: true,  min_memory_size: '512', min_disk_size: 5)
+      expect(vm.booted).to be true
+      vm.migrate(@hv.id)
+      expect(vm.hypervisor_id).to eq @hv.id
+      expect(vm.exist_on_hv?).to be true
     end
   end
 
