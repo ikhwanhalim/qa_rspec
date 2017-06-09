@@ -213,31 +213,37 @@ class VirtualServer
 
   def unlock
     interface.post("#{route}/unlock")
+    info_update
   end
 
   def stop
     interface.post("#{route}/stop")
     wait_for_stop
+    info_update
   end
 
   def shut_down
     interface.post("#{route}/shutdown")
     wait_for_stop
+    info_update
   end
 
   def suspend
     interface.post("#{route}/suspend")
     wait_for_stop
+    info_update
   end
 
   def unsuspend
     interface.post("#{route}/suspend")
+    info_update
   end
 
   def start_up
     response = interface.post("#{route}/startup")
     return response if api_response_code == '422'
     wait_for_start
+    info_update
   end
 
   def reboot(recovery: false)
@@ -247,6 +253,7 @@ class VirtualServer
       interface.post("#{route}/reboot")
     end
     wait_for_reboot
+    info_update
   end
 
   def reset_root_password(root_pass: false, passphrase: false, confirmation_passphrase: false)
@@ -394,6 +401,7 @@ class VirtualServer
     response = interface.post("#{route}/reboot", {iso_id: iso_id})
     return response if api_response_code == '422'
     wait_for_reboot
+    info_update
   end
 
   def api_response_code
@@ -455,6 +463,7 @@ class VirtualServer
     if api_response_code == '201'
       wait_for_check_or_install_zabbix_agent
       wait_for_enable_auto_scaling
+      info_update
     end
   end
 
