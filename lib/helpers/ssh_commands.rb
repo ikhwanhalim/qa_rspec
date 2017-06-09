@@ -143,6 +143,10 @@ module SshCommands
     def firewall_rules(remote_ip)
       "iptables -nL FORWARD | grep -wc '#{remote_ip}'"
     end
+
+    def arptables_rules(remote_ip)
+      "arptables -nL | grep -wc '#{remote_ip}'"
+    end
   end
 
   module OnControlPanel

@@ -6,6 +6,7 @@ require './spec/onapp/cdn/shared_examples/cdn_server'
 describe "Main tests: #{CdnServer::CDN_SERVER} -->" do
   before :all do
     @vma = CdnServerActions.new.precondition
+    @cp_version = @vma.version
     @vm = @vma.virtual_machine
     @template = @vma.template
   end
@@ -31,7 +32,20 @@ describe "Main tests: #{CdnServer::CDN_SERVER} -->" do
   end
 
   describe 'Network ->' do
-    include_examples 'network'
+    include_examples 'firewall'
+    include_examples 'ip_addresses'
+
+    context 'network_interface ->' do
+      include_examples 'network_interfaces'
+
+      it 'Attach extra NIC' do
+        amount = vm.network_interfaces.count
+        vm.attach_network_interface
+        expect(@vma.conn.page.code).to eq '422'
+        expect(@vma.conn.page.body.errors.network).to eq ["Only one Network allowed per Accelerator"]
+        expect(vm.network_interfaces.count).to eq amount
+      end
+    end
   end
 
   describe 'Rerun edge srcipts ->' do

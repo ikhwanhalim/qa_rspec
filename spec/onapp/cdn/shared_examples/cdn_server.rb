@@ -56,10 +56,176 @@ shared_examples_for 'power_operations' do
   end
 end
 
-shared_examples_for 'network' do
-  it 'rebuild' do
-    expect(@vm.rebuild_network).to be true
-    expect(vm.pinged? && vm.exist_on_hv?).to be true
+shared_examples_for 'network_interfaces' do
+  before :all do
+    @ids = @vm.available_network_join_ids
+    @cp_version = @vma.version
+  end
+
+  before do
+    skip('Additional network has not been attached to HV or HVZ') if @ids.empty?
+  end
+
+  it 'Attach new' do
+    skip("this test is not able for accelerator; alternative test should be permormed at the end") if CdnServer::CDN_SERVER == 'accelerator'
+    amount = vm.network_interfaces.count
+    vm.attach_network_interface
+    expect(vm.network_interfaces.count).to eq amount + 1
+  end
+
+  it 'Detach' do
+    skip("this test is not able for accelerator; alternative test should be permormed at the end") if CdnServer::CDN_SERVER == 'accelerator'
+    amount = vm.network_interfaces.count
+    vm.network_interface('additional').remove
+    expect(vm.network_interfaces.count).to eq amount - 1
+  end
+
+  it 'Detach primary network interface and attach again' do
+    amount = vm.network_interfaces.count
+    ip = vm.ip_address
+    vm.network_interface.remove
+    expect(vm.network_interfaces.count).to eq amount - 1
+    expect(vm.not_pinged?(remote_ip: ip)).to be true
+    expect(vm.check_firewall_rules(remote_ip: ip)).to eq 0
+    vm.attach_network_interface(primary: true)
+    vm.network_interface.allocate_new_ip
+    vm.rebuild_network
+    expect(vm.pinged?).to be true
+    expect(vm.network_interfaces.count).to eq amount
+    #TODO expect(vm.check_firewall_rules).to eq 2 skip (CORE-9886)
+  end
+
+  it 'Ability to create two primary interfaces should be blocked' do
+    amount = vm.network_interfaces.count
+    expect(vm.attach_network_interface(existed=false, primary: true)['primary']).to eq(["already has primary allocation."])
+    expect(@vma.conn.page.body.errors.network).to eq ["Only one Network allowed per Accelerator"] if CdnServer::CDN_SERVER == 'accelerator'
+    expect(vm.network_interfaces.count).to eq amount
+  end
+
+  it 'Update port speed' do
+    port_speed = 200
+    vm.network_interface.edit(rate_limit: port_speed)
+    expect(vm.network_interface.rate_limit).to eq port_speed
+    expect(vm.network_interface.port_speed).to eq port_speed
+  end
+
+  it 'Edit network interface' do
+    vm.network_interface.edit(label: 'eth1', primary: false)
+    expect(vm.network_interface.label).to eq('eth1')
+    expect(vm.network_interface.primary).to be false
+    vm.network_interface.edit(primary: true)
+    expect(vm.network_interface.primary).to be true
+  end
+end
+
+shared_examples_for 'ip_addresses' do
+  before :all do
+    @cp_version = @vma.version
+    if @cp_version < 5.4
+      @vm.network_interface.allocate_new_ip
+      @free_addresses = @vm.network_interface.ip_address.all
+    else
+      @second_ip = @vm.network_interface.ip_address.free_ip
+      @vm.network_interface.allocate_new_ip(address: @second_ip)
+    end
+    @vm.rebuild_network
+    @primary_network_interface_exist = @vm.network_interface.any?
+  end
+
+  before do
+    fail('Primary network interface does not exist') unless @primary_network_interface_exist
+    (skip('There are no free ip addresses') if @free_addresses.empty?) if @cp_version < 5.4
+  end
+
+  it 'Second IP address should be appeared in the interface' do
+    skip ("https://onappdev.atlassian.net/browse/CORE-9886")
+    expect(vm.ip_addresses.count).to eq 2
+    @second_ip = vm.network_interface.ip_address(2).address if @cp_version < 5.4
+    expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 2
+  end
+
+  it 'All IPs should be pinged' do
+    skip ("https://onappdev.atlassian.net/browse/CORE-9886")
+    ping_states = vm.ip_addresses.map &:pinged?
+    expect(ping_states.include?(false)).to be false
+    expect(vm.ip_addresses.map(&:check_firewall_rules)).to match_array([2, 2])
+  end
+
+  it 'Remove second IP' do
+    amount = vm.ip_addresses.count
+    skip("https://onappdev.atlassian.net/browse/CORE-9907") if amount <= 1
+    vm.network_interface.remove_ip(2)
+    vm.rebuild_network
+    expect(vm.ip_addresses.count).to eq amount - 1
+    # expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 0
+    # expect(vm.check_arptables_rules(remote_ip: @second_ip)).to eq 0
+  end
+
+  it 'Allocate the same IP should not be allowed' do
+    skip ("https://onappdev.atlassian.net/browse/CORE-9886")
+    if @cp_version < 5.4
+      expect(vm.network_interface.allocate_new_ip(ip_address_id: vm.network_interface.ip_address.id, used_ip: 1)['ip_address_id']).to eq(['is already allocated to this network card'])
+    else
+      expect(vm.network_interface.allocate_new_ip(used_ip: 1, address: vm.ip_address)['selected_ip_address']).to eq(['is already allocated to this network card'])
+    end
+    expect(vm.api_response_code).to eq '422'
+    expect(vm.ip_addresses.count).to eq 1
+    expect(vm.check_firewall_rules).to eq 2
+  end
+
+  it 'Remove primary IP' do
+    skip("https://onappdev.atlassian.net/browse/CORE-9907")
+    primary_ip = vm.ip_address
+    vm.network_interface.remove_ip
+    vm.rebuild_network
+    expect(vm.ip_addresses.count).to eq 0
+    expect(vm.check_firewall_rules(remote_ip: primary_ip)).to eq 0
+    @vm.network_interface.allocate_new_ip
+    expect(vm.ip_addresses.count).to eq 1
+  end
+
+  it 'Allocate used IP' do
+    #TODO try to improve
+    amount = vm.ip_addresses.count
+    used_ip_address = []
+
+    unless amount == 0
+      used_ips = vm.network_interface.ip_address.user_used_ips(vm)
+      used_ip_address = used_ips.sample if used_ips.count >= 1
+    end
+
+    if used_ip_address.size == 0
+      skip("You have forgotten to set 'TEMPLATE_VM_ID' env variable") unless CdnServerActions::TEMPLATE_VM_ID
+      @vm_new = VirtualServer.new(@vma)
+      @vm_new.create(template_id: CdnServerActions::TEMPLATE_VM_ID, hypervisor_id: vm.hypervisor_id, label: Faker::Internet.domain_word, \
+                         network_id: vm.network_interface.ip_address.ip_net_id)
+      skip('VS has not been built. The user has no suitable used IP') unless @vm_new.api_response == '201'
+      used_ip_address =  @vm_new.ip_address
+    end
+
+    skip('The user has no suitable used IP') unless used_ip_address
+
+    if @cp_version < 5.4
+      vm.network_interface.allocate_new_ip(ip_address_id: @vm_new.network_interface.ip_address.id, used_ip: 1)
+    else
+      vm.network_interface.allocate_new_ip(used_ip: 1, address: used_ip_address)
+    end
+
+    @vm.rebuild_network
+
+    if @cp_version >= 5.4
+      expect(vm.ip_addresses.first.interface.conn.page.body.map {|ip_addr| ip_addr.ip_address_join.ip_address.address}.include?(used_ip_address)).to be true
+      # expect(vm.ip_addresses.last.interface.conn.page.body.last.ip_address_join.ip_address.address).to eq(used_ip_address)
+    end
+    expect(vm.ip_addresses.count).to eq amount + 1
+  end
+end
+
+shared_examples_for 'firewall' do
+  it 'make sure route is unavailable' do
+    vm.interface.get("#{vm.route}/firewall_rules")
+    expect(vm.api_response_code).to eq '404'
+    expect(@vma.conn.page.body.errors).to eq ["Resource Not Found"]
   end
 end
 

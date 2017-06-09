@@ -65,6 +65,19 @@ class IpAddress
     end
   end
 
+  def user_used_ips(vm)
+    profile_page = vm.network_interface.ip_address.interface.conn.page.body
+    own_ips = profile_page.map {|ip_addr| ip_addr.ip_address_join.ip_address.address}
+    ip_range_ids = profile_page.map {|ip_addr| ip_addr.ip_address_join.ip_address.ip_net_id}
+
+    @user_used_ips =
+        interface.get("/profile").user.used_ip_addresses.each_with_object([]) do |ip, user_used_ips|
+          if ip_range_ids.include?(ip.ip_address.ip_range_id)
+            user_used_ips << ip.ip_address.address unless own_ips.include?(ip.ip_address.address)
+          end
+        end
+  end
+
   def free_ip
     ip_range = IpRange.new(self).get(network_id, ip_net_id, ip_range_id)
     start_address = IPAddr.new(ip_range.start_address).to_i

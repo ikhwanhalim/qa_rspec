@@ -40,6 +40,11 @@ module NetworkCommands
     interface.hypervisor.ssh_execute(command).last.to_i
   end
 
+  def check_arptables_rules(remote_ip: ip_address)
+    command = SshCommands::OnHypervisor.arptables_rules(remote_ip)
+    interface.hypervisor.ssh_execute(command).last.to_i
+  end
+
   private
 
   def exit_ok?(command)
