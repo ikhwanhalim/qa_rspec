@@ -363,6 +363,18 @@ class VirtualServer
     network_interface.ip_address.address
   end
 
+  def network_id
+    network_interface.ip_address.network_id
+  end
+
+  def ip_range_id
+    network_interface.ip_address.ip_range_id
+  end
+
+  def ip_net_id
+    network_interface.ip_address.ip_net_id
+  end
+
   def ip_addresses
     network_interface.ip_addresses
   end

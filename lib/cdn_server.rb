@@ -121,18 +121,41 @@ class CdnServer < VirtualServer
     interface.delete("#{route}/note", {type: "#{type}"})
     info_update
   end
+
+  def route_cpu_usage
+    "#{route}/cpu_usage"
+  end
+
+  def route_vm_stats
+    "#{route}/cpu_usage"
+  end
+
+  def set_ssh_keys
+    interface.post("#{route}/set_ssh_keys")
+  end
+
+  def reset_root_password
+    interface.post("#{route}/reset_password")
+
+  end
+
+  def reboot_from_iso(iso_id)
+    interface.post("#{route}/reboot", {iso_id: iso_id})
+  end
+
+  def recipe_joins
+    interface.post("#{route}/recipe_joins")
+    end
+
+  def autoscale_enable
+    interface.post("#{route}/autoscale_enable")
+  end
 end
 
 #TODO update_os should be failed
 #create some 'if' for swap disk in wait_for_build method and crate ticket like swap disk is forbidden for cdn servers but is allowing by template
 #update_firewall_rules should be failed
-#boot_from_cd should be failed
-#can_be_booted_from_iso?/boot_from_iso/reboot_from_iso should be failed
 #autobackup/create_backup/get_backups should be failed for es/acc only
-#recipe should be failed
-#autoscale should be failed
-#reset_root_password should be = 422
-#set_ssh_keys should be = 422
 #add segregate/desegregate
 #add migrate
 #add rebuild

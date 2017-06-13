@@ -43,17 +43,6 @@ shared_examples_for 'power_operations' do
     vm.start_up
     expect(vm.pinged? && vm.exist_on_hv?).to be true
   end
-
-  it 'Reboot in recovery' do
-    skip 'it is forbidden via UI, https://onappdev.atlassian.net/browse/CORE-8726'
-    vm.reboot(recovery: true)
-    expect(vm.port_opened?).to be true
-    creds = {'es_host' => vm.ip_address, 'es_pass' => vm.initial_root_password}
-    expect(vm.interface.execute_with_pass(creds, 'hostname')).to include 'recovery'
-    vm.reboot
-    expect(vm.pinged?).to be true
-    expect(vm.port_opened?).to be true
-  end
 end
 
 shared_examples_for 'network_interfaces' do
@@ -370,5 +359,73 @@ shared_examples_for 'edit' do
       vm.set_vip({vip: "false"})
       expect(vm.vip).to eq false
     end
+  end
+end
+
+shared_examples 'get_statistics' do
+  it 'get cpu_usage' do
+    vm.interface.get(vm.route_cpu_usage)
+    expect(vm.api_response_code).to eq '200'
+  end
+
+  it 'get vm_stats' do
+    vm.interface.get(vm.route_cpu_usage)
+    expect(vm.api_response_code).to eq '200'
+  end
+end
+
+shared_examples 'change_owners' do
+  before do
+    @new_user = User.new(@vma).create(first_name: 'Andrii-autotest', last_name:  Faker::Name.last_name)
+    @owner = @vm.user_id
+  end
+
+  after do
+    @vm.change_owner(@owner)
+    @new_user.remove
+  end
+
+  it 'Change owner' do
+    vm.change_owner(@new_user.id)
+    expect(vm.user_id).to eq @new_user.id
+  end
+end
+
+shared_examples 'negative' do
+  it 'Reboot in recovery' do
+    skip 'it is forbidden via UI, https://onappdev.atlassian.net/browse/CORE-8726'
+    vm.reboot(recovery: true)
+    expect(vm.port_opened?).to be true
+    creds = {'es_host' => vm.ip_address, 'es_pass' => vm.initial_root_password}
+    expect(vm.interface.execute_with_pass(creds, 'hostname')).to include 'recovery'
+    vm.reboot
+    expect(vm.pinged?).to be true
+    expect(vm.port_opened?).to be true
+  end
+
+  it 'set_ssh_keys' do
+    vm.set_ssh_keys
+    expect(vm.api_response_code).to eq '404'
+  end
+
+  it 'reset_root_password' do
+    vm.reset_root_password
+    expect(vm.api_response_code).to eq '404'
+  end
+
+  it 'reboot_from_iso' do
+    skip 'it is forbidden via UI, https://onappdev.atlassian.net/browse/CORE-9918'
+    vm.reboot_from_iso
+    expect(vm.api_response_code).to eq '404'
+  end
+
+  it 'recipe_joins' do
+    vm.recipe_joins
+    expect(vm.api_response_code).to eq '404'
+    end
+
+  it 'autoscale_enable' do
+    vm.autoscale_enable
+    expect(vm.api_response_code).to eq '404'
   end
 end
