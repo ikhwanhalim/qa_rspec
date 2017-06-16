@@ -147,6 +147,11 @@ module SshCommands
     def arptables_rules(remote_ip)
       "arptables -nL | grep -wc '#{remote_ip}'"
     end
+
+    #aaceleration
+    def onapp_messaging(option)
+      "service onapp-messaging #{option}"
+    end
   end
 
   module OnControlPanel

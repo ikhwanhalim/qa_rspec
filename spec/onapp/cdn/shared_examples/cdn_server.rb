@@ -92,7 +92,15 @@ shared_examples_for 'network_interfaces' do
   end
 
   it 'Update port speed' do
-    port_speed = 200
+    current_port_speed = vm.network_interface.port_speed
+    port_speed = case
+                   when current_port_speed == 0
+                     Faker::Number.between(1, 1000)
+                   when current_port_speed >= 501 && current_port_speed <= 1000
+                     current_port_speed - Faker::Number.between(1, 400)
+                   else
+                     current_port_speed + Faker::Number.between(1, 400)
+                 end
     vm.network_interface.edit(rate_limit: port_speed)
     expect(vm.network_interface.rate_limit).to eq port_speed
     expect(vm.network_interface.port_speed).to eq port_speed
@@ -188,7 +196,7 @@ shared_examples_for 'ip_addresses' do
       @vm_new = VirtualServer.new(@vma)
       @vm_new.create(template_id: CdnServerActions::TEMPLATE_VM_ID, hypervisor_id: vm.hypervisor_id, label: Faker::Internet.domain_word, \
                          network_id: vm.network_interface.ip_address.ip_net_id)
-      skip('VS has not been built. The user has no suitable used IP') unless @vm_new.api_response == '201'
+      skip('VS has not been built. The user has no suitable used IP') unless @vm_new.api_response_code == '201'
       used_ip_address =  @vm_new.ip_address
     end
 

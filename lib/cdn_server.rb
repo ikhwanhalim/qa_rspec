@@ -2,7 +2,7 @@ require_relative 'virtual_server'
 require_relative '../lib/helpers/ssh_commands'
 
 class CdnServer < VirtualServer
-  include SshCommands, SshClient
+  include SshCommands, SshClient, CpOperationsWaiters
 
   CDN_SERVER      = ENV['CDN_SERVER']       # edge_server or storage_server
   CDN_SERVER_TYPE = ENV['CDN_SERVER_TYPE']  # streaming or http
@@ -136,7 +136,6 @@ class CdnServer < VirtualServer
 
   def reset_root_password
     interface.post("#{route}/reset_password")
-
   end
 
   def reboot_from_iso(iso_id)
@@ -145,10 +144,21 @@ class CdnServer < VirtualServer
 
   def recipe_joins
     interface.post("#{route}/recipe_joins")
-    end
+  end
 
   def autoscale_enable
     interface.post("#{route}/autoscale_enable")
+  end
+
+  #acceleration
+  def configure_onapp_messaging
+    interface.run_on_cp SshCommands::OnControlPanel.rake_configure_messaging(local_remote_access_ip_address)
+    wait_configure_hypervisor_messaging
+  end
+
+  def onapp_messaging(option) #start,stop,restart,status, etc
+    command = SshCommands::OnHypervisor.onapp_messaging(option)
+    interface.hypervisor.ssh_execute(command).last
   end
 end
 

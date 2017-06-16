@@ -12,7 +12,8 @@ class VirtualServer
               :recovery_mode, :remote_access_password, :service_password, :state, :storage_server_type,
               :strict_virtual_machine_id, :suspended, :template_id, :template_label, :time_zone, :updated_at,
               :user_id, :vip, :xen_id, :ip_addresses, :monthly_bandwidth_used, :total_disk_size, :price_per_hour,
-              :price_per_hour_powered_off, :support_incremental_backups, :cpu_priority, :cdboot, :built_from_iso
+              :price_per_hour_powered_off, :support_incremental_backups, :cpu_priority, :cdboot, :built_from_iso,
+              :acceleration, :acceleration_status
 
   def initialize(interface)
     @interface = interface
@@ -482,6 +483,32 @@ class VirtualServer
   def set_vip
     interface.post("#{route}/set_vip")
     info_update
+  end
+
+  def accelerate
+    interface.post("#{route}/accelerate")
+    info_update
+  end
+
+  def decelerate
+    interface.post("#{route}/decelerate")
+    info_update
+  end
+
+  def content_is_accelerated?(max = 300, frequency = 2)
+    wait_until(max, frequency) do
+      exit_ok? "curl -I #{ip_address} | egrep -iq '^Server: nginx|^X-Accelerated-By: InviCDN'; echo $?"
+    end
+  end
+
+  def content_is_not_accelerated?(max = 300, frequency = 2)
+    wait_until(max, frequency) do
+      exit_ok? "curl -I #{ip_address} | grep -iq '^Server: Apache'; echo $?"
+    end
+  end
+
+  def purge_all
+    interface.post("#{route}/purge_all")
   end
 end
 
