@@ -37,8 +37,6 @@ describe 'Acceleration ->' do
     end
   end
 
-# TODO add checking iptables, ebtables rules when acceleration is enabled/disabled
-
   let(:acc) { @vma.virtual_machine }
   let(:vs)  { @vsa.virtual_machine }
 
@@ -101,6 +99,8 @@ describe 'Acceleration ->' do
     context 'power operations ->' do
       before :all do
         @vs.accelerate
+        @vs_mac = @vs.network_interface.mac_address
+        @acc_mac = @acc.network_interface.mac_address
       end
 
       after :all do
@@ -109,6 +109,8 @@ describe 'Acceleration ->' do
 
       it 'shutdown' do
         acc.stop
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 0
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 0
         expect(acc.booted).to be false
         expect(acc.not_pinged?).to be true
         expect(vs.content_is_not_accelerated?).to be true
@@ -119,6 +121,8 @@ describe 'Acceleration ->' do
 
       it 'startup' do
         acc.start_up
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 3
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 1
         expect(acc.booted).to be true
         expect(acc.pinged?).to be true
         expect(vs.content_is_accelerated?).to be true
@@ -139,6 +143,8 @@ describe 'Acceleration ->' do
 
       it 'Suspend' do
         acc.suspend
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 0
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 0
         expect(acc.not_pinged?).to be true
         expect(acc.booted).to be false
         expect(acc.edge_status).to eq 'Paused'
@@ -150,6 +156,8 @@ describe 'Acceleration ->' do
 
       it 'Unsuspend and Startup' do
         acc.unsuspend
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 0
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 0
         expect(acc.down?).to be true
         expect(vs.content_is_not_accelerated?).to be true
         vs.info_update
@@ -161,6 +169,8 @@ describe 'Acceleration ->' do
         vs.info_update
         expect(vs.acceleration).to be true
         expect(vs.acceleration_status).to eq 'Active'
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 3
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 1
       end
     end
 
@@ -222,7 +232,7 @@ describe 'Acceleration ->' do
         port_speed = case
                        when current_port_speed == 0
                          Faker::Number.between(1, 1000)
-                       when current_port_speed >= 501 && current_port_speed <= 1000
+                       when current_port_speed >= 501
                          current_port_speed - Faker::Number.between(1, 400)
                        else
                          current_port_speed + Faker::Number.between(1, 400)
@@ -263,6 +273,8 @@ describe 'Acceleration ->' do
         @vs.accelerate
         @vs.info_update
         @vs.start_up unless @vs.booted
+        @vs_mac = @vs.network_interface.mac_address
+        @acc_mac = @acc.network_interface.mac_address
       end
 
       after :all do
@@ -271,15 +283,16 @@ describe 'Acceleration ->' do
 
       it 'shutdown' do
         vs.stop
-        # get MAC address
-        # make sure rules have been removed in arptables
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 3
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 1
         expect(vs.booted).to be false
         expect(vs.not_pinged?).to be true
       end
 
       it 'startup' do
         vs.start_up
-        # make sure rules have been added to arptables -t nat -L
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 3
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 1
         expect(vs.booted).to be true
         expect(vs.pinged?).to be true
         expect(vs.content_is_accelerated?).to be true
@@ -302,14 +315,17 @@ describe 'Acceleration ->' do
         vs.suspend
         expect(vs.not_pinged?).to be true
         expect(vs.booted).to be false
-        # make sure rules have been removed in arptables
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 3
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 1
         vs.unsuspend
         expect(vs.down?).to be true
         expect(vs.not_pinged?).to be true
-        # make sure rules have not been added
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 3
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 1
         vs.start_up
         expect(vs.pinged?).to be true
-        # make sure rules have been added to arptables -t nat -L
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 3
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 1
         expect(vs.content_is_accelerated?).to be true
         vs.info_update
         expect(vs.acceleration).to be true
@@ -318,20 +334,25 @@ describe 'Acceleration ->' do
 
       it 'decelerate, shutdown, accelerate and start_up' do
         vs.decelerate
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 0
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 0
         expect(vs.content_is_not_accelerated?).to be true
         vs.stop
         expect(vs.acceleration).to be false
         expect(vs.acceleration_status).to eq 'Inactive'
-        # get MAC address
-        # make sure rules have been removed in arptables
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 0
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 0
         expect(vs.booted).to be false
         expect(vs.not_pinged?).to be true
         vs.accelerate
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 3
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 1
         vs.info_update
         expect(vs.acceleration).to be true
         expect(vs.acceleration_status).to eq 'Active'
         vs.start_up
-        # make sure rules have been added to arptables -t nat -L
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 3
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 1
         expect(vs.booted).to be true
         expect(vs.pinged?).to be true
         expect(vs.content_is_accelerated?).to be true
@@ -344,15 +365,18 @@ describe 'Acceleration ->' do
         vs.info_update
         vs.start_up unless vs.booted
         vs.stop
-        # get MAC address
-        # make sure rules have been removed in arptables
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 3
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 1
         expect(vs.booted).to be false
         expect(vs.not_pinged?).to be true
         vs.decelerate
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 0
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 0
         expect(vs.acceleration).to be false
         expect(vs.acceleration_status).to eq 'Inactive'
         vs.start_up
-        # make sure rules have been added to arptables -t nat -L
+        expect(vs.check_ebtables_rules(@vs_mac)).to eq 0
+        expect(acc.check_ebtables_rules(@acc_mac)).to eq 0
         expect(vs.booted).to be true
         expect(vs.pinged?).to be true
         expect(vs.content_is_not_accelerated?).to be true
@@ -417,7 +441,7 @@ describe 'Acceleration ->' do
         port_speed = case
                        when current_port_speed == 0
                          Faker::Number.between(1, 1000)
-                       when current_port_speed >= 501 && current_port_speed <= 1000
+                       when current_port_speed >= 501
                          current_port_speed - Faker::Number.between(1, 400)
                        else
                          current_port_speed + Faker::Number.between(1, 400)
@@ -447,18 +471,50 @@ describe 'Acceleration ->' do
     end
 
     context 'purge ->' do
-      it 'all(accelerations is enabled)' do
+      it 'all(acceleration is enabled)' do
         vs.accelerate
         expect(vs.acceleration).to be true
-        vs.purge_all
-        expect(vs.api_response_code).to eq '200'  #TODO investigate
+        vs.purge(all: true)
+        expect(vs.api_response_code).to eq '200'  #TODO change assert when CORE-9989 is done
         expect(@vsa.conn.page.body.notice).to eq 'The request has been executed and contents will be purged within 5 minutes'
       end
 
       it 'all(acceleration is disabled)' do
         vs.decelerate
         expect(vs.acceleration).to be false
-        vs.purge_all
+        vs.purge(all: true)
+        expect(vs.api_response_code).to eq '403'
+      end
+
+      it 'file(acceleration is enabled)' do
+        vs.accelerate
+        expect(vs.acceleration).to be true
+        vs.purge(path_to_file: Faker::Internet.url)
+        expect(vs.api_response_code).to eq '200'
+        expect(@vsa.conn.page.body.notice).to eq 'The Purge request was successfully issued'
+      end
+
+      it 'files(acceleration is enabled)' do
+        vs.accelerate
+        expect(vs.acceleration).to be true
+        vs.purge(path_to_file: [ Faker::Internet.url, Faker::Internet.url ])
+        expect(vs.api_response_code).to eq '200'
+        expect(@vsa.conn.page.body.notice).to eq 'The Purge request was successfully issued'
+      end
+
+      it 'file(acceleration is enabled and path_to_file is wrong)' do
+        wrong_path = Faker::Internet.domain_name
+        vs.accelerate
+        expect(vs.acceleration).to be true
+        vs.purge(path_to_file: wrong_path)
+        expect(vs.api_response_code).to eq '422'
+        expect(@vsa.conn.page.body.errors).to eq ["'Purge' request was not issued. Invalid URL '#{wrong_path}'"]
+      end
+
+      it 'file(acceleration is disabled)' do
+        vs.decelerate
+        expect(vs.acceleration).to be false
+        vs.purge(path_to_file: Faker::Internet.url)
         expect(vs.api_response_code).to eq '403'
       end
     end

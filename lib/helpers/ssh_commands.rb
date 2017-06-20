@@ -144,8 +144,8 @@ module SshCommands
       "iptables -nL FORWARD | grep -wc '#{remote_ip}'"
     end
 
-    def arptables_rules(remote_ip)
-      "arptables -nL | grep -wc '#{remote_ip}'"
+    def ebtables_rules(mac_address)
+      "ebtables -t nat -L | grep -wc '#{mac_address}'"
     end
 
     #aaceleration

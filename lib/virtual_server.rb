@@ -507,8 +507,12 @@ class VirtualServer
     end
   end
 
-  def purge_all
-    interface.post("#{route}/purge_all")
+  def purge(all: false, path_to_file: nil)
+    if all
+      interface.post("#{route}/purge_all")
+    else
+      interface.post("#{route}/purge", { purge_paths: path_to_file })
+    end
   end
 end
 

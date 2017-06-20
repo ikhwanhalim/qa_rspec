@@ -70,18 +70,21 @@ shared_examples_for 'network_interfaces' do
   end
 
   it 'Detach primary network interface and attach again' do
+    network_join_id = vm.network_interface.network_join_id
     amount = vm.network_interfaces.count
     ip = vm.ip_address
     vm.network_interface.remove
     expect(vm.network_interfaces.count).to eq amount - 1
     expect(vm.not_pinged?(remote_ip: ip)).to be true
     expect(vm.check_firewall_rules(remote_ip: ip)).to eq 0
-    vm.attach_network_interface(primary: true)
+    # expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 1 if CdnServer::CDN_SERVER == 'accelerator'
+    vm.attach_network_interface(primary: true, network_join_id: network_join_id)
     vm.network_interface.allocate_new_ip
     vm.rebuild_network
     expect(vm.pinged?).to be true
     expect(vm.network_interfaces.count).to eq amount
-    #TODO expect(vm.check_firewall_rules).to eq 2 skip (CORE-9886)
+    expect(vm.check_firewall_rules).to eq 2 unless CdnServer::CDN_SERVER == 'accelerator'
+    # expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 3 if CdnServer::CDN_SERVER == 'accelerator'
   end
 
   it 'Ability to create two primary interfaces should be blocked' do
@@ -96,7 +99,7 @@ shared_examples_for 'network_interfaces' do
     port_speed = case
                    when current_port_speed == 0
                      Faker::Number.between(1, 1000)
-                   when current_port_speed >= 501 && current_port_speed <= 1000
+                   when current_port_speed >= 501
                      current_port_speed - Faker::Number.between(1, 400)
                    else
                      current_port_speed + Faker::Number.between(1, 400)
@@ -135,17 +138,17 @@ shared_examples_for 'ip_addresses' do
   end
 
   it 'Second IP address should be appeared in the interface' do
-    skip ("https://onappdev.atlassian.net/browse/CORE-9886")
     expect(vm.ip_addresses.count).to eq 2
     @second_ip = vm.network_interface.ip_address(2).address if @cp_version < 5.4
-    expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 2
+    expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 2  unless CdnServer::CDN_SERVER == 'accelerator'
+    # expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 3  if CdnServer::CDN_SERVER == 'accelerator'
   end
 
   it 'All IPs should be pinged' do
-    skip ("https://onappdev.atlassian.net/browse/CORE-9886")
     ping_states = vm.ip_addresses.map &:pinged?
     expect(ping_states.include?(false)).to be false
-    expect(vm.ip_addresses.map(&:check_firewall_rules)).to match_array([2, 2])
+    expect(vm.ip_addresses.map(&:check_firewall_rules)).to match_array([2, 2])  unless CdnServer::CDN_SERVER == 'accelerator'
+    # expect(vm.ip_addresses.map(&:check_firewall_rules)).to match_array([0, 0])  if CdnServer::CDN_SERVER == 'accelerator'
   end
 
   it 'Remove second IP' do
@@ -154,12 +157,11 @@ shared_examples_for 'ip_addresses' do
     vm.network_interface.remove_ip(2)
     vm.rebuild_network
     expect(vm.ip_addresses.count).to eq amount - 1
-    # expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 0
-    # expect(vm.check_arptables_rules(remote_ip: @second_ip)).to eq 0
+    expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 0 unless CdnServer::CDN_SERVER == 'accelerator'
+    # expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 3 if CdnServer::CDN_SERVER == 'accelerator'
   end
 
   it 'Allocate the same IP should not be allowed' do
-    skip ("https://onappdev.atlassian.net/browse/CORE-9886")
     if @cp_version < 5.4
       expect(vm.network_interface.allocate_new_ip(ip_address_id: vm.network_interface.ip_address.id, used_ip: 1)['ip_address_id']).to eq(['is already allocated to this network card'])
     else
@@ -167,18 +169,22 @@ shared_examples_for 'ip_addresses' do
     end
     expect(vm.api_response_code).to eq '422'
     expect(vm.ip_addresses.count).to eq 1
-    expect(vm.check_firewall_rules).to eq 2
+    expect(vm.check_firewall_rules).to eq 2 unless CdnServer::CDN_SERVER == 'accelerator'
+    # expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 3 if CdnServer::CDN_SERVER == 'accelerator'
   end
 
   it 'Remove primary IP' do
-    skip("https://onappdev.atlassian.net/browse/CORE-9907")
+    skip("this test is not able for accelerator; CORE-9937") if CdnServer::CDN_SERVER == 'accelerator'
     primary_ip = vm.ip_address
     vm.network_interface.remove_ip
     vm.rebuild_network
     expect(vm.ip_addresses.count).to eq 0
     expect(vm.check_firewall_rules(remote_ip: primary_ip)).to eq 0
+    expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 1 if CdnServer::CDN_SERVER == 'accelerator'
     @vm.network_interface.allocate_new_ip
     expect(vm.ip_addresses.count).to eq 1
+    expect(vm.check_firewall_rules).to eq 2 unless CdnServer::CDN_SERVER == 'accelerator'
+    # expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 3 if CdnServer::CDN_SERVER == 'accelerator'
   end
 
   it 'Allocate used IP' do
