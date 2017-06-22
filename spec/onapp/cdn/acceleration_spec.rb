@@ -245,13 +245,11 @@ describe 'Acceleration ->' do
       end
 
       it 'rebuild' do
-        skip("in progress")
         acc.rebuild_network
-        expect(vs.content_is_accelerated?(max = 1000, frequency = 30)).to be true
+        expect(vs.content_is_accelerated?(max = 900, frequency = 60)).to be true
       end
 
       it 'change ip' do
-        skip("in progress")
         second_ip = acc.network_interface.ip_address.free_ip
         skip("No enough free ip address") unless second_ip
         acc.network_interface.allocate_new_ip(address: second_ip)
@@ -259,7 +257,7 @@ describe 'Acceleration ->' do
         acc.network_interface.remove_ip(1)
         acc.rebuild_network
         expect(acc.ip_addresses.count).to eq 1
-        expect(vs.content_is_accelerated?(max = 1000, frequency = 30)).to be true
+        expect(vs.content_is_accelerated?(max = 900, frequency = 60)).to be true
       end
     end
 
