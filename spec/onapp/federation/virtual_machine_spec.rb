@@ -125,11 +125,13 @@ describe "Federation Virtual Machine" do
 
   describe 'Supplier should not be able' do
     it 'reset root password' do
-      expect(supplier.vm.reset_root_password).to be false
+      supplier.vm.reset_root_password
+      expect(supplier.vm.api_response_code).to eq '404'
     end
 
     it 'rebuild vm' do
-      expect(supplier.vm.rebuild).to be false
+      supplier.vm.rebuild
+      expect(supplier.vm.api_response_code).to eq '404'
     end
 
     it 'delete vm' do
@@ -153,7 +155,8 @@ describe "Federation Virtual Machine" do
     end
 
     it 'allocate IP address' do
-      expect(!!supplier.vm.network_interface.allocate_new_ip).to be false
+      supplier.vm.network_interface.allocate_new_ip
+      expect(supplier.vm.api_response_code).to eq '404'
     end
 
     it 'remove IP address' do
