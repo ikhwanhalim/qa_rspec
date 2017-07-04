@@ -143,6 +143,15 @@ module SshCommands
     def firewall_rules(remote_ip)
       "iptables -nL FORWARD | grep -wc '#{remote_ip}'"
     end
+
+    def ebtables_rules(mac_address)
+      "ebtables -t nat -L | grep -wc '#{mac_address}'"
+    end
+
+    #aaceleration
+    def onapp_messaging(option)
+      "service onapp-messaging #{option}"
+    end
   end
 
   module OnControlPanel
@@ -190,6 +199,10 @@ module SshCommands
 
     def location_id_of_cdn_server(type_of_server, label_of_cdn_server)
       "cd /onapp/interface; RAILS_ENV=production rails runner \"p Aflexi::#{type_of_server}.get(name: '#{label_of_cdn_server}').first.location.id\""
+    end
+
+    def rake_configure_messaging(ip_of_hv)
+      "cd /onapp/interface; RAILS_ENV=production rake hypervisor:messaging:configure['#{ip_of_hv}']"
     end
   end
 

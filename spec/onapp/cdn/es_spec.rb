@@ -6,6 +6,7 @@ require './spec/onapp/cdn/shared_examples/cdn_server'
 describe "Main tests: #{CdnServer::CDN_SERVER} --> #{CdnServer::CDN_SERVER_TYPE}" do
   before :all do
     @vma = CdnServerActions.new.precondition
+    @cp_version = @vma.version
     @vm = @vma.virtual_machine
     @template = @vma.template
   end
@@ -31,7 +32,9 @@ describe "Main tests: #{CdnServer::CDN_SERVER} --> #{CdnServer::CDN_SERVER_TYPE}
   end
 
   describe 'Network' do
-    include_examples 'network'
+    include_examples 'firewall'
+    include_examples 'ip_addresses'
+    include_examples 'network_interfaces'
   end
 
   describe 'Rerun edge srcipts' do
@@ -44,6 +47,7 @@ describe "Main tests: #{CdnServer::CDN_SERVER} --> #{CdnServer::CDN_SERVER_TYPE}
 
   describe 'Edit' do
     include_examples 'edit'
+    include_examples 'change_owners'
 
     it 'market place' do
       status = vm.add_to_marketplace
@@ -54,5 +58,13 @@ describe "Main tests: #{CdnServer::CDN_SERVER} --> #{CdnServer::CDN_SERVER_TYPE}
         expect(vm.add_to_marketplace).to eq false
       end
     end
+  end
+
+  describe 'Get statistics page ->' do
+    include_examples 'get_statistics'
+  end
+
+  describe 'negative' do
+    include_examples 'negative'
   end
 end

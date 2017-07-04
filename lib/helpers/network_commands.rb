@@ -40,6 +40,11 @@ module NetworkCommands
     interface.hypervisor.ssh_execute(command).last.to_i
   end
 
+  def check_ebtables_rules(mac_address)
+    command = SshCommands::OnHypervisor.ebtables_rules(mac_address.split(':').map { |element| element.gsub(/^0/, '') }.join(':'))
+    interface.hypervisor.ssh_execute(command).last.to_i
+  end
+
   private
 
   def exit_ok?(command)
