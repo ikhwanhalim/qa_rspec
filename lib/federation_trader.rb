@@ -24,7 +24,9 @@ class FederationTrader
         'data_store_label' => federation_id,
         'network_group_label' => federation_id,
         'network_label' => federation_id,
-        'image_template_group_label' => federation_id
+        'image_template_group_label' => federation_id,
+        'backup_server_group_label'=> federation_id,
+        'backup_server_label' => federation_id
       }
     }
     response = post("/federation/hypervisor_zones/#{federation_id}/subscribe", data)

@@ -18,19 +18,25 @@ class FederationSupplier
     if hv
       hvz_id = hv.hypervisor_group_id || Log.error("Hypervisor not attached")
       hv_zone = get("/settings/hypervisor_zones/#{hvz_id}").hypervisor_group
+      bs_joins = get("/settings/hypervisor_zones/#{hvz_id}/backup_server_joins")
+      bs_joins += get("/settings/hypervisors/#{hv.id}/backup_server_joins")
       nt_joins = get("/settings/hypervisor_zones/#{hvz_id}/network_joins")
       nt_joins += get("/settings/hypervisors/#{hv.id}/network_joins")
       ds_joins = get("/settings/hypervisor_zones/#{hvz_id}/data_store_joins")
       ds_joins += get("/settings/hypervisors/#{hv.id}/data_store_joins")
+      bs = get("/settings/backup_servers/#{bs_joins.first.backup_server_join.backup_server_id}").backup_server
+      bs_zone = get("/settings/backup_server_zones/#{bs.backup_server_group_id}").backup_server_group || Log.error("Backup server is not attached")
       nt = get("/settings/networks/#{nt_joins.first.network_join.network_id}").network
-      nt_zone = get("/settings/network_zones/#{nt.network_group_id}").network_group || Log.error("Network not attached")
+      nt_zone = get("/settings/network_zones/#{nt.network_group_id}").network_group || Log.error("Network is not attached")
       ds = get("/settings/data_stores/#{ds_joins.first.data_store_join.data_store_id}").data_store
-      ds_zone = get("/settings/data_store_zones/#{ds.data_store_group_id}").data_store_group || Log.error("Data store not attached")
-      Log.error("Data store group not in location group") if ds_zone.location_group_id != hv_zone.location_group_id
-      Log.error("Network group not in location group") if nt_zone.location_group_id != hv_zone.location_group_id
+      ds_zone = get("/settings/data_store_zones/#{ds.data_store_group_id}").data_store_group || Log.error("Data store is not attached")
+      Log.error("Data store group isn't in location group") if ds_zone.location_group_id != hv_zone.location_group_id
+      Log.error("Network group isn't in location group") if nt_zone.location_group_id != hv_zone.location_group_id
+      Log.error("Backup server isn't in location group") if bs_zone.location_group_id != hv_zone.location_group_id
       return Hashie::Mash.new({'hypervisor_group' => hv_zone,
               'data_store_group' => ds_zone,
-              'network_group' => nt_zone
+              'network_group' => nt_zone,
+              'backup_server_group' => bs_zone
       })
     end
     Log.error "HypervisorGroupNotFound"
@@ -41,6 +47,7 @@ class FederationSupplier
     @resources ||= get_publishing_resources
     @data_store_group = @resources.data_store_group
     @network_group = @resources.network_group
+    @backup_server_group = @resources.backup_server_group
     @hvz_id = @resources.hypervisor_group.id
     stamp = 'federation-autotest' + DateTime.now.strftime('-%d-%m-%y(%H:%M:%S)')
     data = {
@@ -50,6 +57,7 @@ class FederationSupplier
         'private' => private,
         'data_store_zone_id' => @data_store_group.id,
         'network_zone_id' => @network_group.id,
+        'backup_server_zone_id' => @backup_server_group.id,
         'template_group_id' => @template.template_store.id,
         'description' => "#{Socket.gethostname}\n#{Socket.ip_address_list.to_s}",
         'tier' => tier
