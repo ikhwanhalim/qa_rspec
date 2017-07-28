@@ -1,6 +1,14 @@
+require './lib/helpers/ssh_cp_installer'
+
+
 module SshCommands
   module OnVirtualServer
+    include SshCpInstaller
     extend self
+
+    def get_release_version
+      'grep -oP "[0-9]+" /etc/redhat-release | head -1'
+    end
 
     def update_os(operating_system_distro)
       if operating_system_distro == 'rhel'
