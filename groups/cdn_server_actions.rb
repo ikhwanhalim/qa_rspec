@@ -1,7 +1,7 @@
 class CdnServerActions
   include ApiClient, SshClient, Log
 
-  IDENTIFIER          = ENV['IDENTIFIER']
+  IDENTIFIER          = ENV['IDENTIFIER_CDN']
   HVZ_ID              = ENV['HVZ_ID']
   TEMPLATE_MANAGER_ID = 'cdn'
   TEMPLATE_VM_ID      = ENV['TEMPLATE_VM_ID']

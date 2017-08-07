@@ -43,17 +43,6 @@ shared_examples_for 'power_operations' do
     vm.start_up
     expect(vm.pinged? && vm.exist_on_hv?).to be true
   end
-
-  it 'Reboot in recovery' do
-    skip 'it is forbidden via UI, https://onappdev.atlassian.net/browse/CORE-8726'
-    vm.reboot(recovery: true)
-    expect(vm.port_opened?).to be true
-    creds = {'es_host' => vm.ip_address, 'es_pass' => vm.initial_root_password}
-    expect(vm.interface.execute_with_pass(creds, 'hostname')).to include 'recovery'
-    vm.reboot
-    expect(vm.pinged?).to be true
-    expect(vm.port_opened?).to be true
-  end
 end
 
 shared_examples_for 'network_interfaces' do
@@ -81,18 +70,21 @@ shared_examples_for 'network_interfaces' do
   end
 
   it 'Detach primary network interface and attach again' do
+    network_join_id = vm.network_interface.network_join_id
     amount = vm.network_interfaces.count
     ip = vm.ip_address
     vm.network_interface.remove
     expect(vm.network_interfaces.count).to eq amount - 1
     expect(vm.not_pinged?(remote_ip: ip)).to be true
     expect(vm.check_firewall_rules(remote_ip: ip)).to eq 0
-    vm.attach_network_interface(primary: true)
+    # expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 1 if CdnServer::CDN_SERVER == 'accelerator'
+    vm.attach_network_interface(primary: true, network_join_id: network_join_id)
     vm.network_interface.allocate_new_ip
     vm.rebuild_network
     expect(vm.pinged?).to be true
     expect(vm.network_interfaces.count).to eq amount
-    #TODO expect(vm.check_firewall_rules).to eq 2 skip (CORE-9886)
+    expect(vm.check_firewall_rules).to eq 2 unless CdnServer::CDN_SERVER == 'accelerator'
+    # expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 3 if CdnServer::CDN_SERVER == 'accelerator'
   end
 
   it 'Ability to create two primary interfaces should be blocked' do
@@ -103,7 +95,15 @@ shared_examples_for 'network_interfaces' do
   end
 
   it 'Update port speed' do
-    port_speed = 200
+    current_port_speed = vm.network_interface.port_speed
+    port_speed = case
+                   when current_port_speed == 0
+                     Faker::Number.between(1, 1000)
+                   when current_port_speed >= 501
+                     current_port_speed - Faker::Number.between(1, 400)
+                   else
+                     current_port_speed + Faker::Number.between(1, 400)
+                 end
     vm.network_interface.edit(rate_limit: port_speed)
     expect(vm.network_interface.rate_limit).to eq port_speed
     expect(vm.network_interface.port_speed).to eq port_speed
@@ -138,17 +138,17 @@ shared_examples_for 'ip_addresses' do
   end
 
   it 'Second IP address should be appeared in the interface' do
-    skip ("https://onappdev.atlassian.net/browse/CORE-9886")
     expect(vm.ip_addresses.count).to eq 2
     @second_ip = vm.network_interface.ip_address(2).address if @cp_version < 5.4
-    expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 2
+    expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 2  unless CdnServer::CDN_SERVER == 'accelerator'
+    # expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 3  if CdnServer::CDN_SERVER == 'accelerator'
   end
 
   it 'All IPs should be pinged' do
-    skip ("https://onappdev.atlassian.net/browse/CORE-9886")
     ping_states = vm.ip_addresses.map &:pinged?
     expect(ping_states.include?(false)).to be false
-    expect(vm.ip_addresses.map(&:check_firewall_rules)).to match_array([2, 2])
+    expect(vm.ip_addresses.map(&:check_firewall_rules)).to match_array([2, 2])  unless CdnServer::CDN_SERVER == 'accelerator'
+    # expect(vm.ip_addresses.map(&:check_firewall_rules)).to match_array([0, 0])  if CdnServer::CDN_SERVER == 'accelerator'
   end
 
   it 'Remove second IP' do
@@ -157,12 +157,11 @@ shared_examples_for 'ip_addresses' do
     vm.network_interface.remove_ip(2)
     vm.rebuild_network
     expect(vm.ip_addresses.count).to eq amount - 1
-    # expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 0
-    # expect(vm.check_arptables_rules(remote_ip: @second_ip)).to eq 0
+    expect(vm.check_firewall_rules(remote_ip: @second_ip)).to eq 0 unless CdnServer::CDN_SERVER == 'accelerator'
+    # expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 3 if CdnServer::CDN_SERVER == 'accelerator'
   end
 
   it 'Allocate the same IP should not be allowed' do
-    skip ("https://onappdev.atlassian.net/browse/CORE-9886")
     if @cp_version < 5.4
       expect(vm.network_interface.allocate_new_ip(ip_address_id: vm.network_interface.ip_address.id, used_ip: 1)['ip_address_id']).to eq(['is already allocated to this network card'])
     else
@@ -170,18 +169,22 @@ shared_examples_for 'ip_addresses' do
     end
     expect(vm.api_response_code).to eq '422'
     expect(vm.ip_addresses.count).to eq 1
-    expect(vm.check_firewall_rules).to eq 2
+    expect(vm.check_firewall_rules).to eq 2 unless CdnServer::CDN_SERVER == 'accelerator'
+    # expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 3 if CdnServer::CDN_SERVER == 'accelerator'
   end
 
   it 'Remove primary IP' do
-    skip("https://onappdev.atlassian.net/browse/CORE-9907")
+    skip("this test is not able for accelerator; CORE-9937") if CdnServer::CDN_SERVER == 'accelerator'
     primary_ip = vm.ip_address
     vm.network_interface.remove_ip
     vm.rebuild_network
     expect(vm.ip_addresses.count).to eq 0
     expect(vm.check_firewall_rules(remote_ip: primary_ip)).to eq 0
+    expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 1 if CdnServer::CDN_SERVER == 'accelerator'
     @vm.network_interface.allocate_new_ip
     expect(vm.ip_addresses.count).to eq 1
+    expect(vm.check_firewall_rules).to eq 2 unless CdnServer::CDN_SERVER == 'accelerator'
+    # expect(vm.check_firewall_rules(remote_ip: '0.0.0.0/0')).to eq 3 if CdnServer::CDN_SERVER == 'accelerator'
   end
 
   it 'Allocate used IP' do
@@ -199,7 +202,7 @@ shared_examples_for 'ip_addresses' do
       @vm_new = VirtualServer.new(@vma)
       @vm_new.create(template_id: CdnServerActions::TEMPLATE_VM_ID, hypervisor_id: vm.hypervisor_id, label: Faker::Internet.domain_word, \
                          network_id: vm.network_interface.ip_address.ip_net_id)
-      skip('VS has not been built. The user has no suitable used IP') unless @vm_new.api_response == '201'
+      skip('VS has not been built. The user has no suitable used IP') unless @vm_new.api_response_code == '201'
       used_ip_address =  @vm_new.ip_address
     end
 
@@ -370,5 +373,73 @@ shared_examples_for 'edit' do
       vm.set_vip({vip: "false"})
       expect(vm.vip).to eq false
     end
+  end
+end
+
+shared_examples 'get_statistics' do
+  it 'get cpu_usage' do
+    vm.interface.get(vm.route_cpu_usage)
+    expect(vm.api_response_code).to eq '200'
+  end
+
+  it 'get vm_stats' do
+    vm.interface.get(vm.route_cpu_usage)
+    expect(vm.api_response_code).to eq '200'
+  end
+end
+
+shared_examples 'change_owners' do
+  before do
+    @new_user = User.new(@vma).create(first_name: 'Andrii-autotest', last_name:  Faker::Name.last_name)
+    @owner = @vm.user_id
+  end
+
+  after do
+    @vm.change_owner(@owner)
+    @new_user.remove
+  end
+
+  it 'Change owner' do
+    vm.change_owner(@new_user.id)
+    expect(vm.user_id).to eq @new_user.id
+  end
+end
+
+shared_examples 'negative' do
+  it 'Reboot in recovery' do
+    skip 'it is forbidden via UI, https://onappdev.atlassian.net/browse/CORE-8726'
+    vm.reboot(recovery: true)
+    expect(vm.port_opened?).to be true
+    creds = {'es_host' => vm.ip_address, 'es_pass' => vm.initial_root_password}
+    expect(vm.interface.execute_with_pass(creds, 'hostname')).to include 'recovery'
+    vm.reboot
+    expect(vm.pinged?).to be true
+    expect(vm.port_opened?).to be true
+  end
+
+  it 'set_ssh_keys' do
+    vm.set_ssh_keys
+    expect(vm.api_response_code).to eq '404'
+  end
+
+  it 'reset_root_password' do
+    vm.reset_root_password
+    expect(vm.api_response_code).to eq '404'
+  end
+
+  it 'reboot_from_iso' do
+    skip 'it is forbidden via UI, https://onappdev.atlassian.net/browse/CORE-9918'
+    vm.reboot_from_iso
+    expect(vm.api_response_code).to eq '404'
+  end
+
+  it 'recipe_joins' do
+    vm.recipe_joins
+    expect(vm.api_response_code).to eq '404'
+    end
+
+  it 'autoscale_enable' do
+    vm.autoscale_enable
+    expect(vm.api_response_code).to eq '404'
   end
 end

@@ -53,7 +53,7 @@ class Hypervisor
     cb_ids = cloud_boot_ids
     interface.get("/hypervisors").map(&:hypervisor).each do |h|
       if max_free < h.free_memory && online_suitable_hv?(h)
-        next if cb_ids && cb_ids.include?(h.id)
+        next if cb_ids && cb_ids.include?(h.id) && !ENV['CLOUDBOOT']
         next if exclude_current && h.id == id
         next if virt && !(h.distro == distro && h.hypervisor_type == virtualization)
         next if hvz_id && hvz_id != h.hypervisor_group_id

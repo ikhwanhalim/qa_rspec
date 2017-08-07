@@ -58,9 +58,18 @@ describe "Main tests: #{CdnServer::CDN_SERVER} -->" do
 
   describe 'Edit ->' do
     include_examples 'edit'
+    include_examples 'change_owners'
 
     it 'market place' do
       expect(vm.add_to_marketplace).to eq nil
     end
+  end
+
+  describe 'Get statistics page ->' do
+    include_examples 'get_statistics'
+  end
+
+  describe 'negative' do
+    include_examples 'negative'
   end
 end

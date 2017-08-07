@@ -12,7 +12,8 @@ class VirtualServer
               :recovery_mode, :remote_access_password, :service_password, :state, :storage_server_type,
               :strict_virtual_machine_id, :suspended, :template_id, :template_label, :time_zone, :updated_at,
               :user_id, :vip, :xen_id, :ip_addresses, :monthly_bandwidth_used, :total_disk_size, :price_per_hour,
-              :price_per_hour_powered_off, :support_incremental_backups, :cpu_priority, :cdboot, :built_from_iso
+              :price_per_hour_powered_off, :support_incremental_backups, :cpu_priority, :cdboot, :built_from_iso,
+              :acceleration, :acceleration_status
 
   def initialize(interface)
     @interface = interface
@@ -131,7 +132,7 @@ class VirtualServer
       }
     }
     response = interface.post("#{route}/build", params)
-    return response if api_response_code  == '422'
+    return response if api_response_code  == '422' || '404'
     wait_for_build(image: image, require_startup: !required_startup.zero?, rebuild: true)
   end
 
@@ -268,7 +269,7 @@ class VirtualServer
     else
       response = interface.post("#{route}/reset_password")
     end
-    return response.errors if api_response_code == '422'
+    return response.errors if api_response_code == '422' || '404'
     wait_for_stop
     wait_for_reset_root_password
     wait_for_start
@@ -361,6 +362,18 @@ class VirtualServer
 
   def ip_address
     network_interface.ip_address.address
+  end
+
+  def network_id
+    network_interface.ip_address.network_id
+  end
+
+  def ip_range_id
+    network_interface.ip_address.ip_range_id
+  end
+
+  def ip_net_id
+    network_interface.ip_address.ip_net_id
   end
 
   def ip_addresses
@@ -470,6 +483,36 @@ class VirtualServer
   def set_vip
     interface.post("#{route}/set_vip")
     info_update
+  end
+
+  def accelerate
+    interface.post("#{route}/accelerate")
+    info_update
+  end
+
+  def decelerate
+    interface.post("#{route}/decelerate")
+    info_update
+  end
+
+  def content_is_accelerated?(max = 300, frequency = 2)
+    wait_until(max, frequency) do
+      exit_ok? "curl -I #{ip_address} | egrep -iq '^Server: nginx|^X-Accelerated-By: InviCDN'; echo $?"
+    end
+  end
+
+  def content_is_not_accelerated?(max = 300, frequency = 2)
+    wait_until(max, frequency) do
+      exit_ok? "curl -I #{ip_address} | grep -iq '^Server: Apache'; echo $?"
+    end
+  end
+
+  def purge(all: false, path_to_file: nil)
+    if all
+      interface.post("#{route}/purge_all")
+    else
+      interface.post("#{route}/purge", { purge_paths: path_to_file })
+    end
   end
 end
 

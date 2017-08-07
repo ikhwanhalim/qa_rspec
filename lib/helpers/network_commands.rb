@@ -40,8 +40,8 @@ module NetworkCommands
     interface.hypervisor.ssh_execute(command).last.to_i
   end
 
-  def check_arptables_rules(remote_ip: ip_address)
-    command = SshCommands::OnHypervisor.arptables_rules(remote_ip)
+  def check_ebtables_rules(mac_address)
+    command = SshCommands::OnHypervisor.ebtables_rules(mac_address.split(':').map { |element| element.gsub(/^0/, '') }.join(':'))
     interface.hypervisor.ssh_execute(command).last.to_i
   end
 
