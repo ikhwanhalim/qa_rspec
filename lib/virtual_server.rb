@@ -132,7 +132,7 @@ class VirtualServer
       }
     }
     response = interface.post("#{route}/build", params)
-    return response if api_response_code  == '422' || '404'
+    return response if ['422','404'].include?(api_response_code)
     wait_for_build(image: image, require_startup: !required_startup.zero?, rebuild: true)
   end
 
@@ -269,7 +269,7 @@ class VirtualServer
     else
       response = interface.post("#{route}/reset_password")
     end
-    return response.errors if api_response_code == '422' || '404'
+    return response.errors if ['422','404'].include?(api_response_code)
     wait_for_stop
     wait_for_reset_root_password
     wait_for_start
