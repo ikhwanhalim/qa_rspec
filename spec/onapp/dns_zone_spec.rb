@@ -1134,16 +1134,20 @@ describe 'Negative tests' do
     end
 
     it 'dns_zone should not be added with incorrect(digit) name' do
-      skip("https://onappdev.atlassian.net/browse/CORE-7341")
+      # skip("https://onappdev.atlassian.net/browse/CORE-7341")
       dns_zone.create_dns_zone(name: "#{SecureRandom.random_number(11)}")
       expect(@dza.conn.page.code).to eq '422'
-      # expect(@dns_zone_a.conn.page.body.errors.name).to eq ["is invalid domain name"]
+      expect(@dza.conn.page.body.errors.name.count).to eq 2
+      expect(@dza.conn.page.body.errors.name[0]).to eq 'Domain Name has incorrect format'
+      expect(@dza.conn.page.body.errors.name[1]).to eq 'Name can not be a top level domain'
     end
 
     it 'dns_zone should not be added with incorrect(character) name' do
       dns_zone.create_dns_zone(name: "#{SecureRandom.hex}")
       expect(@dza.conn.page.code).to eq '422'
-      # expect(@dns_zone_a.conn.page.body.errors.name).to eq ["is invalid domain name"]
+      expect(@dza.conn.page.body.errors.name.count).to eq 2
+      expect(@dza.conn.page.body.errors.name[0]).to eq 'Domain Name has incorrect format'
+      expect(@dza.conn.page.body.errors.name[1]).to eq 'Name can not be a top level domain'
     end
 
     it 'should not be created with reserver domain name(for example google.com)' do

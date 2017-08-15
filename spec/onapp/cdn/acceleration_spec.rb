@@ -489,7 +489,7 @@ describe 'Acceleration ->' do
         expect(vs.acceleration).to be true
         vs.purge(path_to_file: Faker::Internet.url)
         expect(vs.api_response_code).to eq '200'
-        expect(@vsa.conn.page.body.notice).to eq 'The Purge request was successfully issued'
+        expect(@vsa.conn.page.body.notice).to eq 'The Purge request was successfully scheduled'
       end
 
       it 'files(acceleration is enabled)' do
@@ -497,7 +497,7 @@ describe 'Acceleration ->' do
         expect(vs.acceleration).to be true
         vs.purge(path_to_file: [ Faker::Internet.url, Faker::Internet.url ])
         expect(vs.api_response_code).to eq '200'
-        expect(@vsa.conn.page.body.notice).to eq 'The Purge request was successfully issued'
+        expect(@vsa.conn.page.body.notice).to eq 'The Purge request was successfully scheduled'
       end
 
       it 'file(acceleration is enabled and path_to_file is wrong)' do
@@ -506,7 +506,7 @@ describe 'Acceleration ->' do
         expect(vs.acceleration).to be true
         vs.purge(path_to_file: wrong_path)
         expect(vs.api_response_code).to eq '422'
-        expect(@vsa.conn.page.body.errors).to eq ["'Purge' request was not issued. Invalid URL '#{wrong_path}'"]
+        expect(@vsa.conn.page.body.errors).to eq ["An error occurred during Purge. Invalid URL '#{wrong_path}'"]
       end
 
       it 'file(acceleration is disabled)' do
