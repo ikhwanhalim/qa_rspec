@@ -333,6 +333,7 @@ describe 'Acceleration ->' do
       it 'decelerate, shutdown, accelerate and start_up' do
         vs.decelerate
         expect(vs.check_ebtables_rules(@vs_mac)).to eq 0
+        # todo calc if acceleration is used by another VS, sometime the next 'expect' can be eq 1
         expect(acc.check_ebtables_rules(@acc_mac)).to eq 0
         expect(vs.content_is_not_accelerated?).to be true
         vs.stop
@@ -369,6 +370,7 @@ describe 'Acceleration ->' do
         expect(vs.not_pinged?).to be true
         vs.decelerate
         expect(vs.check_ebtables_rules(@vs_mac)).to eq 0
+        # todo calc if acceleration is used by another VS, sometime the next 'expect' can be eq 1(the sane as in the previous test)
         expect(acc.check_ebtables_rules(@acc_mac)).to eq 0
         expect(vs.acceleration).to be false
         expect(vs.acceleration_status).to eq 'Inactive'
