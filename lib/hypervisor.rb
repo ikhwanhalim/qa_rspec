@@ -40,7 +40,7 @@ class Hypervisor
   end
 
   def find_by_id(id)
-    data = interface.get("/hypervisors/#{id}").hypervisor
+    data = interface.get("/settings/hypervisors/#{id}").hypervisor
     info_update(data)
     self
   end
@@ -51,7 +51,7 @@ class Hypervisor
     virtualization = select_virtualization(virt) if virt
     distro = select_distro(virt) if virt
     cb_ids = cloud_boot_ids
-    interface.get("/hypervisors").map(&:hypervisor).each do |h|
+    interface.get("/settings/hypervisors").map(&:hypervisor).each do |h|
       if max_free < h.free_memory && online_suitable_hv?(h)
         next if cb_ids && cb_ids.include?(h.id) && !ENV['CLOUDBOOT']
         next if exclude_current && h.id == id
@@ -163,7 +163,7 @@ class Hypervisor
       'centos5'
     elsif virt == 'xen4' || virt == 'kvm6'
       'centos6'
-    elsif virt == 'kvm7' || 'xen7'
+    elsif virt == 'kvm7' || virt == 'xen7'
       'centos7'
     end
   end
