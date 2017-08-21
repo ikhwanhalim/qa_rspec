@@ -1231,12 +1231,12 @@ describe 'HTTP_PULL ->' do
 
     it 'path without entry slashes' do
       cdn_resource.purge('home/123.jpeg')
-      expect(@cra.conn.page.code).to eq '201'
+      expect(@cra.conn.page.code).to eq '200'
     end
 
     it 'path with entry slashes' do
       cdn_resource.purge('/home/123.jpeg')
-      expect(@cra.conn.page.code).to eq '201'
+      expect(@cra.conn.page.code).to eq '200'
     end
   end
 
@@ -1251,12 +1251,12 @@ describe 'HTTP_PULL ->' do
 
     it 'path without entry slashes' do
       cdn_resource.prefetch('home/123.jpeg')
-      expect(@cra.conn.page.code).to eq '201'
+      expect(@cra.conn.page.code).to eq '200'
     end
 
     it 'path with entry slashes' do
       cdn_resource.prefetch('/home/123.jpeg')
-      expect(@cra.conn.page.code).to eq '201'
+      expect(@cra.conn.page.code).to eq '200'
     end
   end
 
