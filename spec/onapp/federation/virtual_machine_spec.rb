@@ -40,14 +40,14 @@ describe "Federation Virtual Machine" do
 
   describe 'Supplier should be able' do
     it 'supplier should be able reboot' do
-      expect(supplier.vm.reboot).to be true
+      expect(supplier.vm.reboot.booted).to be true
       expect(supplier.vm.up?).to be true
     end
   end
 
   describe 'Trader should be able' do
     it 'trader should be able reboot' do
-      expect(trader.vm.reboot).to be true
+      expect(trader.vm.reboot.booted).to be true
       expect(trader.vm.pinged? && trader.vm.port_opened?).to be true
     end
 
