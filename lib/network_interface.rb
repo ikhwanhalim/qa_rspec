@@ -51,7 +51,7 @@ class NetworkInterface
   end
 
   def wait_for_network_interface_transaction(action)
-    if hypervisor_type == 'kvm' && hypervisor_distro == 'centos6' || hypervisor_distro == 'centos7'
+    if hypervisor_type == 'kvm' && hypervisor_distro == 'centos6' || hypervisor_type == 'kvm' && hypervisor_distro == 'centos7'
       if template_kvm_virtio?
         action == 'create' ? wait_for_attach_network_interface : wait_for_detach_network_interface
       else
