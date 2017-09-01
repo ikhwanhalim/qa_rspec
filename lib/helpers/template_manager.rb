@@ -34,7 +34,7 @@ module TemplateManager
   def download_template
     inactive = get_inactive.select { |t| t['image_template']['manager_id'] == @manager_id}
     available = get_available.select { |t| t['remote_template']['manager_id'] == @manager_id }
-    installed = (get_installed + get_installs).select { |t| t['image_template']['manager_id'] == @manager_id }
+    installed = get_installed.select { |t| t['image_template']['manager_id'] == @manager_id }
     if inactive.any?
       interface.post("/templates/installs/#{inactive.first['image_template']['id']}/restart")['image_template']
     elsif installed.any?
