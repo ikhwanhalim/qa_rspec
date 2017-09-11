@@ -149,14 +149,13 @@ describe 'Ssl Certificate' do
         # https://onappdev.atlassian.net/browse/CORE-8589, should be "can't be blank"
         ssl_cert.create_ssl_certificate({name:'', cert: '', key: ''})
         expect(@csa.conn.page.code).to eq '422'
-        expect(@csa.conn.page.body.errors.cert).to eq ["is invalid"]
-        expect(@csa.conn.page.body.errors.to_a[1][1]).to eq ["is invalid"]
+        expect(@csa.conn.page.body.errors.cert).to eq ["is invalid", "can't be blank"]
       end
 
       it 'with wrong format[key, cert]' do
         ssl_cert.create_ssl_certificate({name:'', cert: Faker::Internet.domain_word, key: Faker::Internet.domain_word})
         expect(@csa.conn.page.code).to eq '422'
-        expect(@csa.conn.page.body.errors.base).to eq ["An error occurred managing the resource remotely, please try again later. Invalid combination of SSL cert and key"]
+        expect(@csa.conn.page.body.errors.base).to eq ["An error occurred managing the resource remotely, please try again later. cert must not be malformed"]
         end
 
       it 'with wrong format[key]' do
@@ -168,7 +167,7 @@ describe 'Ssl Certificate' do
       it 'with wrong format[cert]' do
         ssl_cert.create_ssl_certificate({name:'', cert: Faker::Internet.domain_word, key: ConstantsCdn::SSL_KEY})
         expect(@csa.conn.page.code).to eq '422'
-        expect(@csa.conn.page.body.errors.base).to eq ["An error occurred managing the resource remotely, please try again later. Invalid combination of SSL cert and key"]
+        expect(@csa.conn.page.body.errors.base).to eq ["An error occurred managing the resource remotely, please try again later. cert must not be malformed"]
       end
     end
 
@@ -190,13 +189,13 @@ describe 'Ssl Certificate' do
       it 'with empty cert' do
         ssl_cert.edit({cdn_ssl_certificate: {cert: ''}})
         expect(@csa.conn.page.code).to eq '422'
-        expect(@csa.conn.page.body.errors.cert).to eq ["is invalid"]
+        expect(@csa.conn.page.body.errors.cert).to eq ["is invalid", "can't be blank"]
       end
 
       it 'with incorrect cert' do
         ssl_cert.edit({cdn_ssl_certificate: {cert: Faker::Internet.domain_word}})
         expect(@csa.conn.page.code).to eq '422'
-        expect(@csa.conn.page.body.errors.base).to eq ["An error occurred managing the resource remotely, please try again later. Invalid combination of SSL cert and key"]
+        expect(@csa.conn.page.body.errors.base).to eq ["An error occurred managing the resource remotely, please try again later. cert must not be malformed"]
       end
 
       it 'with empty key' do
