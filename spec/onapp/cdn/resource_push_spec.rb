@@ -28,6 +28,9 @@ describe 'HTTP_PUSH ->' do
     @ega.edge_group.manipulation_with_locations(@ega.edge_group.route_manipulation('assign'), { location: @locations[0] })
     @ega_2.edge_group.manipulation_with_locations(@ega_2.edge_group.route_manipulation('assign'), { location: @locations[1] })
 
+    # get version of CP
+    @cp_version = @ega.version
+
     # add edge group to billing plan
     @bpa = BillingPlanActions.new.precondition
     @eg_limit = @bpa.billing_plan.create_limit_eg_for_current_bp(@bpa.billing_plan.get_current_bp_id, @ega.edge_group.id)
@@ -282,42 +285,48 @@ describe 'HTTP_PUSH ->' do
           cdn_resource.create_http_resource(advanced: true, type: 'HTTP_PUSH', edge_group_ids: [@ega.edge_group.id], storage_server_location: @ss_location, \
                                             limit_rate_after: nil)
           expect(@cra.conn.page.code).to eq '422'
-          expect(@cra.conn.page.body.errors).to eq ["Limit rate after can`t be blank if 'Limit rate' field is set"]
+          expect(@cra.conn.page.body.errors).to eq ["Limit rate after can`t be blank if 'Limit rate' field is set"] if @cp_version < 5.6
+          expect(@cra.conn.page.body.errors).to eq ["Limit rate after can't be blank if 'Limit rate' field is set"] if @cp_version >= 5.6
         end
 
         it 'is not created with limit_rate more than 2147483647 KB/s' do
           cdn_resource.create_http_resource(advanced: true, type: 'HTTP_PUSH', edge_group_ids: [@ega.edge_group.id], storage_server_location: @ss_location, \
                                             limit_rate: '2147483648')
           expect(@cra.conn.page.code).to eq '422'
-          expect(@cra.conn.page.body.errors).to eq ["Limit rate field is invalid"]
+          expect(@cra.conn.page.body.errors).to eq ["Limit rate field is invalid"] if @cp_version < 5.6
+          expect(@cra.conn.page.body.errors).to eq ["Limit rate is invalid"] if @cp_version >= 5.6
         end
 
         it 'is not created with limit_rate incorrect value' do
           cdn_resource.create_http_resource(advanced: true, type: 'HTTP_PUSH', edge_group_ids: [@ega.edge_group.id], storage_server_location: @ss_location, \
                                             limit_rate: 'kjgjy')
           expect(@cra.conn.page.code).to eq '422'
-          expect(@cra.conn.page.body.errors).to eq ["Limit rate field is invalid"]
+          expect(@cra.conn.page.body.errors).to eq ["Limit rate field is invalid"] if @cp_version < 5.6
+          expect(@cra.conn.page.body.errors).to eq ["Limit rate is invalid"] if @cp_version >= 5.6
         end
 
         it 'is not created with limit_rate_after value without limit_rate' do
           cdn_resource.create_http_resource(advanced: true, type: 'HTTP_PUSH', edge_group_ids: [@ega.edge_group.id], storage_server_location: @ss_location, \
                                             limit_rate: nil)
           expect(@cra.conn.page.code).to eq '422'
-          expect(@cra.conn.page.body.errors).to eq ["Limit rate can`t be blank if 'Limit rate after' field is set"]
+          expect(@cra.conn.page.body.errors).to eq ["Limit rate can`t be blank if 'Limit rate after' field is set"] if @cp_version < 5.6
+          expect(@cra.conn.page.body.errors).to eq ["Limit rate can't be blank if 'Limit rate after' field is set"] if @cp_version >= 5.6
         end
 
         it 'is not created with limit_rate_after more than 2147483647 KB ' do
           cdn_resource.create_http_resource(advanced: true, type: 'HTTP_PUSH', edge_group_ids: [@ega.edge_group.id], storage_server_location: @ss_location, \
                                             limit_rate_after: '2147483648')
           expect(@cra.conn.page.code).to eq '422'
-          expect(@cra.conn.page.body.errors).to eq ["Limit rate after field is invalid"]
+          expect(@cra.conn.page.body.errors).to eq ["Limit rate after field is invalid"] if @cp_version < 5.6
+          expect(@cra.conn.page.body.errors).to eq ["Limit rate after is invalid"] if @cp_version >= 5.6
         end
 
         it 'is not created with limit_rate_after incorrect value' do
           cdn_resource.create_http_resource(advanced: true, type: 'HTTP_PUSH', edge_group_ids: [@ega.edge_group.id], storage_server_location: @ss_location, \
                                             limit_rate_after: 'nbcv')
           expect(@cra.conn.page.code).to eq '422'
-          expect(@cra.conn.page.body.errors).to eq ["Limit rate after field is invalid"]
+          expect(@cra.conn.page.body.errors).to eq ["Limit rate after field is invalid"] if @cp_version < 5.6
+          expect(@cra.conn.page.body.errors).to eq ["Limit rate after is invalid"] if @cp_version >= 5.6
         end
 
         it 'is not created with duplicate usernames' do
@@ -340,7 +349,8 @@ describe 'HTTP_PUSH ->' do
           cdn_resource.create_http_resource(advanced: true, type: 'HTTP_PUSH', edge_group_ids: [@ega.edge_group.id], storage_server_location: @ss_location, \
                                             form_pass: {user: [Faker::Internet.user_name], pass: []})
           expect(@cra.conn.page.code).to eq '422'
-          expect(@cra.conn.page.body.errors).to eq ["Credential password field can`t be empty"]
+          expect(@cra.conn.page.body.errors).to eq ["Credential password field can`t be empty"] if @cp_version < 5.6
+          expect(@cra.conn.page.body.errors).to eq ["Credential password field can't be empty"] if @cp_version >= 5.6
         end
 
         it 'is not created with password_unauthorized_html more than 1000 characters' do
@@ -734,7 +744,8 @@ describe 'HTTP_PUSH ->' do
           it 'is not edited' do
             cdn_resource.edit({ cdn_resource: {limit_rate: 'asdas'} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Limit rate field is invalid"]
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate field is invalid"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate is invalid"] if @cp_version >= 5.6
           end
         end
 
@@ -742,7 +753,8 @@ describe 'HTTP_PUSH ->' do
           it 'is not edited' do
             cdn_resource.edit({ cdn_resource: {limit_rate: 2147483648} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Limit rate field is invalid"]
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate field is invalid"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate is invalid"] if @cp_version >= 5.6
           end
         end
 
@@ -750,7 +762,8 @@ describe 'HTTP_PUSH ->' do
           it 'is not edited' do
             cdn_resource.edit({ cdn_resource: {limit_rate: 0} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Limit rate field is invalid"]
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate field is invalid"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate is invalid"] if @cp_version >= 5.6
           end
         end
 
@@ -758,7 +771,8 @@ describe 'HTTP_PUSH ->' do
           it 'is not edited' do
             cdn_resource.edit({ cdn_resource: {limit_rate: ''} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Limit rate can`t be blank if 'Limit rate after' field is set"]
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate can`t be blank if 'Limit rate after' field is set"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate can't be blank if 'Limit rate after' field is set"] if @cp_version >= 5.6
           end
         end
 
@@ -766,7 +780,8 @@ describe 'HTTP_PUSH ->' do
           it 'is not edited' do
             cdn_resource.edit({ cdn_resource: {limit_rate_after: 'jhkl'} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Limit rate after field is invalid"]
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate after field is invalid"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate after is invalid"] if @cp_version >= 5.6
           end
         end
 
@@ -774,7 +789,8 @@ describe 'HTTP_PUSH ->' do
           it 'is not edited' do
             cdn_resource.edit({ cdn_resource: {limit_rate_after: 2147483648} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Limit rate after field is invalid"]
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate after field is invalid"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate after is invalid"] if @cp_version >= 5.6
           end
         end
 
@@ -782,7 +798,8 @@ describe 'HTTP_PUSH ->' do
           it 'is not edited' do
             cdn_resource.edit({ cdn_resource: {limit_rate_after: 0} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Limit rate after field is invalid"]
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate after field is invalid"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate after is invalid"] if @cp_version >= 5.6
           end
         end
 
@@ -790,7 +807,8 @@ describe 'HTTP_PUSH ->' do
           it 'is not edited' do
             cdn_resource.edit({ cdn_resource: {limit_rate_after: ''} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Limit rate after can`t be blank if 'Limit rate' field is set"]
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate after can`t be blank if 'Limit rate' field is set"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Limit rate after can't be blank if 'Limit rate' field is set"] if @cp_version >= 5.6
           end
         end
 
@@ -817,7 +835,8 @@ describe 'HTTP_PUSH ->' do
           it 'is not edited' do
             cdn_resource.edit({ cdn_resource: {form_pass: {user: [Faker::Internet.user_name], pass: ['']}} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Credential password field can`t be empty"]
+            expect(@cra.conn.page.body.errors).to eq ["Credential password field can`t be empty"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Credential password field can't be empty"] if @cp_version >= 5.6
           end
         end
 
@@ -961,6 +980,9 @@ describe 'VoD_PUSH ->' do
     # add locations to the EG
     @ega.edge_group.manipulation_with_locations(@ega.edge_group.route_manipulation('assign'), { location: @locations[0] })
     @ega_2.edge_group.manipulation_with_locations(@ega_2.edge_group.route_manipulation('assign'), { location: @locations[1] })
+
+    # get version of CP
+    @cp_version = @ega.version
 
     # add edge group to billing plan
     @bpa = BillingPlanActions.new.precondition
@@ -1462,13 +1484,15 @@ describe 'VoD_PUSH ->' do
       it 'path without entry slashes' do
         cdn_resource.purge('home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq 'Only HTTP-type can be purged'
+        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be purged"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be purged"] if @cp_version >= 5.6
       end
 
       it 'path with entry slashes' do
         cdn_resource.purge('/home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq 'Only HTTP-type can be purged'
+        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be purged"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be purged"] if @cp_version >= 5.6
       end
     end
 
@@ -1476,13 +1500,15 @@ describe 'VoD_PUSH ->' do
       it 'path without entry slashes' do
         cdn_resource.prefetch('home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq 'Only HTTP-type can be prefetched'
+        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be prefetched"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be prefetched"] if @cp_version >= 5.6
       end
 
       it 'path with entry slashes' do
         cdn_resource.prefetch('/home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq 'Only HTTP-type can be prefetched'
+        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be prefetched"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be prefetched"] if @cp_version >= 5.6
       end
     end
 

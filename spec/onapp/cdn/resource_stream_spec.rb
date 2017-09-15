@@ -20,6 +20,9 @@ describe 'Live Streaming with internal pp ->' do
     @ega.edge_group.manipulation_with_locations(@ega.edge_group.route_manipulation('assign'), { location: @locations[0] })
     @ega_2.edge_group.manipulation_with_locations(@ega_2.edge_group.route_manipulation('assign'), { location: @locations[1] })
 
+    # get version of CP
+    @cp_version = @ega.version
+
     # add edge group to billing plan
     @bpa = BillingPlanActions.new.precondition
     @eg_limit = @bpa.billing_plan.create_limit_eg_for_current_bp(@bpa.billing_plan.get_current_bp_id, @ega.edge_group.id)
@@ -509,13 +512,15 @@ describe 'Live Streaming with internal pp ->' do
       it 'path without entry slashes' do
         cdn_resource.purge('home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq 'Only HTTP-type can be purged'
+        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be purged"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be purged"] if @cp_version >= 5.6
       end
 
       it 'path with entry slashes' do
         cdn_resource.purge('/home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq 'Only HTTP-type can be purged'
+        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be purged"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be purged"] if @cp_version >= 5.6
       end
     end
 
@@ -523,13 +528,15 @@ describe 'Live Streaming with internal pp ->' do
       it 'path without entry slashes' do
         cdn_resource.prefetch('home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq 'Only HTTP-type can be prefetched'
+        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be prefetched"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be prefetched"] if @cp_version >= 5.6
       end
 
       it 'path with entry slashes' do
         cdn_resource.prefetch('/home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq 'Only HTTP-type can be prefetched'
+        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be prefetched"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be prefetched"] if @cp_version >= 5.6
       end
     end
 
@@ -604,6 +611,9 @@ describe 'Live Streaming with external pp ->' do
     # add locations to the EG
     @ega.edge_group.manipulation_with_locations(@ega.edge_group.route_manipulation('assign'), { location: @locations[0] })
     @ega_2.edge_group.manipulation_with_locations(@ega_2.edge_group.route_manipulation('assign'), { location: @locations[1] })
+
+    # get version of CP
+    @cp_version = @ega.version
 
     # add edge group to billing plan
     @bpa = BillingPlanActions.new.precondition
@@ -1100,13 +1110,15 @@ describe 'Live Streaming with external pp ->' do
       it 'path without entry slashes' do
         cdn_resource.purge('home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq 'Only HTTP-type can be purged'
+        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be purged"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be purged"] if @cp_version >= 5.6
       end
 
       it 'path with entry slashes' do
         cdn_resource.purge('/home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq 'Only HTTP-type can be purged'
+        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be purged"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be purged"] if @cp_version >= 5.6
       end
     end
 
@@ -1114,13 +1126,15 @@ describe 'Live Streaming with external pp ->' do
       it 'path without entry slashes' do
         cdn_resource.prefetch('home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq 'Only HTTP-type can be prefetched'
+        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be prefetched"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be prefetched"] if @cp_version >= 5.6
       end
 
       it 'path with entry slashes' do
         cdn_resource.prefetch('/home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq 'Only HTTP-type can be prefetched'
+        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be prefetched"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be prefetched"] if @cp_version >= 5.6
       end
     end
 
