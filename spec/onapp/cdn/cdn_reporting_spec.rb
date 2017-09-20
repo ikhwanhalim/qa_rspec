@@ -4,6 +4,7 @@ require './groups/cdn_reporting_actions'
 describe 'CDN Reporting ->' do
   before :all do
     @cra = CdnReportingActions.new.precondition
+    @cp_version = @cra.version
   end
 
   let (:cdn_reporting)  { @cra.cdn_reporting }
@@ -85,6 +86,18 @@ describe 'CDN Reporting ->' do
         @cra.get(cdn_reporting.route_reporting_overview, overview_options(start_date: '', end_date: ''))
         expect(@cra.conn.page.code).to eq '422'
         expect(@cra.conn.page.body.errors).to eq ["Start date is not set and End date is not set"]
+      end
+
+      it 'is not get with start_date and end_date are text' do
+        @cra.get(cdn_reporting.route_reporting_overview, overview_options(start_date: 'text', end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Start date is invalid"]
+      end
+
+      it 'is not get with end_date is text' do
+        @cra.get(cdn_reporting.route_reporting_overview, overview_options(end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
       end
     end
   end
@@ -181,6 +194,20 @@ describe 'CDN Reporting ->' do
         expect(@cra.conn.page.code).to eq '422'
         expect(@cra.conn.page.body.errors).to eq ["End date is lower than Start date"]
       end
+
+      it 'is not get with start_date and end_date are text' do
+        skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_cache_statistics, cache_options(start_date: 'text', end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Start date is invalid"]
+      end
+
+      it 'is not get with end_date is text' do
+        skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_cache_statistics, cache_options(end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
+      end
     end
   end
 
@@ -199,9 +226,11 @@ describe 'CDN Reporting ->' do
     end
 
     it 'is not get page with unexisting entity_id' do
-      @cra.get(cdn_reporting.route_reporting_top_files, { top_files: {entity_id: '224534545645343', start_date: "#{start_date}", end_date: "#{end_date}"} })
+      wrong_entity_id = Faker::Number.number(12)
+      @cra.get(cdn_reporting.route_reporting_top_files, { top_files: {entity_id: wrong_entity_id, start_date: "#{start_date}", end_date: "#{end_date}"} })
       expect(@cra.conn.page.code).to eq '422'
-      expect(@cra.conn.page.body.errors).to eq ["getTopFiftyFilesTable request has faced Thrift Error"]
+      expect(@cra.conn.page.body.errors).to eq ["getTopFiftyFilesTable request has faced Thrift Error"] if @cp_version < 5.6
+      expect(@cra.conn.page.body.errors).to eq ["Entity CDN Resource with ID #{wrong_entity_id} was not found at CP"] if @cp_version >= 5.6
     end
 
     it 'is not get page with start_date is empty' do
@@ -220,6 +249,20 @@ describe 'CDN Reporting ->' do
       @cra.get(cdn_reporting.route_reporting_top_files, { top_files: {start_date: "#{start_date}", end_date: ''} })
       expect(@cra.conn.page.code).to eq '422'
       expect(@cra.conn.page.body.errors).to eq ["End date is not set"]
+    end
+
+    it 'is not get with start_date and end_date are text' do
+      skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+      @cra.get(cdn_reporting.route_reporting_top_files, { top_files: {start_date: "text", end_date: 'text'} })
+      expect(@cra.conn.page.code).to eq '422'
+      expect(@cra.conn.page.body.errors).to eq ["Start date is invalid"]
+    end
+
+    it 'is not get with end_date is text' do
+      skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+      @cra.get(cdn_reporting.route_reporting_top_files, { top_files: {end_date: 'text'} })
+      expect(@cra.conn.page.code).to eq '422'
+      expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
     end
   end
 
@@ -247,6 +290,20 @@ describe 'CDN Reporting ->' do
       @cra.get(cdn_reporting.route_reporting_top_referrers, { top_referrers: {start_date: "#{start_date}", end_date: ''} })
       expect(@cra.conn.page.code).to eq '422'
       expect(@cra.conn.page.body.errors).to eq ["End date is not set"]
+    end
+
+    it 'is not get with start_date and end_date are text' do
+      skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+      @cra.get(cdn_reporting.route_reporting_top_referrers, { top_referrers: {start_date: "text", end_date: 'text'} })
+      expect(@cra.conn.page.code).to eq '422'
+      expect(@cra.conn.page.body.errors).to eq ["Start date is invalid"]
+    end
+
+    it 'is not get with end_date is text' do
+      skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+      @cra.get(cdn_reporting.route_reporting_top_referrers, { top_referrers: {end_date: 'text'} })
+      expect(@cra.conn.page.code).to eq '422'
+      expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
     end
   end
 
@@ -303,10 +360,26 @@ describe 'CDN Reporting ->' do
       expect(@cra.conn.page.body.errors).to eq ["End date is not set"]
     end
 
-    it 'is not get page with unexisting entity_id' do
-      @cra.get(cdn_reporting.route_reporting_status_codes, status_options.merge({ status_codes: {entity_id: '234354asdsff65768575432'} }))
+    it 'is not get with start_date and end_date are text' do
+      skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+      @cra.get(cdn_reporting.route_reporting_status_codes, status_options(start_date: 'text', end_date: 'text'))
       expect(@cra.conn.page.code).to eq '422'
-      expect(@cra.conn.page.body.errors).to eq ["getStatusCodeLineChart request has faced Thrift Error and getStatusCodeTable request has faced Thrift Error"]
+      expect(@cra.conn.page.body.errors).to eq ["Start date is invalid"]
+    end
+
+    it 'is not get with end_date is text' do
+      skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+      @cra.get(cdn_reporting.route_reporting_status_codes, status_options(end_date: 'text'))
+      expect(@cra.conn.page.code).to eq '422'
+      expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
+    end
+
+    it 'is not get page with unexisting entity_id' do
+      wrong_entity_id = Faker::Number.number(12)
+      @cra.get(cdn_reporting.route_reporting_status_codes, status_options.merge({ status_codes: {entity_id: wrong_entity_id} }))
+      expect(@cra.conn.page.code).to eq '422'
+      expect(@cra.conn.page.body.errors).to eq ["getStatusCodeLineChart request has faced Thrift Error and getStatusCodeTable request has faced Thrift Error"] if @cp_version < 5.6
+      expect(@cra.conn.page.body.errors).to eq ["Entity CDN Resource with ID #{wrong_entity_id} was not found at CP"] if @cp_version >= 5.6
     end
   end
 
@@ -335,6 +408,20 @@ describe 'CDN Reporting ->' do
       @cra.get(cdn_reporting.route_reporting_visitors, { visitors: {start_date: "#{start_date}", end_date: ''} })
       expect(@cra.conn.page.code).to eq '422'
       expect(@cra.conn.page.body.errors).to eq ["End date is not set"]
+    end
+
+    it 'is not get with start_date and end_date are text' do
+      skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+      @cra.get(cdn_reporting.route_reporting_visitors, { visitors: {start_date: 'text', end_date: 'text'} })
+      expect(@cra.conn.page.code).to eq '422'
+      expect(@cra.conn.page.body.errors).to eq ["Start date is invalid"]
+    end
+
+    it 'is not get with end_date is text' do
+      skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+      @cra.get(cdn_reporting.route_reporting_visitors, { visitors: {end_date: 'text'} })
+      expect(@cra.conn.page.code).to eq '422'
+      expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
     end
   end
 
@@ -406,6 +493,20 @@ describe 'CDN Reporting ->' do
         @cra.get(cdn_reporting.route_reporting_stream_bandwidth, bandwidth_options(type: '123', end_date: "#{wrong_end_date}"))
         expect(@cra.conn.page.code).to eq '422'
         expect(@cra.conn.page.body.errors).to eq ["End date is lower than Start date and Type 123 is unknown. Expected values: gb,mbps"]
+      end
+
+      it 'is not get with start_date and end_date are text' do
+        skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_stream_bandwidth, bandwidth_options(start_date: 'text', end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Start date is invalid"]
+      end
+
+      it 'is not get with end_date is text' do
+        skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_stream_bandwidth, bandwidth_options(end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
       end
     end
   end
@@ -482,6 +583,20 @@ describe 'CDN Reporting ->' do
         expect(@cra.conn.page.code).to eq '422'
         expect(@cra.conn.page.body.errors).to eq ["Filters for CDN Resource is invalid because CDN Resources with 'remote_id' [0] is absent in Control Panel"]
       end
+
+      it 'is not get with start_date and end_date are text' do
+        skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(start_date: 'text', end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Start date is invalid"]
+      end
+
+      it 'is not get with end_date is text' do
+        skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
+      end
     end
   end
 
@@ -539,6 +654,18 @@ describe 'CDN Reporting ->' do
         expect(@cra.conn.page.code).to eq '422'
         expect(@cra.conn.page.body.errors).to eq ["End date is not set"]
       end
+
+      it 'is not get with start_date and end_date are text' do
+        @cra.get(cdn_reporting.route_reporting_admin, admin_options(start_date: 'text', end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Start date is invalid"]
+      end
+
+      it 'is not get with end_date is text' do
+        @cra.get(cdn_reporting.route_reporting_admin, admin_options(end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
+      end
    end
 
     context '50 cdn resources ->' do
@@ -565,6 +692,20 @@ describe 'CDN Reporting ->' do
         @cra.get(cdn_reporting.route_reporting_top_50_cdn_resources, admin_options(end_date: ''))
         expect(@cra.conn.page.code).to eq '422'
         expect(@cra.conn.page.body.errors).to eq ["End date is not set"]
+      end
+
+      it 'is not get with start_date and end_date are text' do
+        skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_top_50_cdn_resources, admin_options(start_date: 'text', end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Start date is invalid"]
+      end
+
+      it 'is not get with end_date is text' do
+        skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_top_50_cdn_resources, admin_options(end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
       end
     end
 
@@ -593,6 +734,20 @@ describe 'CDN Reporting ->' do
         expect(@cra.conn.page.code).to eq '422'
         expect(@cra.conn.page.body.errors).to eq ["End date is not set"]
       end
+
+      it 'is not get with start_date and end_date are text' do
+        skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_locations, admin_options(start_date: 'text', end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Start date is invalid"]
+      end
+
+      it 'is not get with end_date is text' do
+        skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_locations, admin_options(end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
+      end
     end
 
     context 'top 50 http errors ->' do
@@ -619,6 +774,20 @@ describe 'CDN Reporting ->' do
         @cra.get(cdn_reporting.route_reporting_top_50_http_errors, admin_options(end_date: ''))
         expect(@cra.conn.page.code).to eq '422'
         expect(@cra.conn.page.body.errors).to eq ["End date is not set"]
+      end
+
+      it 'is not get with start_date and end_date are text' do
+        skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_top_50_http_errors, admin_options(start_date: 'text', end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Start date is invalid"]
+      end
+
+      it 'is not get with end_date is text' do
+        skip "it is not fixed in CP < v5.6 CORE-9864" if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_top_50_http_errors, admin_options(end_date: 'text'))
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
       end
     end
   end
