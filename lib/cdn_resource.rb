@@ -8,7 +8,8 @@ class CdnResource
               :password_on, :url_signing_key, :password_unauthorized_html, :origin_policy, :cache_expiry, :proxy_cache_key,
               :http_bot_blocked, :ignore_set_cookie_on, :proxy_read_time_out, :proxy_connect_time_out, :hls_on,
               :hls_force_cache, :countries, :passwords, :token_auth_secure_paths, :token_auth_backup_key, :token_auth_on,
-              :token_auth_primary_key, :secure_wowza_token, :secure_wowza_on, :publishing_location, :failover_publishing_location
+              :token_auth_primary_key, :secure_wowza_token, :secure_wowza_on, :publishing_location, :failover_publishing_location,
+              :letsencrypt_ssl_on
 
   def initialize(interface)
     @interface = interface
@@ -280,5 +281,9 @@ class CdnResource
 
   def route_http_caching_rule(id)
     "#{route_http_caching_rules}/#{id}"
+  end
+
+  def route_cdn_letsencrypts
+    "#{route_cdn_resource}/letsencrypts"
   end
 end

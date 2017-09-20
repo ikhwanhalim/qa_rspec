@@ -135,6 +135,32 @@ describe 'HTTP_PUSH ->' do
             expect(@cra.conn.page.body.errors[0]).to eq 'CdnResource not found'
           end
         end
+
+        context 'lets encrypt' do
+          it 'is created' do
+            skip 'LE is not supported in CP < v5.6' if @cp_version < 5.6
+            cdn_resource.create_http_resource(type: 'HTTP_PUSH', edge_group_ids: [@ega.edge_group.id], letsencrypt_ssl_on: 1)
+            expect(cdn_resource.id).not_to be nil
+            cdn_resource.get
+            expect(cdn_resource.letsencrypt_ssl_on).to be true
+            @cra.get(cdn_resource.route_cdn_letsencrypts)
+            expect(@cra.conn.page.code).to eq '200'
+            expect(@cra.conn.page.body.count).to eq 2
+          end
+
+          it 'is deleted' do
+            skip 'LE is not supported in CP < v5.6' if @cp_version < 5.6
+            cdn_resource.remove
+            expect(@cra.conn.page.code).to eq '204'
+          end
+
+          it 'make sure cdn resource is deleted' do
+            skip 'LE is not supported in CP < v5.6' if @cp_version < 5.6
+            @cra.get(cdn_resource.route_cdn_resource)
+            expect(@cra.conn.page.code).to eq '404'
+            expect(@cra.conn.page.body.errors[0]).to eq 'CdnResource not found'
+          end
+        end
       end
 
       context 'negative ->' do
@@ -396,6 +422,28 @@ describe 'HTTP_PUSH ->' do
             resource = @cra.get(cdn_resource.route_cdn_resource)
             expect(resource.cdn_resource.ssl_on).to be false
             expect(resource.cdn_resource.cdn_ssl_certificate_id).to eq @csa.ssl_cert.id
+          end
+        end
+
+        context 'resource by enabling/disabling letsencrypts ->' do
+          it 'is enabled' do
+            skip 'LE is not supported in CP < v5.6' if @cp_version < 5.6
+            cdn_resource.edit({ cdn_resource: {letsencrypt_ssl_on: 1} })
+            expect(@cra.conn.page.code).to eq '204'
+            cdn_resource.get
+            expect(cdn_resource.ssl_on).to be false
+            expect(cdn_resource.cdn_ssl_certificate_id).to be nil
+            expect(cdn_resource.letsencrypt_ssl_on).to be true
+          end
+
+          it 'is disabled' do
+            skip 'LE is not supported in CP < v5.6' if @cp_version < 5.6
+            cdn_resource.edit({ cdn_resource: {letsencrypt_ssl_on: 0} })
+            expect(@cra.conn.page.code).to eq '204'
+            cdn_resource.get
+            expect(cdn_resource.ssl_on).to be false
+            expect(cdn_resource.cdn_ssl_certificate_id).to be nil
+            expect(cdn_resource.letsencrypt_ssl_on).to be false
           end
         end
 
