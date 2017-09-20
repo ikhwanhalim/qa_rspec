@@ -366,6 +366,50 @@ describe 'DnsZone' do
   end
 end
 
+describe 'Search ->' do
+  before(:all) do
+    @dza_1 = DnsZoneActions.new.precondition
+    @dza_2 = DnsZoneActions.new.precondition
+    @cp_version = @dza_1.version
+  end
+
+  let(:dns_zone_1) { @dza_1.dns_zone }
+  let(:dns_zone_2) { @dza_2.dns_zone }
+
+
+  it 'make sure two dns zones are created' do
+    expect(dns_zone_1.id).not_to be nil
+    expect(dns_zone_1.id).not_to be nil
+  end
+
+  it 'should find by id' do
+    skip('it is not supported on CP < v5.6') if @cp_version < 5.6
+    @dza_1.get(dns_zone_1.route_dns_zones, { q: dns_zone_1.id })
+    expect(@dza_1.conn.page.body.count).to eq 1
+  end
+
+  it 'should find by name' do
+    skip('it is not supported on CP < v5.6') if @cp_version < 5.6
+    @dza_1.get(dns_zone_1.route_dns_zones, { q: dns_zone_1.name })
+    expect(@dza_1.conn.page.body.count).to eq 1
+  end
+
+  it 'remove first ssl and try to search' do
+    skip('it is not supported on CP < v5.6') if @cp_version < 5.6
+    dns_zone_1.remove_dns_zone
+    @dza_1.get(dns_zone_1.route_dns_zones, { q: dns_zone_1.name })
+    expect(@dza_1.conn.page.body.count).to eq 0
+    @dza_1.get(dns_zone_1.route_dns_zones, { q: dns_zone_1.id })
+    expect(@dza_1.conn.page.body.count).to eq 0
+  end
+
+  it 'remove second ssl cert' do
+    dns_zone_2.remove_dns_zone
+    @dza_2.get(dns_zone_2.route_dns_zone)
+    expect(@dza_2.conn.page.code).to eq '404'
+  end
+end
+
 describe 'Negative tests' do
   context 'NS record' do
     before(:all) do
