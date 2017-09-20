@@ -9,6 +9,7 @@ require './groups/cdn_resource_actions'
 describe 'Ssl Certificate' do
   before :all do
     @csa = CdnSslActions.new.precondition
+    @cp_version = @csa.version
   end
 
   let (:ssl_cert) {@csa.ssl_cert}
@@ -98,6 +99,50 @@ describe 'Ssl Certificate' do
       expect(ssl_cert.name).to eq ConstantsCdn::NAME_SSL_EDIT
       expect(ssl_cert.cdn_reference.size).to be > 3
       expect(ssl_cert.cdn_reference.class).to eq Fixnum
+    end
+  end
+
+  context 'Search ->' do
+    before :all do
+      @csa_1 = CdnSslActions.new.precondition
+      @csa_2 = CdnSslActions.new.precondition
+    end
+
+    let (:ssl_cert_1) {@csa_1.ssl_cert}
+    let (:ssl_cert_2) {@csa_2.ssl_cert}
+
+    it 'create two ssl certs' do
+      ssl_cert_1.create_ssl_certificate
+      expect(ssl_cert_1.id).not_to be nil
+      ssl_cert_2.create_ssl_certificate
+      expect(ssl_cert_2.id).not_to be nil
+    end
+
+    it 'should find by id' do
+      skip('it is not supported on CP < v5.6') if @cp_version < 5.6
+      @csa_1.get(ssl_cert_1.route_ssl_certificates, { q: ssl_cert_1.id })
+      expect(@csa_1.conn.page.body.count).to eq 1
+    end
+
+    it 'should find by name' do
+      skip('it is not supported on CP < v5.6') if @cp_version < 5.6
+      @csa_1.get(ssl_cert_1.route_ssl_certificates, { q: ssl_cert_1.name })
+      expect(@csa_1.conn.page.body.count).to eq 1
+    end
+
+    it 'remove first ssl and try to search' do
+      skip('it is not supported on CP < v5.6') if @cp_version < 5.6
+      ssl_cert_1.remove_ssl_certificate
+      @csa_1.get(ssl_cert_1.route_ssl_certificates, { q: ssl_cert_1.name })
+      expect(@csa_1.conn.page.body.count).to eq 0
+      @csa_1.get(ssl_cert_1.route_ssl_certificates, { q: ssl_cert_1.id })
+      expect(@csa_1.conn.page.body.count).to eq 0
+    end
+
+    it 'remove second ssl cert' do
+      ssl_cert_2.remove_ssl_certificate
+      @csa_2.get(ssl_cert_2.route_ssl_certificate)
+      expect(@csa_2.conn.page.code).to eq '404'
     end
   end
 
