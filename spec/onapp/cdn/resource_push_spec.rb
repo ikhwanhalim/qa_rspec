@@ -1519,7 +1519,7 @@ describe 'VoD_PUSH ->' do
     end
   end
 
-  context 'purge/prefetch/instruction/advanced_reporting ->' do
+  context 'purge/prefetch/instruction/advanced_reporting/le ->' do
     before :all do
       @cra.cdn_resource.create_vod_stream_resource(advanced: true, type: 'STREAM_VOD_PUSH', edge_group_ids: [@ega.edge_group.id, @ega_2.edge_group.id])
     end
@@ -1579,6 +1579,15 @@ describe 'VoD_PUSH ->' do
         @cra.get(cdn_resource.route_advanced_reporting, { stats_type: 'status_codes' })
         expect(@cra.conn.page.code).to eq '422'
         expect(@cra.conn.page.body.errors).to eq ["Advanced Reporting is not available for Streaming Cdn Resources"]
+      end
+    end
+
+    context 'LetsEncrypts page ->' do
+      it 'is not gettable' do
+        skip 'LE is not supported in CP < v5.6' if @cp_version < 5.6
+        @cra.get(cdn_resource.route_cdn_letsencrypts)
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Let's Encrypt Certificate is available for CDN Resources with HTTP-type only"]
       end
     end
   end

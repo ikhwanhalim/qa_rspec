@@ -39,6 +39,7 @@ class CdnResource
     end
 
     data.merge!(params)
+    data.delete(:origin) if data.key?(:origins)
     json_response = interface.post("#{route_cdn_resources}", cdn_resource: data)
     attrs_update json_response
   end
@@ -58,6 +59,7 @@ class CdnResource
     end
 
     data.merge!(params)
+    data.delete(:origin) if data.key?(:origins)
     json_response = interface.post("#{route_cdn_resources}", cdn_resource: data)
     attrs_update json_response
   end

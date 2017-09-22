@@ -204,7 +204,8 @@ describe 'HTTP_PULL ->' do
           cdn_resource.create_http_resource(type: 'HTTP_PULL', origins: [Faker::Internet.ip_v4_address, Faker::Internet.ip_v4_address, \
                                             Faker::Internet.ip_v4_address, Faker::Internet.ip_v4_address], edge_group_ids: [@ega.edge_group.id])
           expect(@cra.conn.page.code).to eq '422'
-          expect(@cra.conn.page.body.errors).to eq ["Origins amount is beyond maximum of 3"]
+          expect(@cra.conn.page.body.errors).to eq ["Origins amount is beyond maximum of 3"] if @cp_version < 5.6
+          expect(@cra.conn.page.body.errors).to eq ["Origins accepts maximum 3 IP Addresses or single Domain Name"] if @cp_version >= 5.6
         end
 
         it 'is not created with 3 origins(hostname)' do
@@ -215,9 +216,12 @@ describe 'HTTP_PULL ->' do
         end
 
         it 'is not created with 3 origins(1-st-hostname&2-nd&3-rd-IPs)' do
-          cdn_resource.create_http_resource(type: 'HTTP_PULL', origins: [Faker::Internet.ip_v4_address, Faker::Internet.domain_name, \
-                                            Faker::Internet.domain_name], edge_group_ids: [@ega.edge_group.id])
+          wrong_origins_1 = Faker::Internet.domain_name
+          wrong_origins_2 = Faker::Internet.domain_name
+          cdn_resource.create_http_resource(type: 'HTTP_PULL', origins: [Faker::Internet.ip_v4_address, wrong_origins_1, \
+                                            wrong_origins_2], edge_group_ids: [@ega.edge_group.id])
           expect(@cra.conn.page.code).to eq '422'
+          expect(@cra.conn.page.body.errors).to eq ["Origins include invalid IP '#{wrong_origins_1}'", "Origins include invalid IP '#{wrong_origins_2}'"] if @cp_version >= 5.6
           expect(@cra.conn.page.body.errors.count).to eq 2
         end
 
@@ -230,7 +234,9 @@ describe 'HTTP_PULL ->' do
         it 'is not created with blank origin' do
           cdn_resource.create_http_resource(type: 'HTTP_PULL', origin: '', edge_group_ids: [@ega.edge_group.id])
           expect(@cra.conn.page.code).to eq '422'
-          expect(@cra.conn.page.body.errors).to eq ["Origins can't be blank"]
+          expect(@cra.conn.page.body.errors).to eq ["Origins can't be blank"] if @cp_version < 5.6
+          expect(@cra.conn.page.body.errors).to eq ["Origin accept single Domain/IP Address and can not be blank for CDN#{\
+                                                   } Resources with HTTP PULL-type. For multiple IP Addresses can be used Origins"] if @cp_version >= 5.6
         end
 
         it 'is not created with unexisting EG id' do
@@ -257,7 +263,8 @@ describe 'HTTP_PULL ->' do
           custom_port = "#{Faker::Internet.ip_v4_address}:#{Faker::Number.between(1, 1024)}"
           cdn_resource.create_http_resource(type: 'HTTP_PULL', edge_group_ids: [@ega.edge_group.id], origin: custom_port)
           expect(@cra.conn.page.code).to eq '422'
-          expect(@cra.conn.page.body.errors).to eq ["Origins include invalid port"]
+          expect(@cra.conn.page.body.errors).to eq ["Origins include invalid port"] if @cp_version < 5.6
+          expect(@cra.conn.page.body.errors).to eq ["Origins include invalid port"] if @cp_version >= 5.6
         end
 
         it 'is not created with custom origin port more than 65535' do
@@ -671,7 +678,8 @@ describe 'HTTP_PULL ->' do
             new_origin = "#{Faker::Internet.ip_v4_address}:#{port}"
             cdn_resource.edit({ cdn_resource: {origin: "#{new_origin}"} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Origins include invalid port"]
+            expect(@cra.conn.page.body.errors).to eq ["Origins include invalid port"] # if @cp_version < 5.6
+            # expect(@cra.conn.page.body.errors).to eq  ["Origin include invalid port and Origins include invalid port"] if @cp_version >= 5.6
           end
         end
 
@@ -696,7 +704,8 @@ describe 'HTTP_PULL ->' do
             cdn_resource.edit({ cdn_resource: {origins: [Faker::Internet.ip_v4_address, Faker::Internet.ip_v4_address, \
                                 Faker::Internet.ip_v4_address, Faker::Internet.ip_v4_address]} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Origins amount is beyond maximum of 3"]
+            expect(@cra.conn.page.body.errors).to eq ["Origins amount is beyond maximum of 3"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Origins accepts maximum 3 IP Addresses or single Domain Name"] if @cp_version >= 5.6
           end
         end
 
@@ -1061,7 +1070,8 @@ describe 'HTTP_PULL ->' do
             cdn_resource.edit({ cdn_resource: {origin: "#{Faker::Internet.ip_v4_address}:3243"} })
             cdn_resource.edit({ cdn_resource: {origin_policy: 'AUTO'} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Origins do not allow to use ports"]
+            expect(@cra.conn.page.body.errors).to eq ["Origins do not allow to use ports"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Origin do not allow to use ports and Origins do not allow to use ports"] if @cp_version >= 5.6
             cdn_resource.edit({ cdn_resource: {origin: Faker::Internet.ip_v4_address} })  #return to original
           end
         end
@@ -1130,7 +1140,8 @@ describe 'HTTP_PULL ->' do
           it 'is not edited' do
             cdn_resource.edit({ cdn_resource: {cache_expiry: 0} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Cache expiry is invalid"]
+            expect(@cra.conn.page.body.errors).to eq ["Cache expiry field is invalid"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Cache expiry is invalid"] if @cp_version >= 5.6
           end
         end
 
@@ -1138,7 +1149,8 @@ describe 'HTTP_PULL ->' do
           it 'is not edited' do
             cdn_resource.edit({ cdn_resource: {cache_expiry: 35000001} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Cache expiry is invalid"]
+            expect(@cra.conn.page.body.errors).to eq ["Cache expiry field is invalid"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Cache expiry is invalid"] if @cp_version >= 5.6
           end
         end
 
@@ -1545,18 +1557,19 @@ describe 'STREAM_VOD_PULL ->' do
         end
 
         it 'is not created with more than 1 origin' do
-
           origin_1 = "#{Faker::Internet.ip_v4_address}"
           origin_2 = "#{Faker::Internet.ip_v4_address}"
           cdn_resource.create_vod_stream_resource(type: 'STREAM_VOD_PULL', origin: [origin_1, origin_2], edge_group_ids: [@ega.edge_group.id])
           expect(@cra.conn.page.code).to eq '422'
-          expect(@cra.conn.page.body.errors).to eq ["Origins have invalid Ip/hostname for '[\"#{origin_1}\", \"#{origin_2}\"]'"]
+          expect(@cra.conn.page.body.errors).to eq ["Origins have invalid Ip/hostname for '[\"#{origin_1}\", \"#{origin_2}\"]'"] if @cp_version < 5.6
+          expect(@cra.conn.page.body.errors).to eq ["Origin accept single Domain/IP Address and can not be blank for CDN Resources with STREAM VOD PULL-type"] if @cp_version >= 5.6
         end
 
         it 'is not created with empty origin ' do
           cdn_resource.create_vod_stream_resource(type: 'STREAM_VOD_PULL', origin: '', edge_group_ids: [@ega.edge_group.id])
           expect(@cra.conn.page.code).to eq '422'
-          expect(@cra.conn.page.body.errors).to eq ["Origins can't be blank"]
+          expect(@cra.conn.page.body.errors).to eq ["Origins can't be blank"] if @cp_version < 5.6
+          expect(@cra.conn.page.body.errors).to eq ["Origin accept single Domain/IP Address and can not be blank for CDN Resources with STREAM VOD PULL-type"] if @cp_version >= 5.6
         end
 
         it 'is not created with unexisting EG id ' do
@@ -1565,12 +1578,54 @@ describe 'STREAM_VOD_PULL ->' do
           expect(@cra.conn.page.body.errors).to eq ["EdgeGroup not found"]
         end
 
-        it 'is not created with incorrect resource type ' do
+        it 'is not created with incorrect resource type' do
           skip 'todo'
           #TODO modify attr_update
           cdn_resource.create_vod_stream_resource(type: 'STREAM_VOD_PULL', resource_type: 'HTTP_PULLII', edge_group_ids: [@ega.edge_group.id])
           expect(@cra.conn.page.code).to eq '403'
           expect(@cra.conn.page.body.errors).to eq ["You do not have permissions for this action"]
+        end
+
+        it 'is not created with origin as array' do
+          skip 'it is not supported in CP < v5.6' if @cp_version < 5.6
+          cdn_resource.create_vod_stream_resource(type: 'STREAM_VOD_PULL', origin: [], edge_group_ids: [@ega.edge_group.id])
+          expect(@cra.conn.page.code).to eq '422'
+          expect(@cra.conn.page.body.errors).to eq ["Origin accept single Domain/IP Address and can not be blank for CDN Resources with STREAM VOD PULL-type"]
+        end
+
+        it 'is not created with originS key as empty line' do
+          skip 'it is not supported in CP < v5.6' if @cp_version < 5.6
+          cdn_resource.create_vod_stream_resource(type: 'STREAM_VOD_PULL', origins: '', edge_group_ids: [@ega.edge_group.id])
+          expect(@cra.conn.page.code).to eq '422'
+          expect(@cra.conn.page.body.errors).to eq ["Origin accept single Domain/IP Address and can not be blank for CDN Resources with STREAM VOD PULL-type"]
+        end
+
+        it 'is not created with originS key as array' do
+          skip 'it is not supported in CP < v5.6' if @cp_version < 5.6
+          cdn_resource.create_vod_stream_resource(type: 'STREAM_VOD_PULL', origins: [], edge_group_ids: [@ega.edge_group.id])
+          expect(@cra.conn.page.code).to eq '422'
+          expect(@cra.conn.page.body.errors).to eq ["Origin accept single Domain/IP Address and can not be blank for CDN Resources with STREAM VOD PULL-type"]
+        end
+
+        it 'is not created with originS key as array with ip' do
+          skip 'it is not supported in CP < v5.6' if @cp_version < 5.6
+          cdn_resource.create_vod_stream_resource(type: 'STREAM_VOD_PULL', origins: [Faker::Internet.ip_v4_address], edge_group_ids: [@ega.edge_group.id])
+          expect(@cra.conn.page.code).to eq '422'
+          expect(@cra.conn.page.body.errors).to eq ["Origin accept single Domain/IP Address and can not be blank for CDN Resources with STREAM VOD PULL-type"]
+        end
+
+        it 'is not created with originS key as array with 3 IPs' do
+          skip 'it is not supported in CP < v5.6' if @cp_version < 5.6
+          cdn_resource.create_vod_stream_resource(type: 'STREAM_VOD_PULL', origins: [Faker::Internet.ip_v4_address, Faker::Internet.ip_v4_address, Faker::Internet.ip_v4_address ], edge_group_ids: [@ega.edge_group.id])
+          expect(@cra.conn.page.code).to eq '422'
+          expect(@cra.conn.page.body.errors).to eq ["Origin accept single Domain/IP Address and can not be blank for CDN Resources with STREAM VOD PULL-type"]
+        end
+
+        it 'is not created with originS key as array with 4 IPs' do
+          skip 'it is not supported in CP < v5.6' if @cp_version < 5.6
+          cdn_resource.create_vod_stream_resource(type: 'STREAM_VOD_PULL', origins: [Faker::Internet.ip_v4_address, Faker::Internet.ip_v4_address, Faker::Internet.ip_v4_address, Faker::Internet.ip_v4_address ], edge_group_ids: [@ega.edge_group.id])
+          expect(@cra.conn.page.code).to eq '422'
+          expect(@cra.conn.page.body.errors).to eq ["Origin accept single Domain/IP Address and can not be blank for CDN Resources with STREAM VOD PULL-type"]
         end
       end
     end
@@ -1729,7 +1784,8 @@ describe 'STREAM_VOD_PULL ->' do
             wrong_origin = "4#{Faker::Internet.ip_v4_address}432"
             cdn_resource.edit({ cdn_resource: {origin: wrong_origin} })
             expect(@cra.conn.page.code).to eq '422'
-            expect(@cra.conn.page.body.errors).to eq ["Origins have invalid Ip/hostname for '#{wrong_origin}'"]
+            expect(@cra.conn.page.body.errors).to eq ["Origins have invalid Ip/hostname for '#{wrong_origin}'"] if @cp_version < 5.6
+            expect(@cra.conn.page.body.errors).to eq ["Origin include invalid IP/Hostname for '#{wrong_origin}'"] if @cp_version >= 5.6
           end
         end
 
@@ -1933,7 +1989,7 @@ describe 'STREAM_VOD_PULL ->' do
     end
   end
 
-  context 'purge/prefetch/instruction/advanced_reporting ->' do
+  context 'purge/prefetch/instruction/advanced_reporting/le ->' do
     before :all do
       @cra.cdn_resource.create_vod_stream_resource(advanced: true, type: 'STREAM_VOD_PULL', edge_group_ids: [@ega.edge_group.id, @ega_2.edge_group.id])
     end
@@ -1946,14 +2002,14 @@ describe 'STREAM_VOD_PULL ->' do
       it 'path without entry slashes' do
         cdn_resource.purge('home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be purged"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.error).to eq "Only HTTP-type can be purged"  if @cp_version < 5.6
         expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be purged"] if @cp_version >= 5.6
       end
 
       it 'path with entry slashes' do
         cdn_resource.purge('/home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be purged"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.error).to eq "Only HTTP-type can be purged"  if @cp_version < 5.6
         expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be purged"] if @cp_version >= 5.6
       end
     end
@@ -1962,14 +2018,14 @@ describe 'STREAM_VOD_PULL ->' do
       it 'path without entry slashes' do
         cdn_resource.prefetch('home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be prefetched"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.error).to eq "Only HTTP-type can be prefetched" if @cp_version < 5.6
         expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be prefetched"] if @cp_version >= 5.6
       end
 
       it 'path with entry slashes' do
         cdn_resource.prefetch('/home/123.jpeg')
         expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.error).to eq ["Only HTTP-type can be prefetched"]  if @cp_version < 5.6
+        expect(@cra.conn.page.body.error).to eq "Only HTTP-type can be prefetched"  if @cp_version < 5.6
         expect(@cra.conn.page.body.errors).to eq ["Only HTTP-type can be prefetched"] if @cp_version >= 5.6
       end
     end
@@ -1993,6 +2049,15 @@ describe 'STREAM_VOD_PULL ->' do
         @cra.get(cdn_resource.route_advanced_reporting, { stats_type: 'status_codes' })
         expect(@cra.conn.page.code).to eq '422'
         expect(@cra.conn.page.body.errors).to eq ["Advanced Reporting is not available for Streaming Cdn Resources"]
+      end
+    end
+
+    context 'LetsEncrypts page ->' do
+      it 'is not gettable' do
+        skip 'LE is not supported in CP < v5.6' if @cp_version < 5.6
+        @cra.get(cdn_resource.route_cdn_letsencrypts)
+        expect(@cra.conn.page.code).to eq '422'
+        expect(@cra.conn.page.body.errors).to eq ["Let's Encrypt Certificate is available for CDN Resources with HTTP-type only"]
       end
     end
   end
