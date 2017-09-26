@@ -531,6 +531,28 @@ describe 'CDN Reporting ->' do
         expect(@cra.conn.page.body.concurrent_statistics.stream_concurrent_line_chart.class).to eq Array
         # expect(@cra.conn.page.body.concurrent_statistics.stream_concurrent_line_chart.count).to eq 2
       end
+
+      it 'is get page with incorrect format of resources(should return everything)' do
+        # CORE-9863, CORE-10626
+        skip 'it is not supported in CP < v5.6' if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(resources: '' ))
+        expect(@cra.conn.page.code).to eq '200'
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(resources: ['']))
+        expect(@cra.conn.page.code).to eq '200'
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(resources: '1111111111111'))
+        expect(@cra.conn.page.code).to eq '200'
+      end
+
+      it 'is get page with incorrect format of locations(should return everything)' do
+        # CORE-9863, CORE-10626
+        skip 'it is not supported in CP < v5.6' if @cp_version < 5.6
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(locations: ['']))
+        expect(@cra.conn.page.code).to eq '200'
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(locations: '' ))
+        expect(@cra.conn.page.code).to eq '200'
+        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(locations: ['1111111111111']))
+        expect(@cra.conn.page.code).to eq '200'
+      end
     end
 
     context 'negative ->' do
@@ -568,20 +590,6 @@ describe 'CDN Reporting ->' do
         @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(end_date: '2017-02-30'))
         expect(@cra.conn.page.code).to eq '422'
         expect(@cra.conn.page.body.errors).to eq ["End date is invalid"]
-      end
-
-      it 'is not get page without resources' do
-        skip "https://onappdev.atlassian.net/browse/CORE-9863"
-        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(resources: []))
-        expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.errors).to eq ["Filters for CDN Resource is invalid because CDN Resources with 'remote_id' [0] is absent in Control Panel"]
-      end
-
-      it 'is not get page with locations id is text' do
-        skip "https://onappdev.atlassian.net/browse/CORE-9863"
-        @cra.get(cdn_reporting.route_reporting_concurrent_statistics, concurrent_options(locations: ['text']))
-        expect(@cra.conn.page.code).to eq '422'
-        expect(@cra.conn.page.body.errors).to eq ["Filters for CDN Resource is invalid because CDN Resources with 'remote_id' [0] is absent in Control Panel"]
       end
 
       it 'is not get with start_date and end_date are text' do
