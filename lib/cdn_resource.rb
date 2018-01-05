@@ -1,5 +1,8 @@
+require 'cdn_delivery'
+
 class CdnResource
   include Waiter
+  include CdnDelivery
 
   attr_reader :interface, :id, :origins, :status, :cdn_hostname, :push_origin_hostname, :secondary_hostnames, :ssl_on,
               :ssl, :cdn_ssl_certificate_id, :cname, :resource_type, :user_id, :last_24h_cost, :cdn_reference, :origins,
@@ -34,7 +37,8 @@ class CdnResource
       data.merge!(common_push_params)         if type == 'HTTP_PUSH'
     else
       data = basic_params(type)
-      data.merge!(common_pull_params)         if type == 'HTTP_PULL'
+      data.merge!(common_pull_params)         if type == 'HTTP_PULL' && $deliveryOn == false
+      data.merge!(cdn_common_pull_params)     if type == 'HTTP_PULL' && $deliveryOn == true
       data.merge!(common_push_params)         if type == 'HTTP_PUSH'
     end
 

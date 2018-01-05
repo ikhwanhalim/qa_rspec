@@ -3,6 +3,7 @@ require './groups/edge_group_actions'
 require './groups/billing_plan_actions'
 require './groups/cdn_resource_actions'
 require './groups/cdn_ssl_actions'
+require 'cdn_delivery'
 
 
 describe 'HTTP_PULL ->' do
@@ -53,6 +54,7 @@ describe 'HTTP_PULL ->' do
             expect(cdn_resource.id).not_to be nil
             cdn_resource.get
             expect(cdn_resource.ssl_on).to be false
+            expect(cdn_resource.get_http_status('200', cdn_resource.cname)).to eq '200' if $deliveryOn == true
           end
 
           it 'is deleted' do
