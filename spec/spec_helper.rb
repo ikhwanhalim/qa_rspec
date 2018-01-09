@@ -20,4 +20,6 @@ RSpec.configure do |c|
     end
   end
 end
+
+#Turn on this flag to run CDN related spec
 $deliveryOn = true
