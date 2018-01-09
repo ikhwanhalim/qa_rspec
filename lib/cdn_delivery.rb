@@ -1,6 +1,4 @@
 require 'net/http'
-require 'resolv-replace'
-require 'cdn_resource'
 
 module CdnDelivery
   def get_http_status(cname, scheme = 'http', ssl_hostname = nil)
