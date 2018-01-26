@@ -39,7 +39,8 @@ class CdnResource
       data = basic_params(type)
       data.merge!(common_pull_params)         if type == 'HTTP_PULL' && $deliveryOn == false
       data.merge!(cdn_common_pull_params)     if type == 'HTTP_PULL' && $deliveryOn == true
-      data.merge!(common_push_params)         if type == 'HTTP_PUSH'
+      data.merge!(common_push_params)         if type == 'HTTP_PUSH' && $deliveryOn == false
+      data.merge!(cdn_common_push_params)     if type == 'HTTP_PUSH' && $deliveryOn == true
     end
 
     data.merge!(params)

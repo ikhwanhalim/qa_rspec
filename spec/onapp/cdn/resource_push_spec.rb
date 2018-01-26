@@ -1,68 +1,69 @@
-require 'spec_helper'
-require './groups/edge_group_actions'
-require './groups/billing_plan_actions'
-require './groups/cdn_resource_actions'
-require './groups/cdn_server_actions'
+	require 'spec_helper'
+	require './groups/edge_group_actions'
+	require './groups/billing_plan_actions'
+	require './groups/cdn_resource_actions'
+	require './groups/cdn_server_actions'
 
-describe 'HTTP_PUSH ->' do
-  # CDN_SERVER, CDN_SERVER_TYPE, IDENTIFIER
-  before :all do
-    @vma = CdnServerActions.new.precondition
-    @vm = @vma.virtual_machine
-    @template = @vma.template
-    Log.error('ES is not have ACTIVE edge_status') unless @vm.edge_status == 'Active'
+	describe 'HTTP_PUSH ->' do
+	  # CDN_SERVER, CDN_SERVER_TYPE, IDENTIFIER
+	  before :all do
+	    @vma = CdnServerActions.new.precondition
+	    @vm = @vma.virtual_machine
+	    @template = @vma.template
+	    Log.error('ES is not have ACTIVE edge_status') unless @vm.edge_status == 'Active'
 
-    @ss_location = @vm.get_server_location
+	    @ss_location = @vm.get_server_location
 
-    # create edge group and add available http locations
-    @ega = EdgeGroupActions.new.precondition
-    @ega_2 = EdgeGroupActions.new.precondition
+	    # create edge group and add available http locations
+	    @ega = EdgeGroupActions.new.precondition
+	    @ega_2 = EdgeGroupActions.new.precondition
 
-    @ega.get(@ega.edge_group.route_edge_group, {available_locations: 'true'})
-    @locations = []
-    @ega.conn.page.body.edge_group.available_locations.each {|x| @locations <<  x.location.id if x.location.httpSupported}
-    Log.error('No available HTTP locations') if @locations.empty?
-    Log.error('Not enough HTTP Locations') if @locations.size < 2
+	    @ega.get(@ega.edge_group.route_edge_group, {available_locations: 'true'})
+	    @locations = []
+	    @ega.conn.page.body.edge_group.available_locations.each {|x| @locations <<  x.location.id if x.location.httpSupported}
+	    Log.error('No available HTTP locations') if @locations.empty?
+	    Log.error('Not enough HTTP Locations') if @locations.size < 2
 
-    # add locations to the EG
-    @ega.edge_group.manipulation_with_locations(@ega.edge_group.route_manipulation('assign'), { location: @locations[0] })
-    @ega_2.edge_group.manipulation_with_locations(@ega_2.edge_group.route_manipulation('assign'), { location: @locations[1] })
+	    # add locations to the EG
+	    @ega.edge_group.manipulation_with_locations(@ega.edge_group.route_manipulation('assign'), { location: @locations[0] })
+	    @ega_2.edge_group.manipulation_with_locations(@ega_2.edge_group.route_manipulation('assign'), { location: @locations[1] })
 
-    # get version of CP
-    @cp_version = @ega.version
+	    # get version of CP
+	    @cp_version = @ega.version
 
-    # add edge group to billing plan
-    @bpa = BillingPlanActions.new.precondition
-    @eg_limit = @bpa.billing_plan.create_limit_eg_for_current_bp(@bpa.billing_plan.get_current_bp_id, @ega.edge_group.id)
-    @eg_limit_2 = @bpa.billing_plan.create_limit_eg_for_current_bp(@bpa.billing_plan.get_current_bp_id, @ega_2.edge_group.id)
+	    # add edge group to billing plan
+	    @bpa = BillingPlanActions.new.precondition
+	    @eg_limit = @bpa.billing_plan.create_limit_eg_for_current_bp(@bpa.billing_plan.get_current_bp_id, @ega.edge_group.id)
+	    @eg_limit_2 = @bpa.billing_plan.create_limit_eg_for_current_bp(@bpa.billing_plan.get_current_bp_id, @ega_2.edge_group.id)
 
-    #create cdn resource
-    @cra = CdnResourceActions.new.precondition
-    @cr = @cra.cdn_resource
-  end
+	    #create cdn resource
+	    @cra = CdnResourceActions.new.precondition
+	    @cr = @cra.cdn_resource
+	  end
 
-  after :all do
-    unless CdnServerActions::IDENTIFIER
-      @vma.virtual_machine.destroy
-    end
+	  after :all do
+	    unless CdnServerActions::IDENTIFIER
+	      @vma.virtual_machine.destroy
+	    end
 
-    @eg_limit.delete
-    @eg_limit_2.delete
-    @ega.edge_group.remove_edge_group
-    @ega_2.edge_group.remove_edge_group
-  end
+	    @eg_limit.delete
+	    @eg_limit_2.delete
+	    @ega.edge_group.remove_edge_group
+	    @ega_2.edge_group.remove_edge_group
+	  end
 
-  let (:cdn_resource) { @cra.cdn_resource }
+	  let (:cdn_resource) { @cra.cdn_resource }
 
-  context 'create ->' do
-    context 'basic ->' do
-      context 'positive ->'  do
-        context 'default' do
-          it 'is created' do
-            cdn_resource.create_http_resource(type: 'HTTP_PUSH', edge_group_ids: [@ega.edge_group.id])
-            expect(cdn_resource.id).not_to be nil
-            cdn_resource.get
-            expect(cdn_resource.ssl_on).to be false
+	  context 'create ->' do
+	    context 'basic ->' do
+	      context 'positive ->'  do
+		context 'default' do
+		  it 'is created' do
+		    cdn_resource.create_http_resource(type: 'HTTP_PUSH', edge_group_ids: [@ega.edge_group.id])
+		    expect(cdn_resource.id).not_to be nil
+		    cdn_resource.get
+		    expect(cdn_resource.ssl_on).to be false
+                    cdn_resource.cdn_upload_file('filetoupload.txt', "#{cdn_resource.cdn_reference}:dVm823Rt3Gcq55yY8rDg@#{cdn_resource.cdn_reference}.origin.cdntest-jedi.info/test") if $deliveryOn == true
           end
 
           it 'is deleted' do
